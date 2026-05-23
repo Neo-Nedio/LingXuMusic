@@ -1,58 +1,112 @@
 package com.neo.lingxumusic.ui.theme
 
-import android.app.Activity
-import android.os.Build
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.TweenSpec
+import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
+import androidx.activity.compose.LocalActivity
+import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
-import androidx.compose.material3.lightColorScheme
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.material3.MaterialTheme.shapes
+import androidx.compose.material3.MaterialTheme.typography
+import androidx.compose.runtime.*
+import androidx.compose.ui.graphics.toArgb
+import com.neo.lingxumusic.ui.theme.color.AppColors
+import com.neo.lingxumusic.ui.theme.color.palette.dark.DarkColorPalette
+import com.neo.lingxumusic.ui.theme.color.palette.light.BlueColorPalette
+import com.neo.lingxumusic.ui.theme.color.palette.light.DefaultColorPalette
 
-private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
-)
 
-private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
+// 默认主题
+const val THEME_DEFAULT = 0
 
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
-)
+// 蓝色主题
+const val THEME_BLUE = 1
+
+/**
+ * 主题状态
+ */
+val themeTypeState: MutableState<Int> by lazy(mode = LazyThreadSafetyMode.SYNCHRONIZED) {
+    mutableStateOf(THEME_DEFAULT) // 全局主题状态，初始为默认主题
+}
+
+var AppColorsProvider = compositionLocalOf {
+    DefaultColorPalette // 默认值，如果没有提供则使用默认主题
+}
+
+
+const val TWEEN_DURATION = 600
 
 @Composable
-fun LingxumusicTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
+fun AppTheme(
+    themeType: Int,           // 主题类型（0=默认，1=蓝色）
+    isDark: Boolean = isSystemInDarkTheme(),  // 是否深色模式，默认跟随系统
     content: @Composable () -> Unit
 ) {
-    val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
 
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
+    val targetColors = if (isDark) DarkColorPalette else {
+        when (themeType) {
+            THEME_BLUE -> BlueColorPalette    // 蓝色主题（浅色模式）
+            else -> DefaultColorPalette       // 默认主题（浅色模式）
+        }
     }
 
-    MaterialTheme(
-        colorScheme = colorScheme,
-        typography = Typography,
-        content = content
+    //颜色动画
+    val statusBarColor = animateColorAsState(targetColors.statusBarColor, TweenSpec(TWEEN_DURATION))
+    val primary = animateColorAsState(targetColors.primary, TweenSpec(TWEEN_DURATION))
+    val primaryVariant = animateColorAsState(targetColors.primaryVariant, TweenSpec(TWEEN_DURATION))
+    val secondary = animateColorAsState(targetColors.secondary, TweenSpec(TWEEN_DURATION))
+    val background = animateColorAsState(targetColors.background, TweenSpec(TWEEN_DURATION))
+    val firstText = animateColorAsState(targetColors.firstText, TweenSpec(TWEEN_DURATION))
+    val secondText = animateColorAsState(targetColors.secondText, TweenSpec(TWEEN_DURATION))
+    val thirdText = animateColorAsState(targetColors.thirdText, TweenSpec(TWEEN_DURATION))
+    val appBarBackground = animateColorAsState(targetColors.appBarBackground, TweenSpec(TWEEN_DURATION))
+    val appBarContent = animateColorAsState(targetColors.appBarContent, TweenSpec(TWEEN_DURATION))
+    val card = animateColorAsState(targetColors.card, TweenSpec(TWEEN_DURATION))
+
+    //创建 AppColors 对象
+    val appColors = AppColors(
+        statusBar = statusBarColor.value,
+        primary = primary.value,
+        primaryVariant = primaryVariant.value,
+        secondary = secondary.value,
+        background = background.value,
+        firstText = firstText.value,
+        secondText = secondText.value,
+        thirdText = thirdText.value,
+        appBarBackground = appBarBackground.value,
+        appBarContent = appBarContent.value,
+        card = card.value
     )
+
+    //设置状态栏/导航栏颜色
+    val activity = LocalActivity.current
+    val systemBarColor = appColors.statusBarColor.toArgb()
+    SideEffect {
+        (activity as? ComponentActivity)?.enableEdgeToEdge(
+            statusBarStyle = if (isDark) {
+                SystemBarStyle.dark(systemBarColor)
+            } else {
+                SystemBarStyle.light(systemBarColor, systemBarColor)
+            },
+            navigationBarStyle = if (isDark) {
+                SystemBarStyle.dark(systemBarColor)
+            } else {
+                SystemBarStyle.light(systemBarColor, systemBarColor)
+            }
+        )
+    }
+
+    //CompositionLocalProvider：向下传递 appColors 对象
+    //子组件可以通过 AppColorsProvider.current 获取颜色
+    //MaterialTheme 提供 Compose 原生的 Material 主题
+    CompositionLocalProvider(AppColorsProvider provides appColors) {
+        MaterialTheme(
+            shapes = shapes,
+            typography = typography,
+        ) {
+            content()
+        }
+    }
 }
