@@ -19,6 +19,7 @@ class LingxuApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        instance = this
         KVCache.init(this)
     }
 }
