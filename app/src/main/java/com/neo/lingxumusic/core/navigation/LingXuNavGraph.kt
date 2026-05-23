@@ -1,9 +1,17 @@
 package com.neo.lingxumusic.core.navigation
 
 import android.annotation.SuppressLint
+import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import com.neo.lingxumusic.ui.page.home.HomePage
+import com.neo.lingxumusic.ui.page.login.LoginPage
+import com.neo.lingxumusic.ui.page.splash.SplashPage
+import com.neo.lingxumusic.utils.TwoBackFinish
 
 object NavController {
     @SuppressLint("StaticFieldLeak")
@@ -21,9 +29,10 @@ fun LingXuNavGraph(
 
     NavHost(
         navController = navController,
-        startDestination = startDestination
+        startDestination = startDestination,
+        modifier = Modifier.fillMaxSize()
     ) {
-        /*composable(Routes.SPLASH) {
+        composable(Routes.SPLASH) {
             SplashPage()
         }
         composable(Routes.LOGIN) {
@@ -34,6 +43,6 @@ fun LingXuNavGraph(
             BackHandler {
                 TwoBackFinish().execute(onFinish)
             }
-        }*/
+        }
     }
 }
