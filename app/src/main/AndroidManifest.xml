@@ -13,11 +13,11 @@
         android:supportsRtl="true"
         android:name=".core.LingxuApplication"
         android:usesCleartextTraffic="true"
-        android:theme="@style/Theme.Lingxumusic">
+        android:theme="@style/Theme.CustomSplash">  <!--  应用级别主题 -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:theme="@style/Theme.Lingxumusic">
+            android:theme="@style/Theme.CustomSplash">  <!--  应用级别主题 -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

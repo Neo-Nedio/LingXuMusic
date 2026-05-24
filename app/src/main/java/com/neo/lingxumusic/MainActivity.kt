@@ -3,6 +3,7 @@ package com.neo.lingxumusic
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.compose.rememberNavController
 import com.neo.lingxumusic.core.navigation.LingXuNavGraph
 import com.neo.lingxumusic.ui.theme.AppTheme
@@ -15,7 +16,9 @@ import dagger.hilt.android.AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        installSplashScreen()
         super.onCreate(savedInstanceState)
+
         transparentStatusBar()
         setAndroidNativeLightStatusBar()
         setContent {

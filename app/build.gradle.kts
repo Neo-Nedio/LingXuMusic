@@ -86,6 +86,8 @@ dependencies {
 
     // MMKV 缓存
     implementation(libs.mmkv)
+
+    implementation("androidx.core:core-splashscreen:1.2.0")
 }
 
 kapt {
