@@ -33,7 +33,7 @@ val Number.csp
     get() = (toFloat() *
             Resources.getSystem().displayMetrics.widthPixels
             / 750
-            / Resources.getSystem().displayMetrics.scaledDensity).sp
+            / Resources.getSystem().configuration.fontScale).sp
 
 
 /**
