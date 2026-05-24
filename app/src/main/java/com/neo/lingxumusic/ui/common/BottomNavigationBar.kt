@@ -21,10 +21,11 @@ import kotlinx.coroutines.launch
 fun BottomNavigationBar(
     items: List<BottomNavigationItem>,
     pagerState: PagerState,
-    selectedIndex: Int = 0,
     onItemSelected: ((selectedIndex: Int) -> Unit)? = null
 ) {
     val scope = rememberCoroutineScope()
+    val selectedIndex = pagerState.currentPage
+
     NavigationBar(containerColor = AppColorsProvider.current.background) {
         items.forEachIndexed { index, item ->
             NavigationBarItem(
