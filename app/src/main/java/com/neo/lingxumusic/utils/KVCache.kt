@@ -28,15 +28,23 @@ class KVCacheExt<T>(
     ReadWriteProperty<Any?, T> { //Kotlin 标准库接口，实现它就能用 by 委托
 
     private val mmkv by lazy { MMKV.defaultMMKV() }
+    private var cachedValue: T? = null
+    private var hasCache = false
 
     /*
     thisRef：所属对象
     property：属性信息（能拿到属性名）*/
     override fun getValue(thisRef: Any?, property: KProperty<*>): T {
-        return findValue(findKey(property))
+        if (!hasCache) {
+            cachedValue = findValue(findKey(property))
+            hasCache = true
+        }
+        return cachedValue as T
     }
 
     override fun setValue(thisRef: Any?, property: KProperty<*>, value: T) {
+        cachedValue = value
+        hasCache = true
         putValue(findKey(property), value)
     }
 
@@ -79,12 +87,20 @@ class KVCacheParcelableExt<T : Parcelable?>(
 ) : ReadWriteProperty<Any?, T> { //实现委托接口，让这个类可以被 by 关键字使用
 
     private val mmkv by lazy { MMKV.defaultMMKV() }
+    private var cachedValue: T? = null
+    private var hasCache = false
 
     override fun getValue(thisRef: Any?, property: KProperty<*>): T {
-        return mmkv.decodeParcelable(findKey(property), valueRawType) ?: null as T
+        if (!hasCache) {
+            cachedValue = mmkv.decodeParcelable(findKey(property), valueRawType) ?: null as T
+            hasCache = true
+        }
+        return cachedValue as T
     }
 
     override fun setValue(thisRef: Any?, property: KProperty<*>, value: T) {
+        cachedValue = value
+        hasCache = true
         mmkv.encode(findKey(property), value)
     }
 
