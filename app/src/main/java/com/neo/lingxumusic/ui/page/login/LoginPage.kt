@@ -191,7 +191,7 @@ class LoginViewModel @Inject constructor(
 
     fun login(username: String, code: String) {
         if (username.isEmpty()) {
-            showToast("请输入用户名")
+            showToast("请输入手机号")
             return
         }
         if (code.isEmpty()) {
