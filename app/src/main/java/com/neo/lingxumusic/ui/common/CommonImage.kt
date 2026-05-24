@@ -16,6 +16,7 @@ import com.neo.lingxumusic.R
 import com.neo.lingxumusic.ui.theme.AppColorsProvider
 
 @Composable
+// Coil 加载本地资源的图片组件，相比普通的 Image 有更好的性能和缓存支持
 fun CommonNetworkImage(
     url: Any?,
     placeholder: Int = R.drawable.ic_default_place_holder,
