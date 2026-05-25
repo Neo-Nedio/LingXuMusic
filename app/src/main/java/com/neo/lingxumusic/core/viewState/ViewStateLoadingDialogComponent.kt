@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import com.google.gson.JsonElement
 import com.neo.lingxumusic.core.viewState.listener.ComposeLifeCycleListener
 import com.neo.lingxumusic.model.BaseResult
 import com.neo.lingxumusic.utils.showToast
@@ -28,6 +29,7 @@ fun ViewStateLoadingDialogComponent(
     viewStateLiveData: ViewStateMutableLiveData,
     lifeCycleListener: ComposeLifeCycleListener? = null,
     successBlock: ((result: BaseResult) -> Unit)? = null,
+    failBlock: ((data: JsonElement?) -> Unit)? = null,
     contentView: @Composable BoxScope.() -> Unit
 ) {
 
@@ -95,7 +97,8 @@ fun ViewStateLoadingDialogComponent(
             }
             is ViewState.Fail -> {
                 showLoadingDialog = false
-                showToast((viewState as ViewState.Fail).errorMsg.toString())
+                val data = (viewState as ViewState.Fail).errorMsg
+                failBlock?.invoke(data) ?: showToast(data.toString())
             }
             is ViewState.Error -> {
                 showLoadingDialog = false

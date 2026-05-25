@@ -73,5 +73,18 @@ data class LoginData(
     val bookvip_end_time: String,  // 听书VIP结束时间
     val arttoy_avatar: String,     // 艺术玩具头像
     val bc_code: String,           // BC码
-    val m_is_old: Int              // M是否旧版
+    val m_is_old: Int,              // M是否旧版
+
+    // ========== 多用户导致登录失败 ==========
+    val info_list :List<MultiUser>
+) : Parcelable
+
+
+@Parcelize
+data class MultiUser(
+    val nickname: String? = null,
+    val pic: String? = null,
+    val userid: Long = 0,
+    val appid: Int = 0,
+    val username: String? = null
 ) : Parcelable
