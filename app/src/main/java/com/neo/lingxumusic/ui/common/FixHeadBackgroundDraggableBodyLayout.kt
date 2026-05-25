@@ -166,7 +166,118 @@ private class DragToggleNestedScrollConnection(
 │  ┌─────────────────────────────────┐│
 │  │  主体内容（可拖拽偏移）            ││  ← 随拖拽移动
 │  └─────────────────────────────────┘│
-└─────────────────────────────────────┘*/
+└─────────────────────────────────────┘
+
+一、初始化阶段
+FixHeadBackgroundDraggableBodyLayout 启动
+    ↓
+remember { mutableStateOf(1) }  ← backgroundHeight 初始为 1
+    ↓
+计算 openTriggerPx = backgroundHeight × triggerRadio
+计算 maxDrag = backgroundHeight × maxDragRadio
+    ↓
+创建 nestedScrollConnection
+    ↓
+布局渲染
+    ├── Box1（头部背景容器）: onGloballyPositioned 测量高度 → 更新 backgroundHeight
+    │       ↓
+    │   backgroundHeight 更新 → openTriggerPx 和 maxDrag 重新计算
+    │       ↓
+    │   headBackgroundComponent 渲染
+    │
+    └── Box2（主体内容）: offset 初始为 0 → content 渲染
+
+
+
+
+二、用户拖拽流程
+用户手指触摸屏幕并滑动
+    ↓
+LazyColumn 等子组件滚动
+    ↓
+NestedScrollConnection 拦截滚动事件
+    ↓
+┌─────────────────────────────────────────────────────────────┐
+│  onPostScroll（向下滑动） / onPreScroll（向上滑动）          │
+│       ↓                                                     │
+│  检查: enabled ?  source == Drag ?  方向正确 ?              │
+│       ↓ 是                                                 │
+│  调用 onScroll(available)                                  │
+└─────────────────────────────────────────────────────────────┘
+    ↓
+onScroll(available):
+    ├── state.isDraggableInProgress = true  ← 标记正在拖拽
+    ├── newOffset = (available.y × 0.6 + state.offset).coerceAtLeast(0)
+    ├── dragConsumed = newOffset - state.offset
+    └── 如果 |dragConsumed| >= 0.5f:
+            ├── 启动协程: state.dispatchScrollDelta(dragConsumed)
+            │       ↓
+            │   state._offset.snapTo(_offset.value + delta)  ← 立即更新偏移量
+            │
+            └── 返回 Offset(0, dragConsumed / 0.6)
+    ↓
+state.offset 变化 → UI 重组
+    ↓
+Box2（主体内容）的 Modifier.offset 读取新 offset
+    ↓
+主体内容向下移动（向下拖拽）或向上移动（向上拖拽）
+
+
+三、拖拽过程中的状态变化
+拖拽开始
+    ↓
+state.offset 从 0 开始增加
+    ↓
+┌─────────────────────────────────────────────────────────────┐
+│  检查是否超过触发点                                         │
+│                                                             │
+│  if (offset >= openTriggerPx && !state.isOverOpenTrigger()) │
+│      state.dragStatus = OverOpenTrigger                     │
+│      调用 onOverOpenTrigger() 回调                          │
+└─────────────────────────────────────────────────────────────┘
+    ↓
+继续拖拽
+    ↓
+┌─────────────────────────────────────────────────────────────┐
+│  检查是否完全打开                                           │
+│                                                             │
+│  if (!isDraggableInProgress && offset == maxDrag && isOverOpenTrigger())
+│      onOpened() 回调                                        │
+│      state.dragStatus = Opened                              │
+└─────────────────────────────────────────────────────────────┘
+
+四、松手动画流程
+用户抬起手指
+    ↓
+onPreFling 被调用
+    ├── 检查: 超过触发点 ? → 调用 onOverOpenTrigger()
+    ├── state.isDraggableInProgress = false  ← 清除拖拽标记
+    └── 返回 Velocity.Zero（不拦截惯性滚动）
+    ↓
+LaunchedEffect(state.isDraggableInProgress, state.dragStatus) 触发
+    ↓
+检查: !state.isDraggableInProgress ?  ← 不再拖拽中
+    ↓ 是
+when (state.dragStatus) {
+    ┌─────────────────────────────────────────────────────────┐
+    │  Idle           → state.animateOffsetTo(0f)            │
+    │                   ↓                                    │
+    │              弹回顶部，内容回到原位                      │
+    ├─────────────────────────────────────────────────────────┤
+    │  OverOpenTrigger → state.animateOffsetTo(maxDrag)      │
+    │                   ↓                                    │
+    │              动画展开到最大，露出完整头部背景            │
+    │                   ↓                                    │
+    │              dragStatus = Opened                       │
+    ├─────────────────────────────────────────────────────────┤
+    │  Opened         → state.animateOffsetTo(0f)            │
+    │                   ↓                                    │
+    │              收起内容，回到初始状态                      │
+    │                   ↓                                    │
+    │              dragStatus = Idle                         │
+    └─────────────────────────────────────────────────────────┘
+}
+*/
 @Composable
 fun FixHeadBackgroundDraggableBodyLayout(
     state: DragToggleState, //拖拽状态管理器
@@ -216,6 +327,7 @@ fun FixHeadBackgroundDraggableBodyLayout(
     //布局
     Box(modifier.nestedScroll(connection = nestedScrollConnection)) {
         // 头部背景（固定，用于测量高度和显示背景）
+        //offest控制主体区域位置，当主体区域向下时，头部背景更大
         Box(
             Modifier
                 .onGloballyPositioned { //测量头部高度
@@ -226,8 +338,9 @@ fun FixHeadBackgroundDraggableBodyLayout(
                 headBackgroundComponent(state, openTriggerPx, maxDrag)
             }
         }
+        //让主体内容发生偏移
         Box(
-            modifier = Modifier.offset {
+            modifier = Modifier.offset { //offset是偏移量，为0时背景图片也显示
                 IntOffset(0, state.offset.toInt().coerceAtMost(maxDrag.toInt()))
             },
         ) {

@@ -24,7 +24,11 @@ val Number.cdp
     )
 
 val Dp.toPx
-    get() = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, value, Resources.getSystem().displayMetrics)
+    get() = TypedValue.applyDimension(
+        TypedValue.COMPLEX_UNIT_DIP,      // 单位：dp
+               value,                            // dp 值
+               Resources.getSystem().displayMetrics  // 屏幕密度信息
+    )
 
 /**
  * compose屏幕适配单位（字体专用）
