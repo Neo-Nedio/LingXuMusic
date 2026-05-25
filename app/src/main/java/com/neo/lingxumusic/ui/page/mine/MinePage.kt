@@ -39,7 +39,6 @@ import com.neo.lingxumusic.core.AppGlobalData
 import com.neo.lingxumusic.core.viewState.BaseViewStateViewModel
 import com.neo.lingxumusic.core.viewState.ViewStateComponent
 import com.neo.lingxumusic.core.viewState.ViewStateMutableLiveData
-import com.neo.lingxumusic.model.BaseResult
 import com.neo.lingxumusic.model.Playlist
 import com.neo.lingxumusic.model.PlaylistData
 import com.neo.lingxumusic.model.dataAs
@@ -342,7 +341,7 @@ class MineViewModel @Inject constructor(private val api: UserApi) : BaseViewStat
     var collectPlayList: List<Playlist>? by mutableStateOf(null)      // 收藏的歌单
 
     // 请求状态
-    val userPlaylistResult = ViewStateMutableLiveData<BaseResult>()
+    val userPlaylistResult = ViewStateMutableLiveData()
 
     // 获取歌单
     fun getUserPlayList() {

@@ -174,7 +174,7 @@ class LoginViewModel @Inject constructor(
     private val api: LoginApi
 ) : BaseViewStateViewModel() {
 
-    val loginResult = ViewStateMutableLiveData<BaseResult>()
+    val loginResult = ViewStateMutableLiveData()
 
     fun sendCode(phone: String): Boolean {
         if (!phone.isValidPhone()) {

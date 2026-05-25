@@ -11,6 +11,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import com.neo.lingxumusic.core.viewState.listener.ComposeLifeCycleListener
+import com.neo.lingxumusic.model.BaseResult
 import com.neo.lingxumusic.utils.showToast
 
 /**
@@ -22,11 +23,11 @@ import com.neo.lingxumusic.utils.showToast
  */
 //在页面正常显示内容的上面，根据状态自动弹出一个加载对话框
 @Composable
-fun <T> ViewStateLoadingDialogComponent(
+fun ViewStateLoadingDialogComponent(
     modifier: Modifier = Modifier,
-    viewStateLiveData: ViewStateMutableLiveData<T>,
+    viewStateLiveData: ViewStateMutableLiveData,
     lifeCycleListener: ComposeLifeCycleListener? = null,
-    successBlock: ((data: T) -> Unit)? = null,
+    successBlock: ((data: BaseResult) -> Unit)? = null,
     contentView: @Composable BoxScope.() -> Unit
 ) {
 
@@ -84,9 +85,9 @@ fun <T> ViewStateLoadingDialogComponent(
             is ViewState.Loading -> {
                 LoadingDialog(showLoadingDialog)
             }
-            is ViewState.Success<*> -> {
+            is ViewState.Success -> {
                 showLoadingDialog = false
-                val data = (viewState as ViewState.Success<T>).data!!
+                val data = (viewState as ViewState.Success).data
                 successBlock?.invoke(data)
             }
             is ViewState.Empty -> {

@@ -14,6 +14,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import com.google.gson.JsonParseException
 import com.neo.lingxumusic.R
 import com.neo.lingxumusic.core.viewState.listener.ComposeLifeCycleListener
+import com.neo.lingxumusic.model.BaseResult
 import java.net.ConnectException
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
@@ -34,9 +35,9 @@ import java.net.UnknownHostException
  * @param contentView：正常页面内容
  */
 @Composable
-fun <T> ViewStateComponent(
+fun ViewStateComponent(
     modifier: Modifier = Modifier,
-    viewStateLiveData: ViewStateLiveData<T>?,
+    viewStateLiveData: ViewStateLiveData?,
     refreshFlag: Int = 0,
     lifeCycleListener: ComposeLifeCycleListener? = null,
     loadDataBlock: (() -> Unit)? = null,
@@ -46,7 +47,7 @@ fun <T> ViewStateComponent(
     customEmptyComponent: @Composable (() -> Unit)? = null,
     customFailComponent: @Composable ((errorMessage: String?) -> Unit)? = null,
     customErrorComponent: @Composable ((errorMessage: Pair<String, Int>) -> Unit)? = null,
-    contentView: @Composable BoxScope.(data: T) -> Unit
+    contentView: @Composable BoxScope.(data: BaseResult) -> Unit
 ) {
 
     //生命周期监听
@@ -100,7 +101,7 @@ fun <T> ViewStateComponent(
 
     //缓存成功数据
     val successData = remember {
-        mutableStateOf<T?>(null)
+        mutableStateOf<com.neo.lingxumusic.model.BaseResult?>(null)
     }
 
 
@@ -123,7 +124,7 @@ fun <T> ViewStateComponent(
                         )
                     }
                     is ViewState.Success -> {
-                        successData.value = (viewState as ViewState.Success<T>).data!!
+                        successData.value = (viewState as ViewState.Success).data
                         contentView(successData.value!!)
                     }
                     is ViewState.Empty -> {
@@ -173,8 +174,8 @@ fun <T> ViewStateComponent(
             }
 
             // 更新缓存数据
-            if (viewState is ViewState.Success<*>) {
-                successData.value = (viewState as ViewState.Success<T>).data!!
+            if (viewState is ViewState.Success) {
+                successData.value = (viewState as ViewState.Success).data
             }
 
             // 直接显示缓存的数据
