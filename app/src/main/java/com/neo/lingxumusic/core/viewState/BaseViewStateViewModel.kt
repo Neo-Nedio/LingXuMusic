@@ -4,8 +4,10 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.gson.Gson
 import com.neo.lingxumusic.model.BaseResult
 import kotlinx.coroutines.launch
+import retrofit2.HttpException
 
 //类型别名
 typealias ViewStateMutableLiveData = MutableLiveData<ViewState>
@@ -32,11 +34,25 @@ open class BaseViewStateViewModel : ViewModel() {
                         liveData.value = ViewState.Success(result)   // 发 Success，带数据
                     }
                 } else { // 业务失败
-                    liveData.value = ViewState.Fail(result.status.toString(), result.data.toString())
+                    liveData.value = ViewState.Fail(result.status.toString(), result.data)
                 }
             }.onFailure { e -> // 网络异常、解析异常等
-                liveData.value = ViewState.Error(e)
+                liveData.value = e.toViewState()
             }
+        }
+    }
+
+    private fun Throwable.toViewState(): ViewState {
+        if (this !is HttpException) {
+            return ViewState.Error(this)
+        }
+
+        val errorBody = response()?.errorBody()?.string().orEmpty()
+        val result = runCatching { Gson().fromJson(errorBody, BaseResult::class.java) }.getOrNull()
+        return if (result?.data != null) {
+            ViewState.Fail(code().toString(), result.data)
+        } else {
+            ViewState.Error(this)
         }
     }
 }

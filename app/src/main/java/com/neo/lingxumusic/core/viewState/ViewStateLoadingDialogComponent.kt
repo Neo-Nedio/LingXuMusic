@@ -95,7 +95,7 @@ fun ViewStateLoadingDialogComponent(
             }
             is ViewState.Fail -> {
                 showLoadingDialog = false
-                showToast((viewState as ViewState.Fail).errorMsg)
+                showToast((viewState as ViewState.Fail).errorMsg.toString())
             }
             is ViewState.Error -> {
                 showLoadingDialog = false

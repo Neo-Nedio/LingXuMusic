@@ -11,6 +11,7 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import com.google.gson.JsonElement
 import com.google.gson.JsonParseException
 import com.neo.lingxumusic.R
 import com.neo.lingxumusic.core.viewState.listener.ComposeLifeCycleListener
@@ -45,7 +46,7 @@ fun ViewStateComponent(
     viewStateComponentModifier: Modifier = Modifier.fillMaxSize(),
     viewStateContentAlignment: Alignment = Alignment.Center,
     customEmptyComponent: @Composable (() -> Unit)? = null,
-    customFailComponent: @Composable ((errorMessage: String?) -> Unit)? = null,
+    customFailComponent: @Composable ((data: JsonElement?) -> Unit)? = null,
     customErrorComponent: @Composable ((errorMessage: Pair<String, Int>) -> Unit)? = null,
     contentView: @Composable BoxScope.(result: BaseResult) -> Unit
 ) {
@@ -138,9 +139,10 @@ fun ViewStateComponent(
                     }
                     is ViewState.Fail -> {
                         // 优先使用外部自定义的页面，没有就用默认的
-                        customFailComponent?.invoke((viewState as ViewState.Fail).errorMsg) ?: NoSuccessComponent(
+                        val errorMsg = (viewState as ViewState.Fail).errorMsg
+                        customFailComponent?.invoke(errorMsg) ?: NoSuccessComponent(
                             modifier = viewStateComponentModifier,
-                            message = "${(viewState as ViewState.Fail).errorMsg} 点我重试",
+                            message = "${errorMsg.toString()} 点我重试",
                             loadDataBlock = loadDataBlock,
                             specialRetryBlock = specialRetryBlock,
                             contentAlignment = viewStateContentAlignment
