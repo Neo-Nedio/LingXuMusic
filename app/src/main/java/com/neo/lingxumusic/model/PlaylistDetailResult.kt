@@ -2,6 +2,7 @@ package com.neo.lingxumusic.model
 
 import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
+import kotlinx.parcelize.RawValue
 
 // 歌单响应
 @Parcelize
@@ -39,8 +40,8 @@ data class Playlist(
     val pic: String? = null,            // 封面图片URL
 
     // ========== 数量相关 ==========
-    val count: Int = 0,                 // 歌曲数
-    val m_count: Int = 0,               // 歌曲数
+    val count: @RawValue Any = 0,                // 歌曲数
+    val m_count: @RawValue Any = 0,             // 歌曲数
 
     // ========== 来源相关 ==========
     val source: Int = 0,                // ⭐ 1=我创建的歌单，2=我收藏的歌单
@@ -96,7 +97,19 @@ data class Playlist(
     val sound_quality: String? = null,  // 音质
     val is_custom_pic: Int = 0,         // 是否自定义封面
     val list_create_listid: Int = 0     // 创建列表ID
-) : Parcelable
+) : Parcelable {
+
+    fun getCount(): Int = count.toIntValue()
+
+    fun getMCount(): Int = m_count.toIntValue()
+
+    private fun Any?.toIntValue(): Int = when (this) {
+        is Int -> this
+        is Number -> toInt()
+        is String -> toIntOrNull() ?: 0
+        else -> 0
+    }
+}
 
 /**
  * 音乐标签
