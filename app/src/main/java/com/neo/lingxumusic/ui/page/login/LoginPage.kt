@@ -11,8 +11,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import com.google.gson.Gson
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -35,14 +37,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.gson.JsonElement
 import com.neo.lingxumusic.R
 import com.neo.lingxumusic.api.LoginApi
 import com.neo.lingxumusic.core.AppGlobalData
 import com.neo.lingxumusic.core.viewState.ViewStateLoadingDialogComponent
 import com.neo.lingxumusic.core.viewState.BaseViewStateViewModel
 import com.neo.lingxumusic.core.viewState.ViewStateMutableLiveData
-import com.neo.lingxumusic.model.BaseResult
 import com.neo.lingxumusic.model.LoginData
+import com.neo.lingxumusic.model.MultiUser
 import com.neo.lingxumusic.model.dataAs
 import com.neo.lingxumusic.ui.theme.AppColorsProvider
 import com.neo.lingxumusic.utils.showToast
@@ -58,6 +61,7 @@ fun LoginPage() {
     var phone by remember { mutableStateOf("") }
     var code by remember { mutableStateOf("") }
     var codeCountdown by remember { mutableStateOf(0) }
+    var multiUsers by remember { mutableStateOf<List<MultiUser>?>(null) }
 
     //开启协程，codeCountdown 为key，每次变化后都重新执行
     LaunchedEffect(codeCountdown) {
@@ -76,6 +80,9 @@ fun LoginPage() {
         successBlock = {
             NavController.instance.popBackStack()
             NavController.instance.navigate(Routes.HOME)
+        },
+        failBlock = { data ->
+            multiUsers = data.toMultiUsers()
         }
     ) {
         Column(
@@ -152,6 +159,16 @@ fun LoginPage() {
             }
         }
     }
+
+    //监听multiUsers，当multiUsers存在是弹出弹窗
+    MultiUserDialog(
+        users = multiUsers,
+        onDismiss = { multiUsers = null },
+        onUserClick = { user ->
+            multiUsers = null
+            viewModel.login(phone, code, user.userid.toString())
+        }
+    )
 }
 
 @Composable
@@ -191,7 +208,7 @@ class LoginViewModel @Inject constructor(
         return true
     }
 
-    fun login(username: String, code: String) {
+    fun login(username: String, code: String, userId: String? = null) {
         if (username.isEmpty()) {
             showToast("请输入手机号")
             return
@@ -202,7 +219,7 @@ class LoginViewModel @Inject constructor(
         }
 
         launch(loginResult) {
-            val result = api.login(username, code,null)
+            val result = api.login(username, code, userId)
             AppGlobalData.sLoginData = result.dataAs<LoginData>()
             result
         }
@@ -211,4 +228,39 @@ class LoginViewModel @Inject constructor(
 
 private fun String.isValidPhone(): Boolean {
     return matches(Regex("^1[3-9]\\d{9}$"))
+}
+
+//取出用户
+private fun JsonElement?.toMultiUsers(): List<MultiUser> {
+    return this?.let {
+        runCatching {
+            val infoList = it.asJsonObject.get("info_list")
+            Gson().fromJson(infoList, Array<MultiUser>::class.java).toList()
+        }.getOrNull()
+    }.orEmpty()
+}
+
+@Composable
+private fun MultiUserDialog(
+    users: List<MultiUser>?,
+    onDismiss: () -> Unit,
+    onUserClick: (MultiUser) -> Unit
+) {
+    if (users.isNullOrEmpty()) return
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(text = "请选择登录账号", fontSize = 18.sp)
+        },
+        text = {
+            MultiUserColumn(
+                users = users,
+                modifier = Modifier.fillMaxWidth(),
+                onUserClick = onUserClick
+            )
+        },
+        confirmButton = {},
+        dismissButton = {}
+    )
 }
