@@ -27,7 +27,7 @@ fun ViewStateLoadingDialogComponent(
     modifier: Modifier = Modifier,
     viewStateLiveData: ViewStateMutableLiveData,
     lifeCycleListener: ComposeLifeCycleListener? = null,
-    successBlock: ((data: BaseResult) -> Unit)? = null,
+    successBlock: ((result: BaseResult) -> Unit)? = null,
     contentView: @Composable BoxScope.() -> Unit
 ) {
 
@@ -87,8 +87,8 @@ fun ViewStateLoadingDialogComponent(
             }
             is ViewState.Success -> {
                 showLoadingDialog = false
-                val data = (viewState as ViewState.Success).data
-                successBlock?.invoke(data)
+                val result = (viewState as ViewState.Success).result
+                successBlock?.invoke(result)
             }
             is ViewState.Empty -> {
                 showLoadingDialog = false

@@ -47,7 +47,7 @@ fun ViewStateComponent(
     customEmptyComponent: @Composable (() -> Unit)? = null,
     customFailComponent: @Composable ((errorMessage: String?) -> Unit)? = null,
     customErrorComponent: @Composable ((errorMessage: Pair<String, Int>) -> Unit)? = null,
-    contentView: @Composable BoxScope.(data: BaseResult) -> Unit
+    contentView: @Composable BoxScope.(result: BaseResult) -> Unit
 ) {
 
     //生命周期监听
@@ -99,9 +99,9 @@ fun ViewStateComponent(
         }
     }
 
-    //缓存成功数据
-    val successData = remember {
-        mutableStateOf<com.neo.lingxumusic.model.BaseResult?>(null)
+    //缓存成功结果
+    val successResult = remember {
+        mutableStateOf<BaseResult?>(null)
     }
 
 
@@ -124,8 +124,8 @@ fun ViewStateComponent(
                         )
                     }
                     is ViewState.Success -> {
-                        successData.value = (viewState as ViewState.Success).data
-                        contentView(successData.value!!)
+                        successResult.value = (viewState as ViewState.Success).result
+                        contentView(successResult.value!!)
                     }
                     is ViewState.Empty -> {
                         // 优先使用外部自定义的页面，没有就用默认的
@@ -175,11 +175,11 @@ fun ViewStateComponent(
 
             // 更新缓存数据
             if (viewState is ViewState.Success) {
-                successData.value = (viewState as ViewState.Success).data
+                successResult.value = (viewState as ViewState.Success).result
             }
 
-            // 直接显示缓存的数据
-            successData.value?.let {
+            // 直接显示缓存的结果
+            successResult.value?.let {
                 Box(
                     modifier = modifier.fillMaxWidth(),
                     contentAlignment = Alignment.Center
