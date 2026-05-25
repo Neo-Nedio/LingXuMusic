@@ -63,7 +63,7 @@ fun UserInfoComponent(modifier: Modifier = Modifier) {
         }
 
         CommonNetworkImage(
-            url = AppGlobalData.sLoginResult.data?.pic,
+            url = AppGlobalData.sLoginData?.pic,
             placeholder = R.drawable.ic_default_avator,
             error = R.drawable.ic_default_avator,
             modifier =  Modifier.size(120.cdp)

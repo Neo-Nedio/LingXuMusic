@@ -41,7 +41,9 @@ import com.neo.lingxumusic.core.AppGlobalData
 import com.neo.lingxumusic.core.viewState.ViewStateLoadingDialogComponent
 import com.neo.lingxumusic.core.viewState.BaseViewStateViewModel
 import com.neo.lingxumusic.core.viewState.ViewStateMutableLiveData
-import com.neo.lingxumusic.model.LoginResult
+import com.neo.lingxumusic.model.BaseResult
+import com.neo.lingxumusic.model.LoginData
+import com.neo.lingxumusic.model.dataAs
 import com.neo.lingxumusic.ui.theme.AppColorsProvider
 import com.neo.lingxumusic.utils.showToast
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -172,7 +174,7 @@ class LoginViewModel @Inject constructor(
     private val api: LoginApi
 ) : BaseViewStateViewModel() {
 
-    val loginResult = ViewStateMutableLiveData<LoginResult>()
+    val loginResult = ViewStateMutableLiveData<BaseResult>()
 
     fun sendCode(phone: String): Boolean {
         if (!phone.isValidPhone()) {
@@ -201,7 +203,7 @@ class LoginViewModel @Inject constructor(
 
         launch(loginResult) {
             val result = api.login(username, code,null)
-            AppGlobalData.sLoginResult = result
+            AppGlobalData.sLoginData = result.dataAs<LoginData>()
             result
         }
     }

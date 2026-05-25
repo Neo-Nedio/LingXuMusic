@@ -2,7 +2,6 @@ package com.neo.lingxumusic.api
 
 import com.neo.lingxumusic.model.AuthData
 import com.neo.lingxumusic.model.BaseResult
-import com.neo.lingxumusic.model.LoginResult
 import retrofit2.http.GET
 import retrofit2.http.Query
 
@@ -18,13 +17,13 @@ interface LoginApi {
         @Query("mobile") phone: String,
         @Query("code") code: String,
         @Query("userid") userid : String?
-    ): LoginResult
+    ): BaseResult
 
     @GET("/login/token")
     suspend fun refreshToken(
         @Query("token") token: String,
         @Query("userid") userid : String
-    ): LoginResult
+    ): BaseResult
 
     @GET("/register/dev")
     suspend fun AuthData(

@@ -9,7 +9,7 @@ import kotlin.reflect.KProperty
 inline fun <reified R, reified T> R.kvCache(defaultValue: T) =
     KVCacheExt("", defaultValue, T::class.java)
 
-inline fun <reified R, reified T : Parcelable?> R.kvCacheParcelable(defaultValueRawType: Class<T>) =
+inline fun <reified R, reified T : Parcelable> R.kvCacheParcelable(defaultValueRawType: Class<T>): KVCacheParcelableExt<T?> =
     KVCacheParcelableExt("", defaultValueRawType)
 
 object KVCache {
@@ -83,7 +83,7 @@ class KVCacheExt<T>(
 
 class KVCacheParcelableExt<T : Parcelable?>(
     private val key: String,
-    private val valueRawType: Class<T>
+    private val valueRawType: Class<out Parcelable>
 ) : ReadWriteProperty<Any?, T> { //实现委托接口，让这个类可以被 by 关键字使用
 
     private val mmkv by lazy { MMKV.defaultMMKV() }
@@ -92,7 +92,7 @@ class KVCacheParcelableExt<T : Parcelable?>(
 
     override fun getValue(thisRef: Any?, property: KProperty<*>): T {
         if (!hasCache) {
-            cachedValue = mmkv.decodeParcelable(findKey(property), valueRawType) ?: null as T
+            cachedValue = mmkv.decodeParcelable(findKey(property), valueRawType) as T
             hasCache = true
         }
         return cachedValue as T

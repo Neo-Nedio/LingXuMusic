@@ -5,14 +5,6 @@ import kotlinx.parcelize.Parcelize
 
 
 /**
- * 发送验证码响应
- */
-@Parcelize
-class AuthResult(
-    val data: AuthData? = null
-) : BaseResult(), Parcelable
-
-/**
  * 发送验证码数据
  */
 @Parcelize

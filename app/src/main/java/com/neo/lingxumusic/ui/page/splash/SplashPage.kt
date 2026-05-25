@@ -105,7 +105,7 @@ fun SplashPage() {
                     NavController.instance.popBackStack()
                     NavController.instance.navigate(
                         //这个if有意义，ide判断有问题
-                        if (AppGlobalData.sLoginResult == null) Routes.LOGIN else Routes.HOME)
+                        if (AppGlobalData.sLoginData == null) Routes.LOGIN else Routes.HOME)
                 },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = buttonColor

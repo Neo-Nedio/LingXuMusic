@@ -4,15 +4,6 @@ import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
 
 /**
- * 登录响应
- * @param data 用户登录数据
- */
-@Parcelize
-class LoginResult(
-    val data: LoginData? = null
-) : BaseResult(), Parcelable
-
-/**
  * 登录数据（用户信息）
  */
 @Parcelize

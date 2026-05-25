@@ -4,12 +4,6 @@ import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
 import kotlinx.parcelize.RawValue
 
-// 歌单响应
-@Parcelize
-class PlaylistResult(
-    val data: PlaylistData? = null
-) : BaseResult(), Parcelable
-
 // 歌单数据
 @Parcelize
 data class PlaylistData(
