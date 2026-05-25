@@ -37,7 +37,7 @@ fun UserPlaylistItem(platListItem: Playlist?) {
         platListItem?.let {
             // 左侧：歌单封面图
             CommonNetworkImage(
-                url = it.pic,
+                url = it.pic?.replaceSize(),
                 modifier = Modifier
                     .padding(end = 10.dp)
                     .size(50.dp)
@@ -77,4 +77,9 @@ fun UserPlaylistItem(platListItem: Playlist?) {
             )
         }
     }
+}
+
+// url定义替换函数
+fun String.replaceSize(size: Int = 480): String {
+    return replace("{size}", size.toString())
 }
