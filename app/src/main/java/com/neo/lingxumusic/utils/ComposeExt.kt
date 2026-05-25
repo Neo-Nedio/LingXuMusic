@@ -34,10 +34,7 @@ val Dp.toPx
  * compose屏幕适配单位（字体专用）
  */
 val Number.csp
-    get() = (toFloat() *
-            Resources.getSystem().displayMetrics.widthPixels
-            / 750
-            / Resources.getSystem().configuration.fontScale).sp
+    get() = (toFloat() * screenWidthDp / designWidth).sp
 
 
 /**

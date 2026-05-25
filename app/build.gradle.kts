@@ -79,6 +79,7 @@ dependencies {
 
     // 图片加载
     implementation(libs.coil.compose)
+    implementation(libs.coil.network.okhttp)
 
     // Retrofit 网络
     implementation(libs.retrofit)

@@ -1,6 +1,7 @@
 package com.neo.lingxumusic.hilt
 
 import android.util.Log
+import com.neo.lingxumusic.core.AppGlobalData
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -37,6 +38,18 @@ object RetrofitClient {
             writeTimeout(30, TimeUnit.SECONDS)   // 写入超时 30秒
             readTimeout(30, TimeUnit.SECONDS)    // 读取超时 30秒
             connectTimeout(30, TimeUnit.SECONDS) // 连接超时 30秒
+            addInterceptor { chain ->
+                val token = AppGlobalData.token
+                val userId = AppGlobalData.userId
+                val request = if (token.isNotEmpty()) {
+                    chain.request().newBuilder()
+                        .header("Authorization", "token=$token;userid=$userId")
+                        .build()
+                } else {
+                    chain.request()
+                }
+                chain.proceed(request)
+            }
             addInterceptor(loggingInterceptor)   // 添加日志拦截器
         }
 
