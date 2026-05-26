@@ -51,6 +51,7 @@ import com.neo.lingxumusic.utils.cdp
 import com.neo.lingxumusic.utils.csp
 import com.neo.lingxumusic.utils.toPx
 import com.neo.lingxumusic.utils.replaceSize
+import com.neo.lingxumusic.utils.showToast
 import com.neo.lingxumusic.viewmodel.mine.PlayListViewModel
 
 @Composable
@@ -284,13 +285,19 @@ private fun Body(playlist: PlaylistBrief) {
             PlayListHeader(detail?.count ?: playlist.count)
             HorizontalDivider(Modifier.fillMaxWidth(), thickness = 1.cdp, color = Color.LightGray)
             songs.forEachIndexed { index, item ->
-                // todo 应该先判断歌曲是否下架
                 SongItem(index, item){
-                    MusicPlayController.songList.clear()
-                    MusicPlayController.songList.addAll(viewModel.songList)
-                    MusicPlayController.curIndex = index
-                    showPlayMusicPage = true
-                    MusicPlayController.play()
+                    if(viewModel.songList[index].hash.isNullOrEmpty()){
+                        showToast("该歌曲暂不支持播放")
+                    }else{
+                        MusicPlayController.songList.clear()
+                        //通过这个函数过滤所有无法播放的歌曲
+                        MusicPlayController.setSongListAndIndex(
+                            viewModel.songList,
+                            viewModel.songList[index].hash
+                        )
+                        showPlayMusicPage = true
+                        MusicPlayController.play()
+                    }
                 }
             }
         }
