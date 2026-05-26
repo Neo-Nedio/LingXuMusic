@@ -17,6 +17,9 @@ class AppColors(
     firstText: Color,      // 主要文字颜色（标题）
     secondText: Color,     // 次要文字颜色（正文）
     thirdText: Color,      // 辅助文字颜色（提示）
+    firstIcon: Color,
+    secondIcon: Color,
+    thirdIcon: Color,
     appBarBackground: Color, // AppBar 背景色
     appBarContent: Color,    // AppBar 内容颜色（标题、图标）
     card: Color            // 卡片背景色
@@ -38,6 +41,12 @@ class AppColors(
     var secondText: Color by mutableStateOf(secondText)
         private set
     var thirdText: Color by mutableStateOf(thirdText)
+        private set
+    var firstIcon: Color by mutableStateOf(firstIcon)
+        private set
+    var secondIcon: Color by mutableStateOf(secondIcon)
+        private set
+    var thirdIcon: Color by mutableStateOf(thirdIcon)
         private set
     var appBarBackground: Color by mutableStateOf(appBarBackground)
         private set
