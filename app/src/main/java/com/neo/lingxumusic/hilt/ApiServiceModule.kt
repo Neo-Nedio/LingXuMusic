@@ -1,6 +1,7 @@
 package com.neo.lingxumusic.hilt
 
 import com.neo.lingxumusic.api.LoginApi
+import com.neo.lingxumusic.api.SongApi
 import com.neo.lingxumusic.api.UserApi
 import com.neo.lingxumusic.core.AppConfig
 import dagger.Module
@@ -27,5 +28,13 @@ object ApiServiceModule {
         @RetrofitClient.KuGouRetrofitClient retrofit: LibCoroutineNetwork
     ): UserApi {
         return retrofit.setBaseUrl(AppConfig.BASE_URL).create(UserApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideSongApi(
+        @RetrofitClient.KuGouRetrofitClient retrofit: LibCoroutineNetwork
+    ): SongApi {
+        return retrofit.setBaseUrl(AppConfig.BASE_URL).create(SongApi::class.java)
     }
 }
