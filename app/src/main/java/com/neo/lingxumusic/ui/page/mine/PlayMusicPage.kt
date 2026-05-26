@@ -11,6 +11,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
@@ -38,10 +39,10 @@ import com.neo.lingxumusic.model.Song
 import com.neo.lingxumusic.ui.common.CommonNetworkImage
 import com.neo.lingxumusic.ui.common.CommonTopAppBar
 import com.neo.lingxumusic.ui.theme.AppColorsProvider
+import com.neo.lingxumusic.utils.StringUtil
 import com.neo.lingxumusic.utils.cdp
 import com.neo.lingxumusic.utils.csp
 import com.neo.lingxumusic.utils.replaceSize
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.max
 
@@ -108,11 +109,18 @@ fun PlayMusicContent() {
         Column(modifier = Modifier.fillMaxSize()) {
             //顶部导航栏
             CommonTopAppBar(
+                //todo 自定义一个组件，当文本过长时显示走马灯效果，从右往左轮播，文本不超出时用text
                 customTitleLayout = {
-                    Column(Modifier.fillMaxSize()) {
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Top
+                    ) {
+                        val name = curSong.name.orEmpty()
+                        val (singer, songName) = StringUtil.parseSongName(name)
                         // 歌名
                         Text(
-                            text = curSong.name.orEmpty(),
+                            text = songName,
                             fontSize = 36.csp,
                             fontWeight = FontWeight.Medium,
                             textAlign = TextAlign.Center,
@@ -121,9 +129,9 @@ fun PlayMusicContent() {
                             overflow = TextOverflow.Ellipsis,
                             modifier = Modifier.fillMaxWidth()
                         )
-                        // 专辑名
+                        //歌手名
                         Text(
-                            text = curSong.albuminfo?.name.orEmpty(),
+                            text = singer,
                             fontSize = 24.csp,
                             fontWeight = FontWeight.Medium,
                             textAlign = TextAlign.Center,
@@ -132,13 +140,16 @@ fun PlayMusicContent() {
                             overflow = TextOverflow.Ellipsis,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(top = 4.cdp)
                         )
                     }
 
                 },
                 //todo 图片太小，箭头显示不明显
                 leftIconResId = R.drawable.ic_arrow_down,
+                appBarHeight = 120.cdp,
+                customRightLayout = { //右侧有占位组件，这样让文字水平居中
+                    Spacer(modifier = Modifier.size(88.cdp))
+                },
                 leftClick = {
                     showPlayMusicPage = false
                 },

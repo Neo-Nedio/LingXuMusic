@@ -37,6 +37,7 @@ fun CommonTopAppBar(
     modifier: Modifier = Modifier,
     title: String = "",
     customTitleLayout: (@Composable () -> Unit)? = null,
+    appBarHeight: Dp = 88.cdp,
     backgroundColor: Color = AppColorsProvider.current.appBarBackground,
     contentColor: Color = AppColorsProvider.current.appBarContent,
     leftIconResId: Int = R.drawable.ic_back,
@@ -52,7 +53,7 @@ fun CommonTopAppBar(
         TopAppBar(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(88.cdp) // 高度 88（按屏幕比例适配）
+                .height(appBarHeight) // 高度（按屏幕比例适配）
                 .zIndex(1f),  // 层级为 1，确保在其他内容之上
             colors = TopAppBarDefaults.topAppBarColors(
                 containerColor = backgroundColor,           // 导航栏背景色
