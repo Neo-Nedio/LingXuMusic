@@ -1,4 +1,4 @@
-package com.neo.lingxumusic.ui.page.login
+package com.neo.lingxumusic.ui.page.login.component
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border

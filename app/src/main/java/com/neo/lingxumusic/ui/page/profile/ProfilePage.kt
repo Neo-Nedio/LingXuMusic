@@ -12,8 +12,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import com.neo.lingxumusic.R
-import com.neo.lingxumusic.ui.page.mine.BgImageShapes
-import com.neo.lingxumusic.ui.page.mine.UserInfoComponent
+import com.neo.lingxumusic.ui.common.CommonHeadBackgroundShape
+import com.neo.lingxumusic.ui.page.mine.component.UserInfoComponent
 import com.neo.lingxumusic.ui.page.mine.mineCommonCard
 import com.neo.lingxumusic.ui.theme.AppColorsProvider
 import com.neo.lingxumusic.utils.cdp
@@ -36,7 +36,7 @@ fun ProfilePage() {
             modifier = Modifier
                 .fillMaxWidth()
                 .height(584.cdp)
-                .clip(BgImageShapes()) // 底部弧形裁剪
+                .clip(CommonHeadBackgroundShape()) // 底部弧形裁剪
         )
 
 

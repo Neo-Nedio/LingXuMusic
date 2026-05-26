@@ -1,4 +1,4 @@
-package com.neo.lingxumusic.ui.page.mine
+package com.neo.lingxumusic.ui.page.mine.component
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*

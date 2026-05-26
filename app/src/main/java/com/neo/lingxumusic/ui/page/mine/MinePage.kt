@@ -55,6 +55,7 @@ import com.neo.lingxumusic.core.navigation.NavController
 import com.neo.lingxumusic.core.navigation.Routes
 import com.neo.lingxumusic.core.viewState.ViewStateComponent
 import com.neo.lingxumusic.model.Playlist
+import com.neo.lingxumusic.ui.common.CommonHeadBackgroundShape
 import com.neo.lingxumusic.ui.common.CommonNetworkImage
 import com.neo.lingxumusic.ui.common.CommonTabLayout
 import com.neo.lingxumusic.ui.common.CommonTabLayoutStyle
@@ -62,6 +63,9 @@ import com.neo.lingxumusic.ui.common.CommonTopAppBar
 import com.neo.lingxumusic.ui.common.DragStatus
 import com.neo.lingxumusic.ui.common.FixHeadBackgroundDraggableBodyLayout
 import com.neo.lingxumusic.ui.common.rememberDragToggleState
+import com.neo.lingxumusic.ui.page.mine.component.MusicApplicationComponent
+import com.neo.lingxumusic.ui.page.mine.component.UserInfoComponent
+import com.neo.lingxumusic.ui.page.mine.component.UserPlaylistItem
 import com.neo.lingxumusic.ui.theme.AppColorsProvider
 import com.neo.lingxumusic.utils.cdp
 import com.neo.lingxumusic.utils.csp
@@ -435,7 +439,7 @@ private fun HeaderBackground(alphaValue: Float) {
         modifier = Modifier
             .fillMaxWidth()          // 宽度占满父容器
             .height(280.dp)          // 固定高度 280dp
-            .clip(BgImageShapes())   // 底部弧形裁剪
+            .clip(CommonHeadBackgroundShape())   // 底部弧形裁剪
             .graphicsLayer {
                 alpha = alphaValue  // 透明度
             }

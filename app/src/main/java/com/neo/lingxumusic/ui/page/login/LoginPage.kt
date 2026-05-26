@@ -52,6 +52,8 @@ import com.neo.lingxumusic.utils.showToast
 import dagger.hilt.android.lifecycle.HiltViewModel
 import com.neo.lingxumusic.core.navigation.NavController
 import com.neo.lingxumusic.core.navigation.Routes
+import com.neo.lingxumusic.ui.page.login.component.MultiUserColumn
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -66,7 +68,7 @@ fun LoginPage() {
     //开启协程，codeCountdown 为key，每次变化后都重新执行
     LaunchedEffect(codeCountdown) {
         if (codeCountdown > 0) {
-            kotlinx.coroutines.delay(1000) //非阻塞延迟，不卡 UI 线程
+            delay(1000) //非阻塞延迟，不卡 UI 线程
             codeCountdown-- //触发新值，再次进入 LaunchedEffect
         }
     }
