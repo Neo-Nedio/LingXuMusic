@@ -72,23 +72,3 @@ data class PlaylistDetail(
     val per_count: Int = 0,                 // 权限计数
     val sort: Int = 0                       // 排序
 ) : Parcelable
-
-/**
- * 音乐标签
- * 对应 JSON 中 musiclib_tags 数组内的对象
- */
-@Parcelize
-data class MusicTag(
-    val tag_id: Int = 0,        // 标签 ID
-    val parent_id: Int = 0,     // 父级标签 ID
-    val tag_name: String? = null // 标签名称（如 "ACG"、"国语"）
-) : Parcelable
-
-/**
- * 转换参数
- * 对应 JSON 中 trans_param 对象
- */
-@Parcelize
-data class TransParam(
-    val iden: Int = 0           // 标识
-) : Parcelable
