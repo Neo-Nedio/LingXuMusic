@@ -227,7 +227,7 @@ private fun DiskPager(pagerState: PagerState) {
         }
     }
 
-    LaunchedEffect(pagerState.currentPage) {
+    LaunchedEffect(pagerState.settledPage) {
         if (MusicPlayController.curIndex != pagerState.settledPage) {
             MusicPlayController.play() // 开始播放新歌曲
             sheetNeedleUp = false // 唱针落下
