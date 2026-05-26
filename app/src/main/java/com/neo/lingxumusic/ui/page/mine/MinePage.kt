@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -16,6 +17,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -61,11 +63,11 @@ import javax.inject.Inject
 @Composable
 fun MinePage() {
     val viewModel: MineViewModel = hiltViewModel()
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(AppColorsProvider.current.background)
-    ) {
+    var alphaValue by remember {
+        mutableFloatStateOf(1f)
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
         // 1. 数据加载区域（会切换 Loading / 内容 / 错误 页面）
         ViewStateComponent(
             viewStateLiveData = viewModel.userPlaylistResult,
@@ -79,8 +81,8 @@ fun MinePage() {
 
                 FixHeadBackgroundDraggableBodyLayout(
                     state = dragToggleState,
-                    triggerRadio = 0.38f, //触发阈值比例（0-1）
-                    maxDragRadio = 0.643f, //最大拖拽距离比例（0-1）
+                    triggerRadio = 0.32f, //触发阈值比例（0-1）
+                    maxDragRadio = 0.54f, //最大拖拽距离比例（0-1）
                     modifier = Modifier.background(Color(0xFFEEEEEE)),
                     onOverOpenTrigger = { // 超过触发点回调
                         dragStatus = DragStatus.OverOpenTrigger
@@ -88,14 +90,17 @@ fun MinePage() {
                     onOpened = { // 完全打开回调
                         dragStatus = DragStatus.Opened
                     },
-                    headBackgroundComponent = { state, trigger, maxDrag -> // 头部背景组件
-                        var alpha = state.offset / maxDrag
-                        if (alpha > 1f) {
-                            alpha = 1f
+                    headBackgroundComponent = { state, _ , maxDrag -> // 头部背景组件
+                        if(state.offset >= 0) {
+                            var alpha = state.offset / maxDrag
+                            if (alpha > 1f) {
+                                alpha = 1f
+                            }
+                            alphaValue = alpha
                         }
-                        HeaderBackground(alpha)
+                        HeaderBackground(alphaValue)
                     }) {
-                    Body(dragToggleState)  // 主体内容
+                    Body(dragToggleState, 1 - alphaValue)  // 主体内容
                 }
             }
         }
@@ -103,6 +108,7 @@ fun MinePage() {
         // 2. 顶部导航栏（覆盖在上面，始终显示）
         CommonTopAppBar(
             modifier = Modifier.statusBarsPadding(),
+            backgroundColor = Color.Transparent,
             leftIconResId = R.drawable.ic_drawer_toggle,
             leftClick = { }, //todo
             rightIconResId = R.drawable.ic_search
@@ -160,7 +166,7 @@ var animateScrolling = false
 │                 │
 └─────────────────┘*/
 @Composable
-private fun Body(dragToggleState: DragToggleState) {
+private fun Body(dragToggleState: DragToggleState, alphaValue: Float) {
     val scrollState = rememberLazyListState()           // 滚动状态
     val coroutineScope = rememberCoroutineScope()       // 协程作用域
     val offsetY = remember { -88.cdp.toPx.toInt() }     // 滚动偏移量（负值）
@@ -175,20 +181,24 @@ private fun Body(dragToggleState: DragToggleState) {
 
     LazyColumn(
         modifier = Modifier
-            .statusBarsPadding()      // 避开状态栏
-            .padding(top = 88.cdp)    // 顶部留 88dp，给 TopAppBar 腾空间
-            .fillMaxSize(),           // 填满整个屏幕
+            .fillMaxSize()
+            .background(if(alphaValue == 1f) AppColorsProvider.current.background else Color.Transparent),
         state = scrollState,          // 绑定滚动状态
     ) {
         // 用户信息
         item {
-            UserInfoComponent()
+            UserInfoComponent(
+                modifier = Modifier
+                    .statusBarsPadding() // 避开状态栏
+                    .padding(top = 88.cdp)
+            )
         }
 
         // 音乐应用
         item {
             Box(
                 modifier = Modifier
+                    .graphicsLayer { alpha = alphaValue }
                     .mineCommonCard()      // 卡片样式
                     .height(300.cdp),      // 高度 300dp
                 contentAlignment = Alignment.Center
@@ -201,6 +211,7 @@ private fun Body(dragToggleState: DragToggleState) {
         item {
             Box(
                 modifier = Modifier
+                    .graphicsLayer { alpha = alphaValue }
                     .mineCommonCard(),
                 contentAlignment = Alignment.Center
             ) {
@@ -212,7 +223,11 @@ private fun Body(dragToggleState: DragToggleState) {
         stickyHeader {
             CommonTabLayout(
                 tabTexts = tabs, // ["创建歌单", "收藏歌单", "歌单助手"]
-                style = CommonTabLayoutStyle(isScrollable = false),
+                style = CommonTabLayoutStyle(isScrollable = false,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(88.cdp)
+                        .graphicsLayer { alpha = alphaValue }),
                 selectedIndex = selectedTabIndex.value // 当前选中的 Tab
             ) { index ->
                 selectedTabIndex.value = index                    // 1. 更新选中状态
@@ -229,6 +244,9 @@ private fun Body(dragToggleState: DragToggleState) {
         //创建歌单列表
         item {
             UserPlaylistComponent(
+                modifier = Modifier.graphicsLayer {
+                    alpha = alphaValue
+                },
                 list = viewModel.selfCreatePlayList,
                 title = "创建歌单",
                 itemPosition = 5,
@@ -239,6 +257,9 @@ private fun Body(dragToggleState: DragToggleState) {
         //收藏歌单列表
         item {
             UserPlaylistComponent(
+                modifier = Modifier.graphicsLayer {
+                    alpha = alphaValue
+                },
                 list = viewModel.collectPlayList,
                 title = "收藏歌单",
                 itemPosition = 6,
@@ -273,11 +294,12 @@ private fun Body(dragToggleState: DragToggleState) {
 
 // 歌单列表组件
 @Composable
-fun UserPlaylistComponent(modifier: Modifier = Modifier,
-                          list: List<Playlist>?,           // 歌单列表
-                          title: String,                    // 标题（如"创建歌单"）
-                          itemPosition: Int,                // 在 LazyColumn 中的位置索引
-                          selectedTabIndex: MutableState<Int>,  // 当前选中的 Tab 索引
+fun UserPlaylistComponent(
+    modifier: Modifier = Modifier,
+    list: List<Playlist>?,           // 歌单列表
+    title: String,                    // 标题（如"创建歌单"）
+    itemPosition: Int,                // 在 LazyColumn 中的位置索引
+    selectedTabIndex: MutableState<Int>,  // 当前选中的 Tab 索引
 ) {
     // 粘性头部高度 = TopAppBar(88) + 间距(12)
     val stickyHeight = remember {
