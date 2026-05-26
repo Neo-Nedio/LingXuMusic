@@ -17,13 +17,15 @@ import com.neo.lingxumusic.utils.csp
 import com.neo.lingxumusic.R
 import com.neo.lingxumusic.ui.common.CommonNetworkImage
 import com.neo.lingxumusic.utils.replaceSize
+import com.neo.lingxumusic.utils.StringUtil
 
 @Composable
-fun SongItem(index: Int, song: Song) {
+fun SongItem(index: Int, song: Song,onClick: (index: Int) -> Unit) {
     Row(
         Modifier
             .fillMaxWidth()
-            .clickable { //todo
+            .clickable {
+                onClick.invoke(index)
             },
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(16.cdp)  // 子元素之间间距
@@ -38,7 +40,7 @@ fun SongItem(index: Int, song: Song) {
         )
 
         //歌曲信息
-        val (singer, songName) = parseSongName(song.name ?: "")
+        val (singer, songName) = StringUtil.parseSongName(song.name ?: "")
         Column(
             modifier = Modifier
                 .padding(vertical = 26.cdp)
@@ -68,22 +70,5 @@ fun SongItem(index: Int, song: Song) {
                 .clip(RoundedCornerShape(4.cdp))
         )
 
-    }
-}
-
-/**
- * 解析歌曲名字符串，提取歌名和歌手名
- * 格式： "洛天依、乐正绫、言和 - 酆都冥司记"
- * 结果： 歌手 = "洛天依、乐正绫、言和"，歌名 = "酆都冥司记"
- */
-fun parseSongName(fullName: String): Pair<String, String> {
-    val separatorIndex = fullName.indexOf(" - ")
-    return if (separatorIndex != -1) {
-        val singer = fullName.substring(0, separatorIndex)
-        val songName = fullName.substring(separatorIndex + 3)
-        Pair(singer, songName)
-    } else {
-        // 如果没有分隔符，歌手设为空或 "未知"
-        Pair("", fullName)
     }
 }

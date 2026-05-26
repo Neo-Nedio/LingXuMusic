@@ -72,6 +72,7 @@ import com.neo.lingxumusic.utils.toPx
 import com.neo.lingxumusic.viewmodel.mine.MineViewModel
 import kotlinx.coroutines.launch
 
+//todo 歌单和歌单内的歌曲默认一次加载30，要监听滚动加入数据
 
 // 主页面
 @Composable

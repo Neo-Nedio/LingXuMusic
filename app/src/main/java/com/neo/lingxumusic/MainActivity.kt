@@ -3,13 +3,16 @@ package com.neo.lingxumusic
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.compose.rememberNavController
 import com.neo.lingxumusic.core.navigation.LingXuNavGraph
+import com.neo.lingxumusic.ui.page.mine.PlayMusicPage
+import com.neo.lingxumusic.ui.page.mine.component.BottomMusicPlay
 import com.neo.lingxumusic.ui.theme.AppTheme
 import com.neo.lingxumusic.ui.theme.themeTypeState
-import com.neo.lingxumusic.utils.setAndroidNativeLightStatusBar
-import com.neo.lingxumusic.utils.transparentStatusBar
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -25,10 +28,15 @@ class MainActivity : ComponentActivity() {
         setContent {
             AppTheme(themeTypeState.value) {
                 val navController = rememberNavController()
-                LingXuNavGraph(navController) {
-                    finish()
+                Box(modifier = Modifier.fillMaxSize()) {
+                    LingXuNavGraph(navController) {
+                        finish()
+                    }
+                    // 底部播放器组件
+                    BottomMusicPlay()
+                    PlayMusicPage()
+                }
                 }
             }
         }
-    }
 }

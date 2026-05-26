@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.neo.lingxumusic.R
 import com.neo.lingxumusic.core.AppGlobalData
+import com.neo.lingxumusic.core.MusicPlayController
 import com.neo.lingxumusic.core.viewState.ViewStateComponent
 import com.neo.lingxumusic.model.PlaylistBrief
 import com.neo.lingxumusic.model.PlaylistDetailData
@@ -283,7 +284,14 @@ private fun Body(playlist: PlaylistBrief) {
             PlayListHeader(detail?.count ?: playlist.count)
             HorizontalDivider(Modifier.fillMaxWidth(), thickness = 1.cdp, color = Color.LightGray)
             songs.forEachIndexed { index, item ->
-                SongItem(index, item)
+                // todo 应该先判断歌曲是否下架
+                SongItem(index, item){
+                    MusicPlayController.songList.clear()
+                    MusicPlayController.songList.addAll(viewModel.songList)
+                    MusicPlayController.curIndex = index
+                    showPlayMusicPage = true
+                    MusicPlayController.play()
+                }
             }
         }
     }

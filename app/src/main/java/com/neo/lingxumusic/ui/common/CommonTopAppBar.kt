@@ -2,6 +2,7 @@ package com.neo.lingxumusic.ui.common
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
@@ -10,10 +11,12 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.zIndex
 import com.neo.lingxumusic.R
 import com.neo.lingxumusic.core.navigation.NavController
@@ -33,6 +36,7 @@ import com.neo.lingxumusic.utils.csp
 fun CommonTopAppBar(
     modifier: Modifier = Modifier,
     title: String = "",
+    customTitleLayout: (@Composable () -> Unit)? = null,
     backgroundColor: Color = AppColorsProvider.current.appBarBackground,
     contentColor: Color = AppColorsProvider.current.appBarContent,
     leftIconResId: Int = R.drawable.ic_back,
@@ -61,6 +65,7 @@ fun CommonTopAppBar(
                     CommonIcon(
                         leftIconResId,
                         modifier = Modifier
+                            .clip(RoundedCornerShape(50))
                             .clickable {
                                 // 优先使用自定义点击，否则默认返回上一页
                                 leftClick?.invoke() ?: NavController.instance.popBackStack()
@@ -73,7 +78,7 @@ fun CommonTopAppBar(
             },
             //标题
             title = {
-                Text(
+                customTitleLayout?.invoke()?: Text(
                     text = title,
                     fontSize = 36.csp,  // 字体大小 36（按屏幕比例）
                     fontWeight = FontWeight.Medium,
@@ -101,6 +106,7 @@ fun CommonTopAppBar(
                         rightIconResId != -1 -> CommonIcon(
                             rightIconResId,
                             modifier = Modifier
+                                .clip(RoundedCornerShape(50))
                                 .clickable {
                                     rightClick?.invoke()
                                 }
