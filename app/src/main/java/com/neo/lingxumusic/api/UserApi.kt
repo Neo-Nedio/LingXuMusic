@@ -9,9 +9,6 @@ interface UserApi {
     suspend fun getUserPlayList(
     ): BaseResult
 
-    @GET("playlist/detail")
-    suspend fun getPlaylistDetail(@Query("ids") id: Long): BaseResult
-
     @GET("playlist/track/all")
-    suspend fun getPlaylistSong(@Query("id") id: Long): BaseResult
+    suspend fun getPlaylistSong(@Query("id") id: String?): BaseResult
 }
