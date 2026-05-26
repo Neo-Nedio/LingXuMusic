@@ -1,6 +1,5 @@
 package com.neo.lingxumusic.ui.page.mine
 
-import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.tween
@@ -123,9 +122,9 @@ fun MinePage() {
 
                 FixHeadBackgroundDraggableBodyLayout(
                     state = dragToggleState,
-                    triggerRadio = 0.32f, //触发阈值比例（0-1）
-                    maxDragRadio = 0.54f, //最大拖拽距离比例（0-1）
-                    modifier = Modifier.background(Color(0xFFEEEEEE)),
+                    triggerRadio = 0.24f, //触发阈值比例（0-1）
+                    maxDragRadio = 0.48f, //最大拖拽距离比例（0-1）
+                    modifier = Modifier.background(AppColorsProvider.current.background),
                     onOverOpenTrigger = { // 超过触发点回调
                         dragToggleState.dragStatus = DragStatus.OverOpenTrigger
                     },
@@ -225,12 +224,13 @@ private fun Body(
             //  原生 Tab 栏（随内容滚动，会滚出屏幕）
             CommonTabLayout(
                 tabTexts = tabs,
-                backgroundColor = Color.Transparent,
+                backgroundColor = AppColorsProvider.current.card,
                 style = CommonTabLayoutStyle(isScrollable = false,   // 不分页滑动，平分宽度
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(100.cdp)
                         .padding(top = 12.cdp)
+                        .background(AppColorsProvider.current.pure)
                         // 监听 Tab 栏的位置变化
                         .onGloballyPositioned {
                             //记录 Tab 栏自身的 Y 坐标（用于滚动联动）
@@ -304,7 +304,7 @@ private fun Body(
                     },
                 contentAlignment = Alignment.Center
             ) {
-                Text("歌单助手")
+                Text("歌单助手",color = AppColorsProvider.current.firstText)
             }
         }
 
@@ -313,7 +313,7 @@ private fun Body(
         if (showStickyTabLayout) {
             CommonTabLayout(
                 tabTexts = tabs,
-                backgroundColor = Color.White,
+                backgroundColor = AppColorsProvider.current.pure,
                 style = CommonTabLayoutStyle(
                     isScrollable = false,
                     modifier = Modifier
@@ -321,7 +321,7 @@ private fun Body(
                         .padding(top = 88.cdp)         // 避开顶部导航栏
                         .fillMaxWidth()
                         .height(100.cdp)
-                        .background(Color.White)
+                        .background(AppColorsProvider.current.pure)
                         .padding(top = 12.cdp)
                 ),
                 selectedIndex = selectedTabIndex.value
@@ -357,7 +357,7 @@ private fun UserPlaylistComponent(
                     text = "${title}(${list.size}个)",
                     color = AppColorsProvider.current.secondText,
                     fontSize = 14.sp,
-                    modifier = Modifier.padding(bottom = 6.dp, top = 12.cdp)
+                    modifier = Modifier.padding(bottom = 12.dp, top = 20.cdp, start = 32.cdp)
                 )
                 // 歌单列表
                 it.forEach {
@@ -374,7 +374,7 @@ private fun TopBar(alphaValue: Float) {
     //主导航栏  始终显示，背景透明度随滚动变化
     CommonTopAppBar(
         modifier = Modifier
-            .background(Color.White.copy(alpha = alphaValue))
+            .background(AppColorsProvider.current.pure.copy(alpha = alphaValue))
             .statusBarsPadding(),
         backgroundColor = Color.Transparent,
         leftIconResId = R.drawable.ic_drawer_toggle,
@@ -418,6 +418,7 @@ private fun TopBar(alphaValue: Float) {
                 text = AppGlobalData.sLoginData?.nickname.orEmpty(),
                 fontSize = 32.csp,
                 fontWeight = FontWeight.Medium,
+                color = AppColorsProvider.current.firstText,
                 modifier = Modifier.padding(start = 20.cdp)
             )
         }
@@ -447,7 +448,7 @@ fun Modifier.mineCommonCard() = composed {
     this.fillMaxWidth()
         .padding(start = 32.cdp, end = 32.cdp, top = 20.cdp)
         .background(AppColorsProvider.current.card, RoundedCornerShape(24.cdp))
-        .padding(start = 32.cdp, end = 32.cdp, top = 24.cdp, bottom = 24.cdp)
+        .padding(top = 24.cdp, bottom = 24.cdp)
 }
 
 

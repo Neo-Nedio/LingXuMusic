@@ -46,7 +46,7 @@ fun ProfilePage() {
             UserInfoComponent(
                 modifier = Modifier
                     .statusBarsPadding()
-                    .padding(top = 315.cdp)
+                    .padding(top = 360.cdp)
             )
 
             Box(modifier = Modifier

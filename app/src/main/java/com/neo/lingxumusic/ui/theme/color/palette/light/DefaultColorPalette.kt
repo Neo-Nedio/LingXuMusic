@@ -5,6 +5,7 @@ import com.neo.lingxumusic.ui.theme.color.AppColors
 
 val DefaultColorPalette = AppColors(
     statusBar = Color(0xFFEEEEEE),
+    pure = Color(0xFFFFFFFF),
     primary = Color(0xFFF0484E),
     primaryVariant = Color(0xFFEC3037),
     secondary = Color(0xFFF0888C),

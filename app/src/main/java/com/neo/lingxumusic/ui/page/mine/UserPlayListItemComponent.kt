@@ -12,11 +12,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.neo.lingxumusic.R
 import com.neo.lingxumusic.model.Playlist
 import com.neo.lingxumusic.ui.common.CommonNetworkImage
 import com.neo.lingxumusic.ui.theme.AppColorsProvider
+import com.neo.lingxumusic.utils.cdp
+import com.neo.lingxumusic.utils.csp
 
 /*
 ┌─────────────────────────────────────────────────┐
@@ -30,8 +31,10 @@ import com.neo.lingxumusic.ui.theme.AppColorsProvider
 fun UserPlaylistItem(platListItem: Playlist?) {
     Row(
         Modifier
-            .padding(vertical = 4.dp)   // 上下内边距 4dp
-            .clickable { },             //todo  点击事件（目前为空）
+            .fillMaxWidth()
+            .wrapContentHeight()
+            .clickable { }             //todo  点击事件（目前为空）
+            .padding(start = 32.cdp, end = 32.cdp, top = 8.cdp, bottom = 8.cdp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         platListItem?.let {
@@ -39,9 +42,9 @@ fun UserPlaylistItem(platListItem: Playlist?) {
             CommonNetworkImage(
                 url = it.pic?.replaceSize(),
                 modifier = Modifier
-                    .padding(end = 10.dp)
-                    .size(50.dp)
-                    .clip(RoundedCornerShape(5.dp)),
+                    .padding(end = 20.cdp)
+                    .size(110.cdp)
+                    .clip(RoundedCornerShape(10.cdp)),
                 placeholder = R.drawable.ic_default_place_holder
             )
 
@@ -54,7 +57,7 @@ fun UserPlaylistItem(platListItem: Playlist?) {
                 // 歌单名称
                 Text(
                     text = it.name.orEmpty(),
-                    fontSize = 14.sp,
+                    fontSize = 30.csp,
                     color = AppColorsProvider.current.firstText,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
@@ -62,7 +65,7 @@ fun UserPlaylistItem(platListItem: Playlist?) {
                 // 歌曲数量
                 Text(
                     text = "共${it.count}首",
-                    fontSize = 12.sp,
+                    fontSize = 24.csp,
                     color = AppColorsProvider.current.secondText,
                     modifier = Modifier.padding(top = 10.dp)
                 )
@@ -73,7 +76,7 @@ fun UserPlaylistItem(platListItem: Playlist?) {
                 painter = painterResource(id = R.drawable.ic_sheet_menu),
                 contentDescription = "",
                 modifier = Modifier
-                    .height(15.dp)
+                    .height(30.cdp)
             )
         }
     }

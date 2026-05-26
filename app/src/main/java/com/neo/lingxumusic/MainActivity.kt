@@ -19,8 +19,9 @@ class MainActivity : ComponentActivity() {
         installSplashScreen()
         super.onCreate(savedInstanceState)
 
-        transparentStatusBar()
-        setAndroidNativeLightStatusBar()
+      /*  transparentStatusBar()
+        setAndroidNativeLightStatusBar()*/
+
         setContent {
             AppTheme(themeTypeState.value) {
                 val navController = rememberNavController()

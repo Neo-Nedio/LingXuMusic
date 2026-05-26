@@ -11,7 +11,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MaterialTheme.shapes
 import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.runtime.*
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import androidx.core.view.WindowCompat
 import com.neo.lingxumusic.ui.theme.color.AppColors
 import com.neo.lingxumusic.ui.theme.color.palette.dark.DarkColorPalette
 import com.neo.lingxumusic.ui.theme.color.palette.light.BlueColorPalette
@@ -54,6 +56,7 @@ fun AppTheme(
 
     //颜色动画
     val statusBarColor = animateColorAsState(targetColors.statusBarColor, TweenSpec(TWEEN_DURATION))
+    val pure = animateColorAsState(targetColors.pure, TweenSpec(TWEEN_DURATION))
     val primary = animateColorAsState(targetColors.primary, TweenSpec(TWEEN_DURATION))
     val primaryVariant = animateColorAsState(targetColors.primaryVariant, TweenSpec(TWEEN_DURATION))
     val secondary = animateColorAsState(targetColors.secondary, TweenSpec(TWEEN_DURATION))
@@ -68,6 +71,7 @@ fun AppTheme(
     //创建 AppColors 对象
     val appColors = AppColors(
         statusBar = statusBarColor.value,
+        pure = pure.value,
         primary = primary.value,
         primaryVariant = primaryVariant.value,
         secondary = secondary.value,
@@ -83,13 +87,11 @@ fun AppTheme(
     //设置状态栏/导航栏颜色
     val activity = LocalActivity.current
     val systemBarColor = appColors.statusBarColor.toArgb()
+    val transparent = Color.Transparent.toArgb()
     SideEffect {
+        activity?.window?.let { WindowCompat.setDecorFitsSystemWindows(it, false) }
         (activity as? ComponentActivity)?.enableEdgeToEdge(
-            statusBarStyle = if (isDark) {
-                SystemBarStyle.dark(systemBarColor)
-            } else {
-                SystemBarStyle.light(systemBarColor, systemBarColor)
-            },
+            statusBarStyle = SystemBarStyle.auto(transparent, transparent),
             navigationBarStyle = if (isDark) {
                 SystemBarStyle.dark(systemBarColor)
             } else {

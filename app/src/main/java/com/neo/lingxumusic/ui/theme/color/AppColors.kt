@@ -9,6 +9,7 @@ import androidx.compose.ui.graphics.Color
 @Stable//告诉 Compose 这个类是稳定的。当类的属性变化时，Compose 会知道需要重组 UI；当属性没变化时，Compose 会跳过重组，提升性能
 class AppColors(
     statusBar: Color,      // 状态栏颜色
+    pure: Color,
     primary: Color,        // 主色调（如按钮背景）
     primaryVariant: Color, // 主色调变体（如按压态）
     secondary: Color,      // 次要色调
@@ -21,6 +22,8 @@ class AppColors(
     card: Color            // 卡片背景色
 ) {
     var statusBarColor: Color by mutableStateOf(statusBar)
+        internal set
+    var pure : Color by mutableStateOf(pure)
         internal set
     var primary: Color by mutableStateOf(primary)
         internal set
