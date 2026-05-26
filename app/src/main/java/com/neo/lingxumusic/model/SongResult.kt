@@ -90,9 +90,9 @@ data class SongTransParam(
     val display_rate: Int = 0,              // 显示速率
     val pay_block_tpl: Int = 0,             // 付费模板
     val cid: Int = 0,                       // 分类 ID
-    val qualitymap: Map<String, Int>? = null, // 音质映射
-    val classmap: Map<String, Long>? = null, // 分类映射
-    val ipmap: Map<String, Long>? = null,   // IP 映射
+    val qualitymap: Map<String,  String>? = null, // 音质映射
+    val classmap: Map<String,  String>? = null, // 分类映射
+    val ipmap: Map<String,  String>? = null,   // IP 映射
     val cpy_attr0: Long = 0,                // 版权属性
     val musicpack_advance: Int = 0,         // 音乐包高级
     val is_original: Int = 0,               // 是否原创

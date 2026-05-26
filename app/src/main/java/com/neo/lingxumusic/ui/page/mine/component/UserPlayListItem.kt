@@ -13,7 +13,10 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.neo.lingxumusic.R
+import com.neo.lingxumusic.core.navigation.NavController
+import com.neo.lingxumusic.core.navigation.Routes
 import com.neo.lingxumusic.model.Playlist
+import com.neo.lingxumusic.model.toBrief
 import com.neo.lingxumusic.ui.common.CommonNetworkImage
 import com.neo.lingxumusic.ui.theme.AppColorsProvider
 import com.neo.lingxumusic.utils.cdp
@@ -33,7 +36,14 @@ fun UserPlaylistItem(platListItem: Playlist?) {
         Modifier
             .fillMaxWidth()
             .wrapContentHeight()
-            .clickable { }             //todo  点击事件（目前为空）
+            .clickable {
+                platListItem?.let {
+                    NavController.instance.currentBackStackEntry
+                        ?.savedStateHandle
+                        ?.set(Routes.KEY_PLAY_LIST_BRIEF, it.toBrief())
+                    NavController.instance.navigate(Routes.PLAY_LIST)
+                }
+            }
             .padding(start = 32.cdp, end = 32.cdp, top = 8.cdp, bottom = 8.cdp),
         verticalAlignment = Alignment.CenterVertically
     ) {

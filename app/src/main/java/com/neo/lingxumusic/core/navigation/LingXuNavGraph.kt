@@ -11,8 +11,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.neo.lingxumusic.ui.page.home.HomePage
 import com.neo.lingxumusic.ui.page.login.LoginPage
+import com.neo.lingxumusic.ui.page.mine.PlaylistPage
 import com.neo.lingxumusic.ui.page.profile.ProfilePage
 import com.neo.lingxumusic.ui.page.splash.SplashPage
+import com.neo.lingxumusic.model.PlaylistBrief
 import com.neo.lingxumusic.utils.TwoBackFinish
 
 object NavController {
@@ -49,6 +51,12 @@ fun LingXuNavGraph(
         composable(Routes.PROFILE,
             enterTransition = { EnterTransition.None }) { // 进入动画：无
             ProfilePage()
+        }
+        composable(Routes.PLAY_LIST) {
+            navController.previousBackStackEntry
+                ?.savedStateHandle
+                ?.get<PlaylistBrief>(Routes.KEY_PLAY_LIST_BRIEF)
+                ?.let { PlaylistPage(it) }
         }
     }
 }

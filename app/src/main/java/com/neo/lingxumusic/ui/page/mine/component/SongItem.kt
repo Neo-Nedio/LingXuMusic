@@ -15,20 +15,26 @@ import com.neo.lingxumusic.ui.theme.AppColorsProvider
 import com.neo.lingxumusic.utils.cdp
 import com.neo.lingxumusic.utils.csp
 import com.neo.lingxumusic.R
+import com.neo.lingxumusic.ui.common.CommonNetworkImage
+import com.neo.lingxumusic.utils.replaceSize
 
 @Composable
 fun SongItem(index: Int, song: Song) {
     Row(
-        Modifier.clickable { //todo
+        Modifier
+            .fillMaxWidth()
+            .clickable { //todo
             },
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(16.cdp)  // 子元素之间间距
     ) {
 
-        CommonIcon(
-            resId = R.drawable.ic_sheet_menu,
-            modifier = Modifier.size(32.cdp)
-                .clip(RoundedCornerShape(4.cdp))
-                .padding(horizontal = 32.cdp)
+        // 左侧：歌曲封面
+        CommonNetworkImage(
+            url = song.cover?.replaceSize(),
+            modifier = Modifier
+                .size(80.cdp)
+                .clip(RoundedCornerShape(16.cdp))
         )
 
         //歌曲信息
@@ -40,7 +46,7 @@ fun SongItem(index: Int, song: Song) {
             verticalArrangement = Arrangement.Center
         ) {
             Text(
-                text = songName.ifEmpty { song.name ?: "" },
+                text = songName.ifEmpty { song.name ?: "已下架" },
                 fontSize = 32.csp,
                 color = AppColorsProvider.current.firstText,
                 maxLines = 1,
@@ -53,6 +59,14 @@ fun SongItem(index: Int, song: Song) {
                 modifier = Modifier.padding(top = 10.cdp)
             )
         }
+
+
+        //菜单图标
+        CommonIcon(
+            resId = R.drawable.ic_sheet_menu,
+            modifier = Modifier.size(32.cdp)
+                .clip(RoundedCornerShape(4.cdp))
+        )
 
     }
 }

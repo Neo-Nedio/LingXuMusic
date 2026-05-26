@@ -74,10 +74,9 @@ fun PlaylistPage(playlist: PlaylistBrief) {
         // 顶部导航栏（固定在顶部）
         CommonTopAppBar(
             modifier = Modifier
-                .statusBarsPadding()
                 .fillMaxWidth()
                 .height(88.cdp),
-            backgroundColor = Color.Transparent,
+            backgroundColor = if (showPlayListTitle) AppColorsProvider.current.background else Color.Transparent,
             title = if (showPlayListTitle) playlist.displayName() else "歌单",
             contentColor = AppColorsProvider.current.pure,
             leftIconResId = R.drawable.ic_drawer_toggle,
