@@ -210,7 +210,6 @@ private fun DiskNeedle() {
 //唱片轮播
 @Composable
 private fun DiskPager(pagerState: PagerState) {
-    val coroutineScope = rememberCoroutineScope()
     // 初始播放状态
     LaunchedEffect(Unit) {
         if (MusicPlayController.isPlaying()) { ///正在播放
@@ -219,6 +218,24 @@ private fun DiskPager(pagerState: PagerState) {
             lastSheetDiskRotateAngleForSnap = 0f       // 重置角度
             sheetDiskRotate.snapTo(lastSheetDiskRotateAngleForSnap)  // 设置初始角度
             sheetDiskRotate.animateTo(                 // 开始旋转动画
+                targetValue = 360f + lastSheetDiskRotateAngleForSnap,
+                animationSpec = infiniteRepeatable(
+                    animation = tween(durationMillis = 8000, easing = LinearEasing),
+                    repeatMode = RepeatMode.Restart
+                )
+            )
+        }
+    }
+
+    LaunchedEffect(pagerState.currentPage) {
+        if (MusicPlayController.curIndex != pagerState.settledPage) {
+            MusicPlayController.play() // 开始播放新歌曲
+            sheetNeedleUp = false // 唱针落下
+            sheetDiskRotate.stop()
+            lastSheetDiskRotateAngleForSnap = 0f
+            sheetDiskRotate.snapTo(lastSheetDiskRotateAngleForSnap)
+            MusicPlayController.curIndex = pagerState.settledPage // 更新当前索引
+            sheetDiskRotate.animateTo(  // 开始旋转
                 targetValue = 360f + lastSheetDiskRotateAngleForSnap,
                 animationSpec = infiniteRepeatable(
                     animation = tween(durationMillis = 8000, easing = LinearEasing),
@@ -237,31 +254,12 @@ private fun DiskPager(pagerState: PagerState) {
             .height(274.dp),
         state = pagerState,
     ) { position ->
-        // 当前显示的页面与当前播放的歌曲不一致时
-        if (MusicPlayController.curIndex != pagerState.currentPage) {
-            MusicPlayController.play() // 开始播放新歌曲
-            coroutineScope.launch {
-                sheetNeedleUp = false // 唱针落下
-                sheetDiskRotate.stop()
-                lastSheetDiskRotateAngleForSnap = 0f
-                sheetDiskRotate.snapTo(lastSheetDiskRotateAngleForSnap)
-                MusicPlayController.curIndex = pagerState.currentPage // 更新当前索引
-                sheetDiskRotate.animateTo(  // 开始旋转
-                    targetValue = 360f + lastSheetDiskRotateAngleForSnap,
-                    animationSpec = infiniteRepeatable(
-                        animation = tween(durationMillis = 8000, easing = LinearEasing),
-                        repeatMode = RepeatMode.Restart
-                    )
-                )
-            }
-        }
         DiskItem(MusicPlayController.songList[position])
     }
 }
 
 @Composable
 private fun DiskItem(song: Song) {
-    val scope = rememberCoroutineScope()
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -275,26 +273,10 @@ private fun DiskItem(song: Song) {
                         if (event.changes.size == 1) {
                             val pointer = event.changes[0]
                             if (pointer.pressed) { //按压
-                                if (!sheetNeedleUp) { // 唱针未抬起时
-                                    scope.launch {
-                                        lastSheetDiskRotateAngleForSnap = sheetDiskRotate.value  // 记录当前角度
-                                        sheetDiskRotate.stop()  // 停止旋转
-                                    }
-                                }
                                 sheetNeedleUp = true  // 抬起唱针
                             } else { //松开处理
-                                scope.launch {
-                                    delay(200) // 延迟200ms，让用户感觉到松开后的反馈
-                                    if (MusicPlayController.isPlaying()) {
-                                        sheetNeedleUp = false  // 落下唱针
-                                        sheetDiskRotate.animateTo(  // 恢复旋转
-                                            targetValue = 360f + lastSheetDiskRotateAngleForSnap,
-                                            animationSpec = infiniteRepeatable(
-                                                animation = tween(durationMillis = 8000, easing = LinearEasing),
-                                                repeatMode = RepeatMode.Restart
-                                            )
-                                        )
-                                    }
+                                if (MusicPlayController.isPlaying()) {
+                                    sheetNeedleUp = false  // 落下唱针
                                 }
                                 break
                             }
