@@ -1,12 +1,11 @@
 package com.neo.lingxumusic.ui.page.mine
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
@@ -397,8 +396,9 @@ private fun TopBar(alphaValue: Float) {
                 targetState = alphaValue == 1f },
         // 入场动画：淡入 + 从上往下滑入
         enter = fadeIn() + slideInVertically(initialOffsetY = { fullHeight -> -fullHeight }),
-        // 出场动画：淡出 + 从下往上滑出
-        exit = fadeOut() + slideOutVertically(targetOffsetY = { fullHeight -> -fullHeight })
+        /*// 出场动画：淡出 + 从下往上滑出
+        exit = fadeOut() + slideOutVertically(targetOffsetY = { fullHeight -> -fullHeight })*/
+        exit = ExitTransition.None
     ) {
         // 头像和昵称行（水平居中）
         Row(

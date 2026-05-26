@@ -106,6 +106,32 @@ data class Playlist(
 }
 
 /**
+ * 歌单详情页需要的歌单简要信息
+ */
+@Parcelize
+data class PlaylistBrief(
+    val global_collection_id: String? = null, // 全局收藏ID（用于请求歌曲列表）
+    val name: String? = null,                 // 歌单名称
+    val intro: String? = null,                // 歌单简介
+    val pic: String? = null,                  // 封面图片URL
+    val count: Int = 0,                       // 歌曲数
+    val list_create_username: String? = null, // 创建者昵称
+    val create_user_pic: String? = null       // 创建者头像
+) : Parcelable
+
+fun Playlist.toBrief(): PlaylistBrief {
+    return PlaylistBrief(
+        global_collection_id = global_collection_id,
+        name = name,
+        intro = intro,
+        pic = pic,
+        count = getCount(),
+        list_create_username = list_create_username,
+        create_user_pic = create_user_pic
+    )
+}
+
+/**
  * 音乐标签
  */
 @Parcelize
