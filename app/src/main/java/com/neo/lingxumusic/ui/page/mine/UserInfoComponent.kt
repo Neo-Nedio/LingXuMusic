@@ -42,7 +42,7 @@ fun UserInfoComponent(modifier: Modifier = Modifier) {
 
         Column(
             modifier = Modifier
-                .padding(top = 60.cdp, bottom = 12.cdp, start = 32.cdp, end = 32.cdp)
+                .padding(top = 60.cdp, start = 32.cdp, end = 32.cdp)
                 .fillMaxWidth()
                 .height(240.cdp)
                 .clip(RoundedCornerShape(24.cdp))
@@ -50,7 +50,7 @@ fun UserInfoComponent(modifier: Modifier = Modifier) {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = "ssk_evan",
+                text = AppGlobalData.sLoginData?.nickname ?: "无",
                 fontSize = 40.csp,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(top = 60.cdp)
@@ -58,7 +58,7 @@ fun UserInfoComponent(modifier: Modifier = Modifier) {
             Text(
                 text = "2 关注  ｜  2 粉丝  ｜  Lv.8",
                 fontSize = 32.csp,
-                modifier = Modifier.padding(top = 20.cdp)
+                modifier = Modifier.padding(top = 26.cdp)
             )
         }
 

@@ -2,6 +2,7 @@ package com.neo.lingxumusic.core.navigation
 
 import android.annotation.SuppressLint
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.EnterTransition
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -10,6 +11,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.neo.lingxumusic.ui.page.home.HomePage
 import com.neo.lingxumusic.ui.page.login.LoginPage
+import com.neo.lingxumusic.ui.page.profile.ProfilePage
 import com.neo.lingxumusic.ui.page.splash.SplashPage
 import com.neo.lingxumusic.utils.TwoBackFinish
 
@@ -43,6 +45,10 @@ fun LingXuNavGraph(
             BackHandler {
                 TwoBackFinish().execute(onFinish)
             }
+        }
+        composable(Routes.PROFILE,
+            enterTransition = { EnterTransition.None }) { // 进入动画：无
+            ProfilePage()
         }
     }
 }

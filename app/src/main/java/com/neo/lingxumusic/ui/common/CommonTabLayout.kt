@@ -58,7 +58,7 @@ fun CommonTabLayout(
         // Tab 可滚动
         PrimaryScrollableTabRow(
             selectedTabIndex = selectedIndex,
-            modifier = style.modifier.height(88.cdp),
+            modifier = style.modifier,
             edgePadding = 0.dp, // 左右边缘内边距为 0
             containerColor = backgroundColor,
             //指示器实现
@@ -132,7 +132,7 @@ fun CommonTabLayout(
         // Tab 平分宽度
         PrimaryTabRow(
             selectedTabIndex = selectedIndex,
-            modifier = style.modifier.height(88.cdp),
+            modifier = style.modifier,
             containerColor = backgroundColor,
             indicator = @Composable {
                 style.customIndicator?.invoke(selectedIndex) ?: Box(

@@ -240,7 +240,7 @@ state.offset 从 0 开始增加
 ┌─────────────────────────────────────────────────────────────┐
 │  检查是否完全打开                                           │
 │                                                             │
-│  if (!isDraggableInProgress && offset == maxDrag && isOverOpenTrigger())
+│  if (!isDraggableInProgress && offset >= maxDrag && isOverOpenTrigger())
 │      onOpened() 回调                                        │
 │      state.dragStatus = Opened                              │
 └─────────────────────────────────────────────────────────────┘
@@ -298,7 +298,7 @@ fun FixHeadBackgroundDraggableBodyLayout(
     val maxDrag = backgroundHeight * maxDragRadio           // 最大拖拽距离（像素）
 
     //打开完成检测： 没有在拖拽中 偏移量已达到最大值  状态是"超过触发点"
-    if(!state.isDraggableInProgress && maxDrag == state.offset && state.isOverOpenTrigger()) {
+    if(!state.isDraggableInProgress && state.offset >= maxDrag && state.isOverOpenTrigger()) {
         onOpened()
     }
 
