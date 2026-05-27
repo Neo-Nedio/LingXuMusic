@@ -67,6 +67,9 @@ fun PlaylistPage(playlist: PlaylistBrief) {
         0.dp
     }
 
+    val viewModel: PlayListViewModel = hiltViewModel()
+    viewModel.playlist = playlist
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -79,7 +82,7 @@ fun PlaylistPage(playlist: PlaylistBrief) {
                 .verticalScroll(scrollState)
         ) {
             ScrollHeader(playlist)  // 头部
-            Body(playlist)          // 歌曲列表
+            Body()          // 歌曲列表
         }
 
         // 顶部导航栏（固定在顶部）
@@ -276,13 +279,13 @@ private fun RowScope.HeaderCountInfoItem(
 
 
 @Composable
-private fun Body(playlist: PlaylistBrief) {
+private fun Body() {
     val viewModel: PlayListViewModel = hiltViewModel()
 
     ViewStateComponent(
         viewStateLiveData = viewModel.songDetailResult,
         loadDataBlock = {
-            viewModel.getSongDetail(playlist)
+            viewModel.getSongDetail()
         },
         viewStateComponentModifier = Modifier
             .fillMaxSize()
@@ -291,7 +294,7 @@ private fun Body(playlist: PlaylistBrief) {
         val songs = detail?.songs.orEmpty()
 
         Column {
-            PlayListHeader(detail?.count ?: playlist.count)
+            PlayListHeader(detail?.count ?:  viewModel.playlist.count)
             HorizontalDivider(Modifier.fillMaxWidth(), thickness = 1.cdp, color = Color.LightGray)
             songs.forEachIndexed { index, item ->
                 SongItem(index, item) {

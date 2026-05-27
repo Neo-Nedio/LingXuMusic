@@ -16,11 +16,13 @@ import kotlin.collections.orEmpty
 class PlayListViewModel @Inject constructor(private val userApi : UserApi)
     : BaseViewStateViewModel() {
 
+    lateinit var playlist: PlaylistBrief
+
     val songDetailResult = ViewStateMutableLiveData()
 
     val songList = mutableListOf<Song>()
 
-    fun getSongDetail(playlist: PlaylistBrief) {
+    fun getSongDetail() {
         launch(songDetailResult, handleResult = {
             val detail = it.dataAs<PlaylistDetailData>()
             val songs = detail?.songs.orEmpty()
