@@ -1,9 +1,10 @@
-package com.neo.lingxumusic.hilt
+package com.neo.lingxumusic.hilt.moudle
 
-import com.neo.lingxumusic.api.LoginApi
-import com.neo.lingxumusic.api.SongApi
-import com.neo.lingxumusic.api.UserApi
+import com.neo.lingxumusic.http.api.LoginApi
+import com.neo.lingxumusic.http.api.SongApi
+import com.neo.lingxumusic.http.api.UserApi
 import com.neo.lingxumusic.core.AppConfig
+import com.neo.lingxumusic.hilt.RetrofitClient
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -17,7 +18,7 @@ object ApiServiceModule {
     @Provides
     @Singleton
     fun provideLoginApi(
-        @RetrofitClient.KuGouRetrofitClient retrofit: LibCoroutineNetwork // 注入网络客户端
+        @RetrofitClientModule.KuGouRetrofitClient retrofit: RetrofitClient // 注入网络客户端
     ): LoginApi {
         return retrofit.setBaseUrl(AppConfig.BASE_URL).create(LoginApi::class.java)
     }
@@ -25,7 +26,7 @@ object ApiServiceModule {
     @Provides
     @Singleton
     fun provideUserCenterApi(
-        @RetrofitClient.KuGouRetrofitClient retrofit: LibCoroutineNetwork
+        @RetrofitClientModule.KuGouRetrofitClient retrofit: RetrofitClient
     ): UserApi {
         return retrofit.setBaseUrl(AppConfig.BASE_URL).create(UserApi::class.java)
     }
@@ -33,7 +34,7 @@ object ApiServiceModule {
     @Provides
     @Singleton
     fun provideSongApi(
-        @RetrofitClient.KuGouRetrofitClient retrofit: LibCoroutineNetwork
+        @RetrofitClientModule.KuGouRetrofitClient retrofit: RetrofitClient
     ): SongApi {
         return retrofit.setBaseUrl(AppConfig.BASE_URL).create(SongApi::class.java)
     }

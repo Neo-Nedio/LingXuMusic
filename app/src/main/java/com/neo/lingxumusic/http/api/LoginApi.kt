@@ -1,4 +1,4 @@
-package com.neo.lingxumusic.api
+package com.neo.lingxumusic.http.api
 
 import com.neo.lingxumusic.model.AuthData
 import com.neo.lingxumusic.model.BaseResult

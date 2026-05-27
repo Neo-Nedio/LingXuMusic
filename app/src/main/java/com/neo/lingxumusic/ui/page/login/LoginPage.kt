@@ -2,7 +2,6 @@ package com.neo.lingxumusic.ui.page.login
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,11 +11,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
 import com.google.gson.Gson
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -42,7 +39,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.gson.JsonElement
 import com.neo.lingxumusic.R
-import com.neo.lingxumusic.api.LoginApi
+import com.neo.lingxumusic.http.api.LoginApi
 import com.neo.lingxumusic.core.AppGlobalData
 import com.neo.lingxumusic.core.viewState.ViewStateLoadingDialogComponent
 import com.neo.lingxumusic.core.viewState.BaseViewStateViewModel

@@ -1,7 +1,7 @@
 package com.neo.lingxumusic.viewmodel.mine
 
 
-import com.neo.lingxumusic.api.UserApi
+import com.neo.lingxumusic.http.api.UserApi
 import com.neo.lingxumusic.core.viewState.BaseViewStateViewModel
 import com.neo.lingxumusic.core.viewState.ViewStateMutableLiveData
 import com.neo.lingxumusic.model.PlaylistBrief

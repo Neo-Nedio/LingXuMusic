@@ -3,7 +3,7 @@ package com.neo.lingxumusic.viewmodel.mine
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import com.neo.lingxumusic.api.UserApi
+import com.neo.lingxumusic.http.api.UserApi
 import com.neo.lingxumusic.core.AppGlobalData
 import com.neo.lingxumusic.core.viewState.BaseViewStateViewModel
 import com.neo.lingxumusic.model.Playlist
