@@ -112,7 +112,7 @@ private fun ScrollHeader(playlist: PlaylistBrief) {
             modifier = Modifier
                 .fillMaxSize()
                 .clip(CommonHeadBackgroundShape())
-                .background(brush = Brush.linearGradient(listOf(Color.LightGray.copy(0.5f), Color.Gray.copy(0.5f), Color.LightGray.copy(0.5f))))
+                .background(brush = Brush.linearGradient(listOf(Color.Gray.copy(0.7f), Color.LightGray.copy(0.7f), Color.Gray.copy(0.7f))))
         ) {
             HeadBackground(playlist)  // 背景图片
             HeadPlayListInfo(

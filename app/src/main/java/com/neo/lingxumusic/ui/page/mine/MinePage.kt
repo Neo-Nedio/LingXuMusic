@@ -122,10 +122,10 @@ fun MinePage() {
             loadDataBlock = { viewModel.getUserPlayList() }) {
 
             Box {
-                val dragToggleState = rememberDragToggleState(DragStatus.Idle) // 拖拽状态管理器
+                val dragToggleState = rememberDragToggleState(DragStatus.Idle)
 
                 // 拖拽中时，禁止滚动联动（避免冲突）
-                if (dragToggleState.isDraggableInProgress) {
+                if (dragToggleState.isDragging) {
                     animateScrolling = false
                 }
 
@@ -134,14 +134,17 @@ fun MinePage() {
                     triggerRadio = 0.24f, //触发阈值比例（0-1）
                     maxDragRadio = 0.48f, //最大拖拽距离比例（0-1）
                     modifier = Modifier.background(AppColorsProvider.current.background),
-                    onOverOpenTrigger = { // 超过触发点回调
+                    onOverOpenTriggerWhenDragging = {
+                        dragToggleState.dragStatus = DragStatus.OverOpenTriggerWhenDragging
                         VibratorHelper.vibrate()
-                        dragToggleState.dragStatus = DragStatus.OverOpenTrigger
+                    },
+                    onOverOpenTriggerWhenFling = {
+                        dragToggleState.dragStatus = DragStatus.OverOpenTriggerWhenFling
                     },
                     onOpened = { // 完全打开回调
-                        dragToggleState.dragStatus = DragStatus.Opened           // 完全打开
+                        dragToggleState.dragStatus = DragStatus.Opened
                         NavController.instance.navigate(Routes.PROFILE)  // 跳转个人主页
-                        dragToggleState.dragStatus = DragStatus.Idle             // 重置状态
+                        dragToggleState.dragStatus = DragStatus.Idle
                     },
                     headBackgroundComponent = { state, _ , maxDrag -> // 头部背景组件
                         if(state.offset >= 0) {
@@ -153,13 +156,14 @@ fun MinePage() {
                         }
                         HeaderBackground(bodyAlphaValue)
                     }) {
-                    Body(1 - bodyAlphaValue,
+                    Body(
+                        1 - bodyAlphaValue,
                         selectedTabIndex,
-                        scrollState)  {
+                        scrollState
+                    ) {
                         VibratorHelper.vibrate()
-                        dragToggleState.dragStatus = DragStatus.OverOpenTrigger
+                        dragToggleState.dragStatus = DragStatus.OverOpenTriggerWhenFling
                     }
-
                 }
             }
         }
@@ -216,7 +220,7 @@ private fun Body(
                     .clickable(
                         interactionSource = remember { MutableInteractionSource() },//记录交互状态
                         indication = null,//取消涟漪效果
-                        onClick = { openUserPageCallback() }
+                        onClick = openUserPageCallback
                     )
             )
 

@@ -45,7 +45,8 @@ fun rememberDragToggleState(
 //三种拖拽状态
 sealed class DragStatus {
     object Idle : DragStatus()           // 闲置状态（收起）
-    object OverOpenTrigger : DragStatus() // 超过触发阈值（松手会打开）
+    object OverOpenTriggerWhenFling : DragStatus()     // 松手时位置超过打开边界
+    object OverOpenTriggerWhenDragging : DragStatus()  // 拖拽过程中位置超过打开边界
     object Opened : DragStatus()          // 完全打开状态
 }
 
@@ -60,7 +61,7 @@ class DragToggleState(
     private val mutatorMutex = MutatorMutex() // 互斥锁，防止动画冲突
 
     var dragStatus: DragStatus by mutableStateOf(dragStatus) // 当前状态（UI 会响应变化）
-    var isDraggableInProgress: Boolean by mutableStateOf(false) // 是否正在拖拽中
+    var isDragging: Boolean by mutableStateOf(false) // 是否正在拖拽中
 
     //动画方法
     internal suspend fun animateOffsetTo(offset: Float) {
@@ -78,7 +79,8 @@ class DragToggleState(
 
     //状态判断方法
     fun isIdle() = dragStatus == DragStatus.Idle
-    fun isOverOpenTrigger() = dragStatus == DragStatus.OverOpenTrigger
+    fun isOverOpenTriggerWhenFling() = dragStatus == DragStatus.OverOpenTriggerWhenFling
+    fun isOverOpenTriggerWhenDragging() = dragStatus == DragStatus.OverOpenTriggerWhenDragging
     fun isOpened() = dragStatus == DragStatus.Opened
 
 }
@@ -87,7 +89,8 @@ class DragToggleState(
 private class DragToggleNestedScrollConnection(
     private val state: DragToggleState,           // 拖拽状态管理器
     private val coroutineScope: CoroutineScope,   // 协程作用域
-    private val onOverOpenTrigger: () -> Unit,    // 超过触发点的回调
+    private val onOverOpenTriggerWhenDragging: () -> Unit,
+    private val onOverOpenTriggerWhenFling: () -> Unit,
 ) : NestedScrollConnection {
     var enabled: Boolean = false      // 是否启用拖拽
     var openTrigger: Float = 0f       // 触发阈值（px）
@@ -116,7 +119,7 @@ private class DragToggleNestedScrollConnection(
     //核心滚动处理
     private fun onScroll(available: Offset): Offset {
         // 标记正在拖拽（用于后续判断是否要执行动画）
-        state.isDraggableInProgress = true
+        state.isDragging = true
 
         // 计算新偏移量（带阻尼系数）
         // available.y 是滚动距离，乘以阻尼系数产生"粘滞"感
@@ -129,6 +132,9 @@ private class DragToggleNestedScrollConnection(
 
         //判断是否足够明显，过滤掉小于 0.5px 的微小移动，避免频繁刷新
         return if (dragConsumed.absoluteValue >= 0.5f) {
+            if (!state.isOverOpenTriggerWhenDragging() && state.offset >= openTrigger) {
+                onOverOpenTriggerWhenDragging()
+            }
             // 启动协程更新偏移量
             coroutineScope.launch {
                 state.dispatchScrollDelta(dragConsumed)
@@ -143,12 +149,12 @@ private class DragToggleNestedScrollConnection(
     //松手处理
     override suspend fun onPreFling(available: Velocity): Velocity {
         // 如果已经超过了触发点，调用回调
-        if (!state.isOverOpenTrigger() && state.offset >= openTrigger) {
-            onOverOpenTrigger()
+        if (!state.isOverOpenTriggerWhenFling() && state.offset >= openTrigger) {
+            onOverOpenTriggerWhenFling()
         }
 
         // 重置拖拽标记
-        state.isDraggableInProgress = false
+        state.isDragging = false
 
         // 不消耗任何速度，让内容正常 fling
         //Velocity.Zero 是一个零速度常量，表示没有速度、不滚动
@@ -280,7 +286,8 @@ when (state.dragStatus) {
 @Composable
 fun FixHeadBackgroundDraggableBodyLayout(
     state: DragToggleState, //拖拽状态管理器
-    onOverOpenTrigger: () -> Unit, //超过触发阈值回调
+    onOverOpenTriggerWhenFling: () -> Unit,
+    onOverOpenTriggerWhenDragging: () -> Unit,
     onOpened: () -> Unit, //完全打开回调
     dragEnabled: Boolean = true, //是否启用拖拽
     modifier: Modifier = Modifier,
@@ -290,24 +297,26 @@ fun FixHeadBackgroundDraggableBodyLayout(
     content: @Composable () -> Unit, //主体内容组件
 ) {
     val coroutineScope = rememberCoroutineScope()
-    val updatedOnOverOpenTrigger = rememberUpdatedState(onOverOpenTrigger)
+    val updatedOnOverOpenTriggerWhenFling = rememberUpdatedState(onOverOpenTriggerWhenFling)
+    val updatedOnOverOpenTriggerWhenDragging = rememberUpdatedState(onOverOpenTriggerWhenDragging)
     var backgroundHeight by remember {
         mutableStateOf(1)
     }
     val openTriggerPx = backgroundHeight * triggerRadio    // 触发阈值（像素）
     val maxDrag = backgroundHeight * maxDragRadio           // 最大拖拽距离（像素）
 
-    //打开完成检测： 没有在拖拽中 偏移量已达到最大值  状态是"超过触发点"
-    if(!state.isDraggableInProgress && state.offset >= maxDrag && state.isOverOpenTrigger()) {
+    //打开完成检测： 没有在拖拽中 偏移量已达到最大值  状态是"松手并且超过触发点"
+    if(!state.isDragging && state.offset >= maxDrag && state.isOverOpenTriggerWhenFling()) {
         onOpened()
     }
 
     //松手动画
-    LaunchedEffect(state.isDraggableInProgress, state.dragStatus) {
-        if (!state.isDraggableInProgress) {
+    LaunchedEffect(state.isDragging, state.dragStatus) {
+        if (!state.isDragging) {
             when (state.dragStatus) {
                 DragStatus.Idle -> state.animateOffsetTo(0f)           // 弹回顶部
-                DragStatus.OverOpenTrigger -> state.animateOffsetTo(maxDrag) // 展开到最大
+                DragStatus.OverOpenTriggerWhenDragging -> state.animateOffsetTo(maxDrag) // 展开到最大
+                DragStatus.OverOpenTriggerWhenFling -> state.animateOffsetTo(maxDrag) // 展开到最大
                 DragStatus.Opened -> state.animateOffsetTo(0f)         // 收起
             }
         }
@@ -315,9 +324,12 @@ fun FixHeadBackgroundDraggableBodyLayout(
 
     // 嵌套滚动连接
     val nestedScrollConnection = remember(state, coroutineScope) {
-        DragToggleNestedScrollConnection(state, coroutineScope) {
-            updatedOnOverOpenTrigger.value.invoke()
-        }
+        DragToggleNestedScrollConnection(
+            state,
+            coroutineScope,
+            updatedOnOverOpenTriggerWhenDragging.value,
+            updatedOnOverOpenTriggerWhenFling.value
+        )
     }.apply {
         this.enabled = dragEnabled
         this.openTrigger = openTriggerPx
