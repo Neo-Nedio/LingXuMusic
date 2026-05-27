@@ -19,7 +19,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -61,7 +60,12 @@ fun BoxScope.BottomMusicPlay() {
                 .align(Alignment.BottomCenter)      // 定位在 Box 底部中央
                 .padding(bottom = paddingBottom.value),  // 动态底部间距
             visibleState = remember { MutableTransitionState(false) }
-                .apply { targetState = showBottomMusicPlay },  // 播放页打开时隐藏
+                .apply { targetState = showBottomMusicPlay && // 播放页打开时隐藏
+                        //在引导页时隐藏
+                        NavController.instance.currentBackStackEntryAsState().value?.destination?.route != Routes.SPLASH &&
+                        //在登录页时隐藏
+                        NavController.instance.currentBackStackEntryAsState().value?.destination?.route != Routes.LOGIN
+                       },
             enter = slideInVertically(
                 initialOffsetY = { fullHeight -> fullHeight },  // 从底部滑入
                 animationSpec = tween(200)

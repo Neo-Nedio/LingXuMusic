@@ -39,20 +39,12 @@ fun HomePage() {
             pageCount = { bottomNavigationItems.size }
         )
 
-        //底部边距（当播放条出来时上移，可以看到内容）
-        val paddingBottom = if (showBottomMusicPlay) {
-            BottomMusicPlayPadding
-        } else {
-            0.dp
-        }
-
 
         HorizontalPager(
             state = pagerState,
             userScrollEnabled = true, // 允许用户水平滑动切换页面
             beyondViewportPageCount = bottomNavigationItems.size - 1, // 预加载页面数量
             modifier = Modifier
-                .padding(bottom = paddingBottom)
                 .weight(1f) // 占满剩余空间
                 .background(AppColorsProvider.current.background)
         ) { pagePosition ->
