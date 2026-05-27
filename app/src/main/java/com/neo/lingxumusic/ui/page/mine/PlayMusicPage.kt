@@ -49,7 +49,7 @@ import com.neo.lingxumusic.viewmodel.mine.PlayListViewModel
 import kotlinx.coroutines.launch
 import kotlin.math.max
 
-
+private const val DISK_ROTATE_ANIM_CYCLE = 10000
 var showBottomMusicPlay by mutableStateOf(false) //是否显示底部播放组件
 var showPlayMusicPage by mutableStateOf(false)      // 是否显示播放页
 var sheetNeedleUp by mutableStateOf(true)           // 唱针是否抬起
@@ -156,6 +156,7 @@ fun PlayMusicContent() {
                     Spacer(modifier = Modifier.size(88.cdp))
                 },
                 leftClick = {
+                    lastSheetDiskRotateAngleForSnap = 0f
                     showPlayMusicPage = false
                     showBottomMusicPlay = true
                 },
@@ -231,27 +232,32 @@ private fun DiskNeedle() {
 //唱片轮播
 @Composable
 private fun DiskPager(pagerState: PagerState) {
-    // 初始播放状态
-    LaunchedEffect(Unit) {
+    // 当播放状态改变时
+    LaunchedEffect(MusicPlayController.isPlaying()) {
         if (MusicPlayController.isPlaying()) { ///正在播放
             sheetNeedleUp = false                      // 唱针落下
             sheetDiskRotate.stop()                     // 停止当前动画
-            lastSheetDiskRotateAngleForSnap = 0f       // 重置角度
+            //lastSheetDiskRotateAngleForSnap = 0f       // 重置角度
             sheetDiskRotate.snapTo(lastSheetDiskRotateAngleForSnap)  // 设置初始角度
             sheetDiskRotate.animateTo(                 // 开始旋转动画
                 targetValue = 360f + lastSheetDiskRotateAngleForSnap,
                 animationSpec = infiniteRepeatable(
-                    animation = tween(durationMillis = 8000, easing = LinearEasing),
+                    animation = tween(durationMillis = DISK_ROTATE_ANIM_CYCLE, easing = LinearEasing),
                     repeatMode = RepeatMode.Restart
                 )
             )
         }
     }
 
+    //页面变化逻辑
     LaunchedEffect(pagerState.settledPage) {
         if (MusicPlayController.curIndex != pagerState.settledPage) {
-            MusicPlayController.play() // 开始播放新歌曲
-            sheetNeedleUp = false // 唱针落下
+            MusicPlayController.play(pagerState.settledPage) // 开始播放新歌曲
+            //不重置唱片旋转的方法
+            sheetDiskRotate.snapTo(lastSheetDiskRotateAngleForSnap)
+
+            //重置唱片旋转的方法
+            /*sheetNeedleUp = false // 唱针落下
             sheetDiskRotate.stop()
             lastSheetDiskRotateAngleForSnap = 0f
             sheetDiskRotate.snapTo(lastSheetDiskRotateAngleForSnap)
@@ -259,10 +265,10 @@ private fun DiskPager(pagerState: PagerState) {
             sheetDiskRotate.animateTo(  // 开始旋转
                 targetValue = 360f + lastSheetDiskRotateAngleForSnap,
                 animationSpec = infiniteRepeatable(
-                    animation = tween(durationMillis = 8000, easing = LinearEasing),
+                    animation = tween(durationMillis = DISK_ROTATE_ANIM_CYCLE, easing = LinearEasing),
                     repeatMode = RepeatMode.Restart
                 )
-            )
+            )*/
         }
     }
 
@@ -324,7 +330,8 @@ private fun DiskItem(song: Song) {
 
         //旋转图片
         CommonNetworkImage(
-            url = song.cover?.replaceSize(), modifier = Modifier
+            url = song.cover?.replaceSize(),
+            modifier = Modifier
                 .width(180.dp)
                 .height(180.dp)
                 .clip(CircleShape)
@@ -332,7 +339,9 @@ private fun DiskItem(song: Song) {
                     width = 2.dp,
                     color = Color.Black,
                     shape = CircleShape
-                )
+                ),
+            placeholder = R.drawable.ic_defalut_disk_cover,
+            error = R.drawable.ic_defalut_disk_cover,
         )
     }
 }
@@ -340,9 +349,13 @@ private fun DiskItem(song: Song) {
 //音乐播放器底部的操作按钮栏
 @Composable
 private fun BottomActionLayout() {
-    Row(modifier = Modifier.padding(start = 44.cdp, end = 44.cdp, bottom = 32.cdp).fillMaxWidth(),
+    Row(
+        modifier = Modifier
+            .padding(start = 44.cdp, end = 44.cdp, bottom = 32.cdp)
+            .fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceAround) { // 水平均匀分布
+        horizontalArrangement = Arrangement.SpaceAround
+    ) { // 水平均匀分布
         MiddleActionIcon(R.drawable.ic_like_no)      // 点赞（未点赞状态）
         MiddleActionIcon(R.drawable.ic_download)     // 下载
         MiddleActionIcon(R.drawable.ic_action_sing)  // K歌/唱歌
@@ -377,22 +390,22 @@ private fun ProgressLayout() {
         verticalAlignment = Alignment.CenterVertically
     ) {
         //左侧已播放时间
-        Text(text = "00:00", fontSize = 26.csp, color = Color.White)
+        Text(text = MusicPlayController.curPositionStr, fontSize = 26.csp, color = Color.White)
         //进度条
         SeekBar(
-            progress = 22,
+            progress = MusicPlayController.progress,
             seeking = {
-                //viewModel.seeking(it)
+                MusicPlayController.seeking(it)
             },
             seekTo = {
-                //viewModel.seekTo(it)
+                MusicPlayController.seekTo(it)
             },
             modifier = Modifier
                 .padding(horizontal = 20.cdp)
                 .weight(1f)
         )
         //右侧总时间
-        Text(text = "05:00", fontSize = 26.csp, color = Color.White)
+        Text(text = MusicPlayController.totalDuringStr, fontSize = 26.csp, color = Color.White)
     }
 
 }
@@ -432,7 +445,7 @@ private fun BottomActionLayout(pagerState: PagerState) {
                 }
             } else {
                 // 播放逻辑
-                MusicPlayController.play()
+                MusicPlayController.resume()
                 coroutineScopeScope.launch {
                     sheetNeedleUp = false                     // 唱针落下
                     sheetDiskRotate.snapTo(lastSheetDiskRotateAngleForSnap)  // 恢复角度
@@ -470,7 +483,7 @@ private fun ActionButton(
 ) {
     CommonIcon(
         resId,
-        tint = if (enable) Color.White else Color.Gray,  // 可用=白色，禁用=灰色
+        tint = if (enable) Color.White else Color(0xFFBBBBBB),
         modifier = Modifier
             .size(size.cdp)
             .clip(CircleShape)

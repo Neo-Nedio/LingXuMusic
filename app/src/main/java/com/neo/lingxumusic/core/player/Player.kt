@@ -11,6 +11,8 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.json.JSONObject
+import retrofit2.HttpException
 import java.util.*
 
 object Player : IPlayer,
@@ -41,7 +43,8 @@ object Player : IPlayer,
     +	将两个元素组合成一个 CoroutineContext*/
     private val playerScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
-    private val songApi = EntryPointFinder.getSongApi() // API 接口
+    private val songApi = EntryPointFinder.getSongApi()
+    private val loginApi = EntryPointFinder.getLoginApi()
 
     //为 MediaPlayer 设置各种监听器，由 Player 自身实现
     init {
@@ -101,27 +104,38 @@ object Player : IPlayer,
         //启动新的协程
         mJob = playerScope.launch {
             try {
-                //todo 没有检查是否需要认证difd
-                //网络请求获取播放地址（切换到 IO 线程执行网络请求）
-                val url = withContext(Dispatchers.IO) {
-                    songApi.getSongUrl(hash).url?.firstOrNull()//todo 检查播放地址是否可用
-                }
-                //检查播放地址是否有效
-                if (url.isNullOrBlank()) {
+                getSongUrlAndPlay(hash)
+            } catch (e: HttpException) {
+                val body = e.response()?.errorBody()?.string().orEmpty()
+                val needVerify = runCatching {
+                    JSONObject(body).optString("error").contains("验证")
+                }.getOrDefault(false)
+                if (needVerify) {
+                    runCatching {
+                        withContext(Dispatchers.IO) { loginApi.AuthData() }
+                        if (mCurSong?.hash == hash) getSongUrlAndPlay(hash)
+                    }.onFailure { setStatus(PlayerStatus.ERROR) }
+                } else {
                     setStatus(PlayerStatus.ERROR)
-                    return@launch
                 }
-                //防止快速切换歌曲导致的错乱（丢弃旧歌曲的请求结果，只处理最新歌曲）
-                if (mCurSong?.hash != hash) return@launch
-
-                mMediaPlayer.reset()           // 重置播放器（清除之前的状态）
-                mMediaPlayer.setDataSource(url) // 设置新的播放源
-                mMediaPlayer.prepareAsync()     // 异步准备（完成后回调 onPrepared）
             } catch (e: Exception) {
                 e.printStackTrace()
                 setStatus(PlayerStatus.ERROR)
             }
         }
+    }
+
+    private suspend fun getSongUrlAndPlay(hash: String) {
+        val url = withContext(Dispatchers.IO) { //todo 检查播放地址是否可用
+            songApi.getSongUrl(hash).url?.firstOrNull()
+        }
+        if (url.isNullOrBlank() || mCurSong?.hash != hash) {
+            if (url.isNullOrBlank()) setStatus(PlayerStatus.ERROR)
+            return
+        }
+        mMediaPlayer.reset()
+        mMediaPlayer.setDataSource(url)
+        mMediaPlayer.prepareAsync()
     }
 
     //暂停播放

@@ -1,6 +1,5 @@
 package com.neo.lingxumusic.http.api
 
-import com.neo.lingxumusic.model.AuthData
 import com.neo.lingxumusic.model.BaseResult
 import retrofit2.http.GET
 import retrofit2.http.Query
@@ -27,6 +26,6 @@ interface LoginApi {
 
     @GET("/register/dev")
     suspend fun AuthData(
-    ):AuthData
+    ):BaseResult
 
 }

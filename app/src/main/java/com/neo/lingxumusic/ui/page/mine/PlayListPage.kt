@@ -300,12 +300,11 @@ private fun Body(playlist: PlaylistBrief) {
                     } else {
                         MusicPlayController.songList.clear()
                         //通过这个函数过滤所有无法播放的歌曲
-                        MusicPlayController.setSongListAndIndex(
+                        MusicPlayController.setDataSource(
                             viewModel.songList,
                             viewModel.songList[index].hash
                         )
                         showPlayMusicPage = true
-                        MusicPlayController.play()
                     }
                 }
             }

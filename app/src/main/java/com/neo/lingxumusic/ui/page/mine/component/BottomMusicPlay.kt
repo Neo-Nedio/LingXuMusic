@@ -197,7 +197,7 @@ private fun BottomMusicPlayBar() {
                         if (MusicPlayController.isPlaying()) {
                             MusicPlayController.pause()
                         } else {
-                            MusicPlayController.play()
+                            MusicPlayController.resume()
                         }
                     },
                 contentAlignment = Alignment.Center
@@ -210,8 +210,8 @@ private fun BottomMusicPlayBar() {
                     modifier = Modifier
                         .size(30.cdp)
                 )
-                // 进度圆环（硬编码 33%）
-                CircleProgress(modifier = Modifier.size(58.cdp), 33)
+                // 进度圆环
+                CircleProgress(modifier = Modifier.size(58.cdp), MusicPlayController.progress)
             }
         }
     }
