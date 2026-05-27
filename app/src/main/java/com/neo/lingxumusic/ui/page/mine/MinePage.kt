@@ -9,6 +9,8 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,7 +23,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -68,6 +69,7 @@ import com.neo.lingxumusic.ui.page.mine.component.MusicApplicationComponent
 import com.neo.lingxumusic.ui.page.mine.component.UserInfoComponent
 import com.neo.lingxumusic.ui.page.mine.component.UserPlaylistItem
 import com.neo.lingxumusic.ui.theme.AppColorsProvider
+import com.neo.lingxumusic.utils.VibratorHelper
 import com.neo.lingxumusic.utils.cdp
 import com.neo.lingxumusic.utils.csp
 import com.neo.lingxumusic.utils.toPx
@@ -133,6 +135,7 @@ fun MinePage() {
                     maxDragRadio = 0.48f, //最大拖拽距离比例（0-1）
                     modifier = Modifier.background(AppColorsProvider.current.background),
                     onOverOpenTrigger = { // 超过触发点回调
+                        VibratorHelper.vibrate()
                         dragToggleState.dragStatus = DragStatus.OverOpenTrigger
                     },
                     onOpened = { // 完全打开回调
@@ -152,7 +155,11 @@ fun MinePage() {
                     }) {
                     Body(1 - bodyAlphaValue,
                         selectedTabIndex,
-                        scrollState) // 主体内容
+                        scrollState)  {
+                        VibratorHelper.vibrate()
+                        dragToggleState.dragStatus = DragStatus.OverOpenTrigger
+                    }
+
                 }
             }
         }
@@ -176,6 +183,7 @@ private fun Body(
     bodyAlphaValue: Float,
     selectedTabIndex: MutableState<Int>,
     scrollState: ScrollState,
+    openUserPageCallback: () -> Unit
 ) {
     val density = LocalDensity.current
     val coroutineScope = rememberCoroutineScope()
@@ -205,6 +213,11 @@ private fun Body(
                 modifier = Modifier
                     .statusBarsPadding()
                     .padding(top = 88.cdp)
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },//记录交互状态
+                        indication = null,//取消涟漪效果
+                        onClick = { openUserPageCallback() }
+                    )
             )
 
             // 音乐应用
