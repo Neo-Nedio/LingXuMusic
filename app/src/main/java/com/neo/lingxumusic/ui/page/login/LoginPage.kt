@@ -2,6 +2,7 @@ package com.neo.lingxumusic.ui.page.login
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,9 +12,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
 import com.google.gson.Gson
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -53,6 +56,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import com.neo.lingxumusic.core.navigation.NavController
 import com.neo.lingxumusic.core.navigation.Routes
 import com.neo.lingxumusic.ui.page.login.component.MultiUserColumn
+import com.neo.lingxumusic.utils.cdp
+import com.neo.lingxumusic.utils.csp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -91,6 +96,7 @@ fun LoginPage() {
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.fillMaxSize()
         ) {
+            //顶部图标
             Image(
                 painterResource(id = R.drawable.ic_splash_logo),
                 contentDescription = "splashLogo",
@@ -106,7 +112,7 @@ fun LoginPage() {
                 onValueChange = { phone = it },
                 label = { Text("请输入手机号") },
                 modifier = Modifier
-                    .padding(top = 40.dp)
+                    .padding(top = 80.cdp)
                     .focusTarget(),
                 singleLine = true,
                 colors = LoginTextFieldColors()
@@ -116,7 +122,7 @@ fun LoginPage() {
                 value = code,
                 onValueChange = { code = it },
                 label = { Text("请输入验证码") },
-                modifier = Modifier.padding(top = 20.dp),
+                modifier = Modifier.padding(top = 40.cdp),
                 visualTransformation = PasswordVisualTransformation(), //隐藏输入
                 trailingIcon = {
                     Button(
@@ -149,15 +155,15 @@ fun LoginPage() {
                     viewModel.login(phone, code) //登录
                 },
                 modifier = Modifier
-                    .padding(horizontal = 40.dp, vertical = 40.dp)
+                    .padding(80.cdp)
                     .fillMaxWidth()
-                    .height(50.dp),
+                    .height(100.cdp),
                 shape = CircleShape,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color.White
                 )
             ) {
-                Text(text = "登陆", fontSize = 18.sp, color = Color.Black)
+                Text(text = "登陆", fontSize = 36.csp, color = Color.Black)
             }
         }
     }
