@@ -1,5 +1,7 @@
 package com.neo.lingxumusic.utils
 
+import java.util.Locale
+
 
 object StringUtil {
 
@@ -31,6 +33,33 @@ object StringUtil {
             // 如果没有分隔符，歌手设为空或 "未知"
             Pair("", fullName)
         }
+    }
+
+    //格式化时间
+    fun formatMilliseconds(milliseconds: Int): String {
+        val standardTime: String
+        val seconds = milliseconds / 1000
+        if (seconds <= 0) {
+            standardTime = "00:00"
+        } else if (seconds < 60) {
+            standardTime = String.format(Locale.getDefault(), "00:%02d", seconds % 60)
+        } else if (seconds < 3600) {
+            standardTime = java.lang.String.format(
+                Locale.getDefault(),
+                "%02d:%02d",
+                seconds / 60,
+                seconds % 60
+            )
+        } else {
+            standardTime = String.format(
+                Locale.getDefault(),
+                "%02d:%02d:%02d",
+                seconds / 3600,
+                seconds % 3600 / 60,
+                seconds % 60
+            )
+        }
+        return standardTime
     }
 }
 
