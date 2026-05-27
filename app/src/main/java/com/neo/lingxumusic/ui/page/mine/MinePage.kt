@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -36,6 +37,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
@@ -71,6 +73,7 @@ import com.neo.lingxumusic.utils.csp
 import com.neo.lingxumusic.utils.toPx
 import com.neo.lingxumusic.viewmodel.mine.MineViewModel
 import kotlinx.coroutines.launch
+import kotlin.times
 
 //todo 歌单和歌单内的歌曲默认一次加载30，要监听滚动加入数据
 
@@ -233,8 +236,7 @@ private fun Body(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(100.cdp)
-                        .padding(top = 12.cdp)
-                        .background(AppColorsProvider.current.pure)
+                        .mineCommonCard()
                         // 监听 Tab 栏的位置变化
                         .onGloballyPositioned {
                             //记录 Tab 栏自身的 Y 坐标（用于滚动联动）
@@ -247,7 +249,19 @@ private fun Body(
                             // 当这个距离 <= stickyPositionTop 时，说明 Tab 已经滚到顶部附近
                             showStickyTabLayout = it.positionInRoot().y <= stickyPositionTop
                         }
-                        .graphicsLayer { alpha = bodyAlphaValue }
+                        .graphicsLayer { alpha = bodyAlphaValue },
+                    //绘制tab之间的分割线
+                    tabItemDrawBehindBlock = { position ->
+                        // 不是最后一个 Tab 才绘制分割线
+                        if (position != tabs.size - 1) {
+                            drawLine(
+                                Color.LightGray,                                        // 颜色：浅灰色
+                                Offset(size.width, size.height * 0.3f),  // 起点：tab右上角（向下30%位置）
+                                Offset(size.width, size.height * 0.7f),    // 终点：tab右下角（向下70%位置）
+                                strokeWidth = 2.cdp.toPx()                              // 线宽：2dp
+                            )
+                        }
+                    }
                 ),
                 selectedIndex = selectedTabIndex.value
             ) {
@@ -326,7 +340,18 @@ private fun Body(
                         .fillMaxWidth()
                         .height(100.cdp)
                         .background(AppColorsProvider.current.pure)
-                        .padding(top = 12.cdp)
+                        .padding(top = 12.cdp),
+                    //绘制tab之间的分割线
+                    tabItemDrawBehindBlock = { position ->
+                        if (position != tabs.size - 1) {
+                            drawLine(
+                                Color.LightGray,
+                                Offset(size.width, size.height * 0.3f),
+                                Offset(size.width, size.height * 0.7f),
+                                strokeWidth = 2.cdp.toPx()
+                            )
+                        }
+                    }
                 ),
                 selectedIndex = selectedTabIndex.value
             ) {
@@ -450,10 +475,10 @@ private fun HeaderBackground(alphaValue: Float) {
 
 // 卡片样式扩展函数
 fun Modifier.mineCommonCard() = composed {
-    this.fillMaxWidth()
-        .padding(start = 32.cdp, end = 32.cdp, top = 20.cdp)
-        .background(AppColorsProvider.current.card, RoundedCornerShape(24.cdp))
-        .padding(top = 24.cdp, bottom = 24.cdp)
+    this.fillMaxWidth()         // 宽度占满
+        .padding(start = 32.cdp, end = 32.cdp, top = 20.cdp) // 1. 先 padding（上下左右都有间距）
+        .background(AppColorsProvider.current.card, RoundedCornerShape(24.cdp)) // 2. 背景（只覆盖 padding 后的区域）
+        .padding(top = 24.cdp, bottom = 24.cdp)              // 3. 再 padding（增加上下内边距）
 }
 
 

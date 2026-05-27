@@ -44,7 +44,7 @@ import com.neo.lingxumusic.utils.csp
 fun CommonTabLayout(
     selectedIndex: Int = 0,
     tabTexts: List<String>, //Tab 文字列表
-    backgroundColor: Color = AppColorsProvider.current.background,  // 背景颜色
+    backgroundColor: Color = AppColorsProvider.current.background,  // tab的背景颜色
     selectedTextColor: Color = AppColorsProvider.current.firstText,  // 选中tab字体颜色
     unselectedTextColor: Color = AppColorsProvider.current.secondText,  // 未选中tab字体颜色
     indicatorColor: Brush = Brush.horizontalGradient(// 指示器颜色
@@ -212,6 +212,6 @@ data class CommonTabLayoutStyle(
     val indicatorWidth: Dp = 140.cdp,  // 指示器宽度
     val indicatorHeight: Dp = 12.cdp,  // 指示器高度
     val isScrollable: Boolean = true,  // 是否可滑动
-    val tabItemDrawBehindBlock: (DrawScope.(position: Int) -> Unit)? = null, //自定义绘制每个 Tab
+    val tabItemDrawBehindBlock: (DrawScope.(position: Int) -> Unit)? = null, //为每个tab在 Box 背后绘制自定义内容（如背景、边框等）
     val customIndicator: @Composable ((selectedPosition: Int) -> Unit)? = null  // 自定义指示器
 )
