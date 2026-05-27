@@ -119,7 +119,7 @@ object Player : IPlayer,
     }
 
     private suspend fun getSongUrlAndPlay(hash: String) {
-        val url = withContext(Dispatchers.IO) { //todo 检查播放地址是否可用
+        val url = withContext(Dispatchers.IO) { //todo 检查播放地址是否可用 不可用时，可能是那个url不可用，切换url ;也有可能这个接口根本没有请求到url，进行判断是没有vip还是需要调用另一个接口
             songApi.getSongUrl(hash).url?.firstOrNull()
         }
         if (url.isNullOrBlank() || mCurSong?.hash != hash) {

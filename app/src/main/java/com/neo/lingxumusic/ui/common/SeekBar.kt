@@ -1,7 +1,7 @@
 package com.neo.lingxumusic.ui.common
 
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.gestures.forEachGesture
+import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.*
@@ -81,8 +81,8 @@ fun SeekBar(
         .fillMaxWidth()
         .height(80.cdp)
         .pointerInput(Unit) {
-                awaitPointerEventScope {
-                    while (true) {
+            awaitEachGesture { //等待每一次，而不是之前awaitPointerEventScope只处理一次
+                while (true) {
                         val event: PointerEvent = awaitPointerEvent(PointerEventPass.Final)
                         if (event.changes.size == 1) {  // 只处理单指
                             // 1.单指操作
@@ -115,9 +115,9 @@ fun SeekBar(
                                     isPressed = true
                                 }
                             }
-                        }
                     }
                 }
+            }
         }) {
         //更新了全局 width/height
         width = drawContext.size.width
