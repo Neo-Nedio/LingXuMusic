@@ -16,7 +16,6 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -33,20 +32,25 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.neo.lingxumusic.R
 import com.neo.lingxumusic.core.MusicPlayController
 import com.neo.lingxumusic.model.Song
+import com.neo.lingxumusic.ui.common.CommonIcon
+import com.neo.lingxumusic.ui.common.CommonLocalImage
 import com.neo.lingxumusic.ui.common.CommonNetworkImage
 import com.neo.lingxumusic.ui.common.CommonTopAppBar
-import com.neo.lingxumusic.ui.theme.AppColorsProvider
+import com.neo.lingxumusic.ui.common.SeekBar
 import com.neo.lingxumusic.utils.StringUtil
 import com.neo.lingxumusic.utils.cdp
 import com.neo.lingxumusic.utils.csp
 import com.neo.lingxumusic.utils.replaceSize
+import com.neo.lingxumusic.viewmodel.mine.PlayListViewModel
 import kotlinx.coroutines.launch
 import kotlin.math.max
 
 
+var showBottomMusicPlay by mutableStateOf(false) //是否显示底部播放组件
 var showPlayMusicPage by mutableStateOf(false)      // 是否显示播放页
 var sheetNeedleUp by mutableStateOf(true)           // 唱针是否抬起
 val sheetDiskRotate by mutableStateOf(Animatable(0f)) // 唱片旋转角度
@@ -56,7 +60,7 @@ var lastSheetDiskRotateAngleForSnap = 0f            // 上次暂停时的角度
 fun PlayMusicPage() {
     // 动画显示/隐藏播放页
     AnimatedVisibility(
-        visible = showPlayMusicPage,  // ← 添加这个！根据这个变量控制显示
+        visible = showPlayMusicPage,  // 根据这个变量控制显示
         enter = slideInVertically(
             initialOffsetY = { fullHeight -> fullHeight },  // 从底部滑入
             animationSpec = tween(600)
@@ -76,6 +80,7 @@ fun PlayMusicSheet() {
     //防止按返回键直接退出 App 或返回上一个路由，而不是关闭播放页
     BackHandler(enabled = showPlayMusicPage) {
         showPlayMusicPage = false
+        showBottomMusicPlay = true
     }
     PlayMusicContent()
 }
@@ -124,7 +129,7 @@ fun PlayMusicContent() {
                             fontSize = 36.csp,
                             fontWeight = FontWeight.Medium,
                             textAlign = TextAlign.Center,
-                            color = AppColorsProvider.current.pure,
+                            color = Color.White,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                             modifier = Modifier.fillMaxWidth()
@@ -135,7 +140,7 @@ fun PlayMusicContent() {
                             fontSize = 24.csp,
                             fontWeight = FontWeight.Medium,
                             textAlign = TextAlign.Center,
-                            color = AppColorsProvider.current.pure,
+                            color = Color.White,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                             modifier = Modifier
@@ -152,9 +157,10 @@ fun PlayMusicContent() {
                 },
                 leftClick = {
                     showPlayMusicPage = false
+                    showBottomMusicPlay = true
                 },
                 backgroundColor = Color.Transparent,
-                contentColor = AppColorsProvider.current.pure
+                contentColor = Color.White,
             )
 
             //唱片区域
@@ -165,8 +171,12 @@ fun PlayMusicContent() {
                     DiskNeedle()           // 顶层：唱针
                 }
 
-                //底部按钮
-                BottomActionLayout(pagerState)
+                //底部区域
+                Column(modifier = Modifier.align(Alignment.BottomCenter)) {
+                    BottomActionLayout()
+                    ProgressLayout()
+                    BottomActionLayout(pagerState)
+                }
             }
         }
     }
@@ -305,9 +315,8 @@ private fun DiskItem(song: Song) {
         contentAlignment = Alignment.Center
     ) {
         //背景圆环
-        Image(
-            painter = painterResource(id = R.drawable.ic_disc_background),
-            contentDescription = "disc_background",
+        CommonLocalImage(
+             R.drawable.ic_disc_background,
             modifier = Modifier
                 .width(270.dp)
                 .height(270.dp)
@@ -328,16 +337,75 @@ private fun DiskItem(song: Song) {
     }
 }
 
+//音乐播放器底部的操作按钮栏
+@Composable
+private fun BottomActionLayout() {
+    Row(modifier = Modifier.padding(start = 44.cdp, end = 44.cdp, bottom = 32.cdp).fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceAround) { // 水平均匀分布
+        MiddleActionIcon(R.drawable.ic_like_no)      // 点赞（未点赞状态）
+        MiddleActionIcon(R.drawable.ic_download)     // 下载
+        MiddleActionIcon(R.drawable.ic_action_sing)  // K歌/唱歌
+        MiddleActionIcon(R.drawable.ic_comment_count) // 评论
+        MiddleActionIcon(R.drawable.ic_song_more)    // 更多
+
+    }
+}
+
+@Composable
+private fun MiddleActionIcon(resId: Int, modifier: Modifier = Modifier, clickable: () -> Unit = {}) {
+    CommonIcon(
+        resId,
+        tint = Color.White,
+        modifier = modifier
+            .size(78.cdp) // 图标容器大小 78dp（包含内边距）
+            .clip(CircleShape)
+            .clickable {
+                clickable.invoke()
+            }
+            .padding(16.cdp)  // 内边距 16dp
+    )
+}
+
+@Composable
+private fun ProgressLayout() {
+    val viewModel: PlayListViewModel = hiltViewModel()
+
+    Row(
+        modifier = Modifier
+            .padding(start = 44.cdp, end = 44.cdp, bottom = 32.cdp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        //左侧已播放时间
+        Text(text = "00:00", fontSize = 26.csp, color = Color.White)
+        //进度条
+        SeekBar(
+            progress = 22,
+            seeking = {
+                //viewModel.seeking(it)
+            },
+            seekTo = {
+                //viewModel.seekTo(it)
+            },
+            modifier = Modifier
+                .padding(horizontal = 20.cdp)
+                .weight(1f)
+        )
+        //右侧总时间
+        Text(text = "05:00", fontSize = 26.csp, color = Color.White)
+    }
+
+}
+
 //底部按钮
 @Composable
-private fun BoxScope.BottomActionLayout(pagerState: PagerState) {
+private fun BottomActionLayout(pagerState: PagerState) {
     val coroutineScopeScope = rememberCoroutineScope()
     Row(
         modifier = Modifier
-            .align(Alignment.BottomCenter)
-            .padding(horizontal = 10.dp, vertical = 30.dp)
+            .padding(start = 20.cdp, end = 20.cdp, bottom = 60.cdp)
             .fillMaxWidth()
-            .height(60.dp),
+            .height(120.cdp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceEvenly
     ) {
@@ -354,7 +422,7 @@ private fun BoxScope.BottomActionLayout(pagerState: PagerState) {
             }
         }
         // 播放or暂停
-        ActionButton(if (MusicPlayController.isPlaying()) R.drawable.ic_action_pause else R.drawable.ic_action_play, size = 56) {
+        ActionButton(if (MusicPlayController.isPlaying()) R.drawable.ic_action_pause else R.drawable.ic_action_play, size = 116) {
             if (MusicPlayController.isPlaying()) {
                 MusicPlayController.pause()
                 coroutineScopeScope.launch {
@@ -396,23 +464,22 @@ private fun BoxScope.BottomActionLayout(pagerState: PagerState) {
 @Composable
 private fun ActionButton(
     resId: Int,                      // 图标资源 ID
-    size: Int = 40,                  // 按钮大小（默认 40dp）
+    size: Int = 84,                  // 按钮大小（默认 40dp）
     enable: Boolean = true,          // 是否可用（默认可用）
     onClick: () -> Unit = {}         // 点击回调（默认为空）
 ) {
-    Icon(
-        painterResource(resId),
-        null,
+    CommonIcon(
+        resId,
         tint = if (enable) Color.White else Color.Gray,  // 可用=白色，禁用=灰色
         modifier = Modifier
-            .size(size.dp)
+            .size(size.cdp)
             .clip(CircleShape)
             .clickable(enabled = enable) {
                 if (enable) {
                     onClick()
                 }
             }
-            .padding(8.dp)
+            .padding(16.cdp)
     )
 }
 

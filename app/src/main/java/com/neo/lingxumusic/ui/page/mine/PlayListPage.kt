@@ -44,6 +44,7 @@ import com.neo.lingxumusic.ui.common.CommonHeadBackgroundShape
 import com.neo.lingxumusic.ui.common.CommonIcon
 import com.neo.lingxumusic.ui.common.CommonNetworkImage
 import com.neo.lingxumusic.ui.common.CommonTopAppBar
+import com.neo.lingxumusic.ui.page.mine.component.BottomMusicPlayPadding
 import com.neo.lingxumusic.ui.page.mine.component.SongItem
 import com.neo.lingxumusic.ui.theme.AppColorsProvider
 import com.neo.lingxumusic.utils.StringUtil
@@ -59,10 +60,18 @@ fun PlaylistPage(playlist: PlaylistBrief) {
     val scrollState = rememberScrollState()                      // 滚动状态
     val showPlayListTitle = scrollState.value >= 188.cdp.toPx   // 滚动超过188dp时显示标题
 
+    //底部边距（当播放条出来时上移，可以看到所有音乐）
+    val paddingBottom = if (showBottomMusicPlay) {
+        BottomMusicPlayPadding
+    } else {
+        0.dp
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(AppColorsProvider.current.background)
+            .padding(bottom = paddingBottom)
     ) {
         Column(
             modifier = Modifier
@@ -80,7 +89,7 @@ fun PlaylistPage(playlist: PlaylistBrief) {
                 .height(88.cdp),
             backgroundColor = if (showPlayListTitle) AppColorsProvider.current.background else Color.Transparent,
             title = if (showPlayListTitle) playlist.displayName() else "歌单",
-            contentColor = AppColorsProvider.current.pure,
+            contentColor = Color.White,
             leftIconResId = R.drawable.ic_drawer_toggle,
             leftClick = { },
             rightIconResId = R.drawable.ic_search
@@ -285,10 +294,10 @@ private fun Body(playlist: PlaylistBrief) {
             PlayListHeader(detail?.count ?: playlist.count)
             HorizontalDivider(Modifier.fillMaxWidth(), thickness = 1.cdp, color = Color.LightGray)
             songs.forEachIndexed { index, item ->
-                SongItem(index, item){
-                    if(viewModel.songList[index].hash.isNullOrEmpty()){
+                SongItem(index, item) {
+                    if (viewModel.songList[index].hash.isNullOrEmpty()) {
                         showToast("该歌曲暂不支持播放")
-                    }else{
+                    } else {
                         MusicPlayController.songList.clear()
                         //通过这个函数过滤所有无法播放的歌曲
                         MusicPlayController.setSongListAndIndex(

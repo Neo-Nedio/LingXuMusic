@@ -29,14 +29,19 @@ import com.neo.lingxumusic.R
 import com.neo.lingxumusic.core.MusicPlayController
 import com.neo.lingxumusic.core.navigation.NavController
 import com.neo.lingxumusic.core.navigation.Routes
+import com.neo.lingxumusic.ui.common.CircleProgress
+import com.neo.lingxumusic.ui.common.CommonLocalImage
 import com.neo.lingxumusic.ui.common.CommonNetworkImage
+import com.neo.lingxumusic.ui.page.mine.showBottomMusicPlay
 import com.neo.lingxumusic.ui.page.mine.showPlayMusicPage
 import com.neo.lingxumusic.ui.theme.AppColorsProvider
 import com.neo.lingxumusic.utils.StringUtil
+import com.neo.lingxumusic.utils.cdp
 import com.neo.lingxumusic.utils.replaceSize
-import kotlin.math.min
 
 
+
+val BottomMusicPlayPadding = 104.cdp
 
 @Composable
 fun BoxScope.BottomMusicPlay() {
@@ -55,8 +60,8 @@ fun BoxScope.BottomMusicPlay() {
                 .fillMaxWidth()                     // 宽度占满
                 .align(Alignment.BottomCenter)      // 定位在 Box 底部中央
                 .padding(bottom = paddingBottom.value),  // 动态底部间距
-            visibleState = remember { MutableTransitionState(true) }
-                .apply { targetState = !showPlayMusicPage },  // 播放页打开时隐藏
+            visibleState = remember { MutableTransitionState(false) }
+                .apply { targetState = showBottomMusicPlay },  // 播放页打开时隐藏
             enter = slideInVertically(
                 initialOffsetY = { fullHeight -> fullHeight },  // 从底部滑入
                 animationSpec = tween(200)
@@ -108,18 +113,12 @@ private fun BottomMusicPlayBar() {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(50.dp)
+            .height(104.cdp)
             .clickable {
                 showPlayMusicPage = true // 点击打开播放页
+                showBottomMusicPlay = false
             }
     ) {
-        // 顶部分割线（0.2dp 高，浅灰色）
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(0.2.dp)
-                .background(Color(0xAACCCCCC))
-        )
 
         // 背景色
         Box(
@@ -127,34 +126,34 @@ private fun BottomMusicPlayBar() {
                 .fillMaxSize()
                 .padding(horizontal = 12.dp)
                 .clip(CircleShape)
-                .background(AppColorsProvider.current.background)
+                .background(AppColorsProvider.current.bottomMusicPlayBarBackground)
         )
 
         //内容行
         Row(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 20.dp),
+                .padding(horizontal = 42.cdp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             // 1. 唱片区域
             Box(
                 modifier = Modifier
-                    .size(50.dp),
+                    .size(92.cdp),
                 contentAlignment = Alignment.Center
             ) {
                 // 唱片背景
-                Image(
-                    painter = painterResource(id = R.drawable.ic_disc_background),
-                    contentDescription = null,
+                CommonLocalImage(
+                    R.drawable.ic_disc,
                     modifier = Modifier.fillMaxSize()
                 )
                 // 旋转的封面图
                 CommonNetworkImage(
                     url = currentSong.cover?.replaceSize(),
-                    placeholder = R.drawable.ic_default_place_holder,
+                    placeholder = R.drawable.ic_defalut_disk_cover,
+                    error = R.drawable.ic_defalut_disk_cover,
                     modifier = Modifier
-                        .size(34.dp)
+                        .size(70.cdp)
                         .clip(CircleShape)
                         .rotate(diskRotateAngle.value) //旋转角度
                 )
@@ -174,14 +173,14 @@ private fun BottomMusicPlayBar() {
                 ) {
                     Text(
                         text = songName.ifEmpty {  "已下架" },
-                        fontSize = 14.sp,
+                        fontSize = 18.sp,
                         color = AppColorsProvider.current.firstText,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
                     Text(
                         text = singer,
-                        fontSize = 11.sp,
+                        fontSize = 12.sp,
                         color = AppColorsProvider.current.secondText,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
@@ -192,7 +191,7 @@ private fun BottomMusicPlayBar() {
             // 3. 播放控制区域
             Box(
                 Modifier
-                    .size(36.dp)
+                    .size(75.cdp)
                     .clip(CircleShape)
                     .clickable {
                         if (MusicPlayController.isPlaying()) {
@@ -209,40 +208,13 @@ private fun BottomMusicPlayBar() {
                     null,
                     tint = Color.Gray,
                     modifier = Modifier
-                        .size(14.dp)
+                        .size(30.cdp)
                 )
                 // 进度圆环（硬编码 33%）
-                CircleProgress(modifier = Modifier.size(28.dp), 33)
+                CircleProgress(modifier = Modifier.size(58.cdp), 33)
             }
         }
     }
 }
 
 
-//圆环进度条
-@Composable
-fun CircleProgress(modifier: Modifier = Modifier, progress: Int) {
-    // 计算圆弧扫过的角度（0% → 0度，100% → 360度）
-    val sweepAngle = progress / 100f * 360
-
-    Canvas(modifier = modifier) {
-        // 取宽高中的最小值，保证圆是正圆
-        val canvasSize = min(size.width, size.height)
-
-        // 1. 背景圆环（浅灰色，完整圆）
-        drawCircle(
-            color = Color.LightGray,
-            radius = canvasSize / 2,
-            style = Stroke(width = 4f)  // 空心圆，线宽 4f
-        )
-
-        // 2. 进度圆弧（深灰色）
-        drawArc(
-            color = Color.DarkGray,
-            style = Stroke(width = 4f),
-            startAngle = -90f,           // 从顶部开始（-90° = 12点钟方向）
-            sweepAngle = sweepAngle,     // 扫过的角度
-            useCenter = false            // 不连接圆心，保持圆弧
-        )
-    }
-}
