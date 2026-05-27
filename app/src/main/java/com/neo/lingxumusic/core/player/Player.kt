@@ -1,6 +1,7 @@
 package com.neo.lingxumusic.core.player
 
 import android.media.MediaPlayer
+import android.util.Log
 import com.neo.lingxumusic.core.MusicPlayController
 import com.neo.lingxumusic.hilt.entrypoint.EntryPointFinder
 import com.neo.lingxumusic.model.Song
@@ -69,25 +70,17 @@ object Player : IPlayer,
         mCurSong = songBean
     }
 
-    //开始播放
+    //从零开始播放
     override fun start() {
-        when (mStatus) {
-            PlayerStatus.PAUSED -> {
-                // 暂停状态：恢复播放
-                resume()
-            }
-            PlayerStatus.STOPPED, PlayerStatus.IDLE, PlayerStatus.COMPLETED -> {
-                // 停止/空闲/完成状态：重新加载播放
-                mCurSong?.let { getSongUrl(it.hash) }
-            }
-            PlayerStatus.PREPARED -> {
-                // 已准备：直接播放
-                innerStartPlay()
-            }
-            PlayerStatus.STARTED -> {
-                // 已在播放，忽略
-            }
-            else -> {}
+        if (mStatus == PlayerStatus.STARTED
+            || mStatus == PlayerStatus.PREPARED
+            || mStatus == PlayerStatus.PAUSED
+            || mStatus == PlayerStatus.COMPLETED
+        ) {
+            stop()
+        }
+        mCurSong?.let {
+            getSongUrl(it.hash)
         }
     }
 
