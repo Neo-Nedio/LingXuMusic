@@ -64,7 +64,7 @@ fun SeekBar(
     val smallRadius = 10f   // 未按下时半径 10px
     val largeRadius = 20f   // 按下时半径 20px（变大突出反馈）
     //进度条高度
-    val progressHeight = 2f
+    val progressHeight = 4f
 
 
     //圆点是否被按下

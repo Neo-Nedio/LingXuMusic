@@ -1,15 +1,20 @@
 package com.neo.lingxumusic.core
 
+import androidx.compose.animation.core.tween
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.foundation.pager.PagerState
 import com.neo.lingxumusic.core.player.IPlayerListener
 import com.neo.lingxumusic.core.player.Player
 import com.neo.lingxumusic.core.player.PlayerStatus
 import com.neo.lingxumusic.model.Song
+import com.neo.lingxumusic.ui.page.mine.showPlayMusicPage
 import com.neo.lingxumusic.utils.StringUtil
 import com.neo.lingxumusic.utils.showToast
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 
 
 object MusicPlayController  : IPlayerListener {
@@ -21,7 +26,8 @@ object MusicPlayController  : IPlayerListener {
 
     private var totalDuring = 0                   // 总时长（毫秒）
     private var seeking = false                   // 是否正在拖动进度条
-    private var playStatusCallbacks = mutableListOf<(PlayerStatus) -> Unit>()
+    var pagerState: PagerState? = null
+    var pagerStateScope: CoroutineScope? = null
     private var playing by mutableStateOf(false)  // 是否正在播放，onStatusChanged()维护
 
     init {
@@ -55,7 +61,7 @@ object MusicPlayController  : IPlayerListener {
         Player.start()
     }
 
-    fun play(index: Int, playStatusCallback: ((PlayerStatus) -> Unit)? = null) {
+    fun play(index: Int) {
         if (songList.isEmpty()) {
             showToast("歌单为空")
             return
@@ -65,11 +71,6 @@ object MusicPlayController  : IPlayerListener {
         if (index !in songList.indices) {
             showToast("歌曲不存在")
             return
-        }
-
-        // 添加临时回调
-        playStatusCallback?.let {
-            playStatusCallbacks.add(it)
         }
 
         // 播放
@@ -130,9 +131,6 @@ object MusicPlayController  : IPlayerListener {
             }
             else -> {}                                      // 其他状态（PREPARED、STARTED、PAUSED 等）
         }
-
-        // 3. 通知所有临时回调
-        playStatusCallbacks.forEach { it(status) }
     }
 
     private fun playNext() {
@@ -141,7 +139,14 @@ object MusicPlayController  : IPlayerListener {
 
         // 如果索引变化了，播放下一首
         if (newIndex != curIndex) {
-            play(newIndex)
+            //根据页面是否存在判断是否动画滚动
+            if(showPlayMusicPage) {
+                pagerStateScope?.launch {
+                    pagerState?.animateScrollToPage(newIndex, animationSpec = tween(400))
+                }
+            }else {
+                play(newIndex)
+            }
         }
     }
 

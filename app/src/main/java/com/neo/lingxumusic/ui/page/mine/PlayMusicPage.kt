@@ -45,7 +45,7 @@ import com.neo.lingxumusic.utils.StringUtil
 import com.neo.lingxumusic.utils.cdp
 import com.neo.lingxumusic.utils.csp
 import com.neo.lingxumusic.utils.replaceSize
-import com.neo.lingxumusic.viewmodel.mine.PlayListViewModel
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlin.math.max
 
@@ -76,17 +76,23 @@ fun PlayMusicPage() {
 
 @Composable
 fun PlayMusicSheet() {
+    val scope = rememberCoroutineScope()
     //当播放页打开时，按返回键关闭播放页
     //防止按返回键直接退出 App 或返回上一个路由，而不是关闭播放页
     BackHandler(enabled = showPlayMusicPage) {
-        showPlayMusicPage = false
-        showBottomMusicPlay = true
+        scope.launch {
+            lastSheetDiskRotateAngleForSnap = 0f
+            sheetDiskRotate.snapTo(lastSheetDiskRotateAngleForSnap)
+            sheetDiskRotate.stop()
+            showPlayMusicPage = false
+            showBottomMusicPlay = true
+        }
     }
-    PlayMusicContent()
+    PlayMusicContent(scope)
 }
 
 @Composable
-fun PlayMusicContent() {
+fun PlayMusicContent(scope: CoroutineScope) {
     val pagerState = rememberPagerState(
         initialPage = MusicPlayController.curIndex,  // 从当前播放歌曲开始
         pageCount = { MusicPlayController.songList.size }  // 总页数 = 歌单数量
@@ -149,16 +155,19 @@ fun PlayMusicContent() {
                     }
 
                 },
-                //todo 图片太小，箭头显示不明显
                 leftIconResId = R.drawable.ic_arrow_down,
                 appBarHeight = 120.cdp,
                 customRightLayout = { //右侧有占位组件，这样让文字水平居中
                     Spacer(modifier = Modifier.size(88.cdp))
                 },
                 leftClick = {
-                    lastSheetDiskRotateAngleForSnap = 0f
-                    showPlayMusicPage = false
-                    showBottomMusicPlay = true
+                    scope.launch {
+                        lastSheetDiskRotateAngleForSnap = 0f
+                        sheetDiskRotate.snapTo(lastSheetDiskRotateAngleForSnap)
+                        sheetDiskRotate.stop()
+                        showPlayMusicPage = false
+                        showBottomMusicPlay = true
+                    }
                 },
                 backgroundColor = Color.Transparent,
                 contentColor = Color.White,
@@ -232,6 +241,10 @@ private fun DiskNeedle() {
 //唱片轮播
 @Composable
 private fun DiskPager(pagerState: PagerState) {
+    val coroutineScope = rememberCoroutineScope()
+    MusicPlayController.pagerState = pagerState
+    MusicPlayController.pagerStateScope = coroutineScope
+
     // 当播放状态改变时
     LaunchedEffect(MusicPlayController.isPlaying()) {
         if (MusicPlayController.isPlaying()) { ///正在播放
@@ -382,8 +395,6 @@ private fun MiddleActionIcon(resId: Int, modifier: Modifier = Modifier, clickabl
 
 @Composable
 private fun ProgressLayout() {
-    val viewModel: PlayListViewModel = hiltViewModel()
-
     Row(
         modifier = Modifier
             .padding(start = 44.cdp, end = 44.cdp, bottom = 32.cdp),
@@ -446,17 +457,7 @@ private fun BottomActionLayout(pagerState: PagerState) {
             } else {
                 // 播放逻辑
                 MusicPlayController.resume()
-                coroutineScopeScope.launch {
-                    sheetNeedleUp = false                     // 唱针落下
-                    sheetDiskRotate.snapTo(lastSheetDiskRotateAngleForSnap)  // 恢复角度
-                    sheetDiskRotate.animateTo(                // 开始旋转
-                        targetValue = 360f + lastSheetDiskRotateAngleForSnap,
-                        animationSpec = infiniteRepeatable(
-                            animation = tween(8000, easing = LinearEasing),
-                            repeatMode = RepeatMode.Restart
-                        )
-                    )
-                }
+                //这里不需要控制唱片与唱针的状态，DiskPager 有监听
             }
         }
         // 播放下一曲
