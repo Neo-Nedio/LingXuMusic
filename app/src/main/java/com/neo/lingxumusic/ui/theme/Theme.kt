@@ -7,7 +7,11 @@ import androidx.activity.SystemBarStyle
 import androidx.activity.compose.LocalActivity
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.Modifier
 import androidx.compose.material3.MaterialTheme.shapes
 import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.runtime.*
@@ -115,7 +119,10 @@ fun AppTheme(
             shapes = shapes,
             typography = typography,
         ) {
-            content()
+            //todo 从全局上避开底部导航栏*
+            Box(modifier = Modifier.fillMaxSize().navigationBarsPadding()) {
+                content()
+            }
         }
     }
 }
