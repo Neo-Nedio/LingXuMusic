@@ -1,13 +1,11 @@
 package com.neo.lingxumusic.core.player
 
 import android.media.MediaPlayer
-import android.util.Log
 import com.neo.lingxumusic.core.MusicPlayController
 import com.neo.lingxumusic.hilt.entrypoint.EntryPointFinder
 import com.neo.lingxumusic.model.Song
 import com.neo.lingxumusic.utils.showToast
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob

@@ -132,8 +132,9 @@ object MusicPlayController  : IPlayerListener {
         }
     }
 
-    private fun autoPlayNext() {        // 计算下一首索引（不能超过列表末尾）
-        val newIndex = (songList.size - 1).coerceAtMost(curIndex + 1)
+    private fun autoPlayNext() {
+        // 循环播放：超过末尾时返回第一首
+        val newIndex = (curIndex + 1) % songList.size
 
         // 如果索引变化了，播放下一首
         if (newIndex != curIndex) {
