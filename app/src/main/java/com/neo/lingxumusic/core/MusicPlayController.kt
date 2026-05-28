@@ -26,7 +26,7 @@ object MusicPlayController  : IPlayerListener {
     private var seeking = false                   // 是否正在拖动进度条
     private var playing by mutableStateOf(false)  // 是否正在播放，onStatusChanged()维护
 
-    var playMode by mutableStateOf<PlayMode>(PlayMode.LOOP)
+    var playMode by mutableStateOf(AppGlobalData.playMode)
         private set
 
     init {
@@ -155,6 +155,7 @@ object MusicPlayController  : IPlayerListener {
 
     fun changePlayMode(playMode: PlayMode) {
         this.playMode = playMode
+        AppGlobalData.playMode = playMode
     }
 
     //状态变化回调
