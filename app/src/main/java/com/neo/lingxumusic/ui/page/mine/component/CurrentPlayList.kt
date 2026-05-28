@@ -13,7 +13,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -21,9 +20,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import com.neo.lingxumusic.core.MusicPlayController
+import com.neo.lingxumusic.core.player.PlayMode
 import com.neo.lingxumusic.model.Song
+import com.neo.lingxumusic.ui.common.CommonIcon
 import com.neo.lingxumusic.ui.common.CommonNetworkImage
-import com.neo.lingxumusic.ui.page.mine.showPlayMusicSheet
+import com.neo.lingxumusic.R
 import com.neo.lingxumusic.ui.theme.AppColorsProvider
 import com.neo.lingxumusic.utils.StringUtil
 import com.neo.lingxumusic.utils.cdp
@@ -51,20 +52,7 @@ fun CurrentPlayList() {
             .background(AppColorsProvider.current.background)
             .padding(top = 48.cdp) // 顶部内边距
     ) {
-        //标题区域 Row
-        Row(
-            modifier = Modifier.padding(horizontal = 48.cdp), // 水平内边距
-            verticalAlignment = Alignment.Bottom) // 文字底部对齐
-         {
-            Text(
-                text = "当前播放",
-                fontSize = 36.csp, fontWeight = FontWeight.Bold, color = AppColorsProvider.current.firstText
-            )
-            Text(
-                text = "(${MusicPlayController.songList.size})",
-                fontSize = 28.csp, fontWeight = FontWeight.Bold, color = AppColorsProvider.current.secondText
-            )
-        }
+        PlayListHeader()
 
         //歌曲列表 LazyColumn
         LazyColumn(
@@ -76,6 +64,69 @@ fun CurrentPlayList() {
             itemsIndexed(MusicPlayController.songList) { index, song ->
                 PlayListItem(index, song)
             }
+        }
+    }
+}
+
+//标题
+@Composable
+private fun PlayListHeader() {
+    Row(
+        modifier = Modifier
+            .padding(start = 48.cdp, end = 32.cdp)  // 左右边距
+            .fillMaxWidth(),                         // 填满宽度
+        verticalAlignment = Alignment.CenterVertically,  // 垂直居中
+        horizontalArrangement = Arrangement.SpaceBetween // 左右两端对齐
+    ) {
+        // 左侧内容（标题 + 数量）
+        Row(verticalAlignment = Alignment.Bottom) {
+            Text(
+                text = "当前播放",
+                fontSize = 36.csp,
+                fontWeight = FontWeight.Bold,
+                color = AppColorsProvider.current.firstText
+            )
+            Text(
+                text = "(${MusicPlayController.songList.size})",
+                fontSize = 28.csp,
+                fontWeight = FontWeight.Bold,
+                color = AppColorsProvider.current.secondText
+            )
+        }
+
+        // 右侧内容
+        Row(
+            modifier = Modifier
+                .clickable {  // 点击切换模式
+                when(MusicPlayController.playMode) {
+                    PlayMode.RANDOM -> MusicPlayController.changePlayMode(PlayMode.SINGLE)
+                    PlayMode.SINGLE -> MusicPlayController.changePlayMode(PlayMode.LOOP)
+                    PlayMode.LOOP -> MusicPlayController.changePlayMode(PlayMode.RANDOM)
+                }
+            }.padding(horizontal = 16.cdp, vertical = 8.cdp), // 内边距增大点击区域
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            val playModeText = when (MusicPlayController.playMode) {
+                PlayMode.RANDOM -> "随机播放"
+                PlayMode.SINGLE -> "单曲循环"
+                PlayMode.LOOP -> "列表循环"
+            }
+            val playModeResId = when (MusicPlayController.playMode) {
+                PlayMode.RANDOM -> R.drawable.ic_play_mode_random
+                PlayMode.SINGLE -> R.drawable.ic_play_mode_single
+                PlayMode.LOOP -> R.drawable.ic_play_mode_loop
+            }
+            Text( // 文字
+                text = playModeText,
+                fontSize = 32.csp,
+                color = AppColorsProvider.current.firstText,
+                modifier = Modifier.padding(end = 16.cdp)
+            )
+            CommonIcon( //图标
+                resId = playModeResId,
+                modifier = Modifier.size(36.cdp),
+                tint = AppColorsProvider.current.firstText
+            )
         }
     }
 }

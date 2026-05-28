@@ -12,6 +12,7 @@ import com.neo.lingxumusic.core.player.PlayerStatus
 import com.neo.lingxumusic.model.Song
 import com.neo.lingxumusic.utils.StringUtil
 import com.neo.lingxumusic.utils.showToast
+import com.neo.lingxumusic.core.player.PlayMode
 
 object MusicPlayController  : IPlayerListener {
     var songList = mutableStateListOf<Song>()     // 歌单列表（可观察）
@@ -24,6 +25,9 @@ object MusicPlayController  : IPlayerListener {
     private var totalDuring = 0                   // 总时长（毫秒）
     private var seeking = false                   // 是否正在拖动进度条
     private var playing by mutableStateOf(false)  // 是否正在播放，onStatusChanged()维护
+
+    var playMode by mutableStateOf<PlayMode>(PlayMode.LOOP)
+        private set
 
     init {
         Player.addListener(this)  // 注册监听器
@@ -106,8 +110,52 @@ object MusicPlayController  : IPlayerListener {
         seeking = false                          // 释放锁
     }
 
-    //判断某个索引的歌曲是否正在播放
+    //判断某个歌曲是否正在播放
     fun isPlaying(song: Song) = songList.getOrNull(curIndex)?.hash == song.hash
+
+    //上一首歌曲
+    fun getPreIndex(): Int {
+        return when (playMode) {
+            PlayMode.RANDOM -> {
+                if (songList.size <= 1) {
+                    curIndex
+                } else {
+                    var randomIndex = (songList.indices).random()
+                    while (randomIndex == curIndex) {
+                        randomIndex = (songList.indices).random()
+                    }
+                    randomIndex
+                }
+            }
+            else -> {
+                if (curIndex == 0) songList.size - 1 else curIndex - 1
+            }
+        }
+    }
+
+    //下一首歌曲
+    fun getNextIndex(): Int {
+        return when (playMode) {
+            PlayMode.RANDOM -> {
+                if (songList.size <= 1) {
+                    curIndex
+                } else {
+                    var randomIndex = (songList.indices).random()
+                    while (randomIndex == curIndex) {
+                        randomIndex = (songList.indices).random()
+                    }
+                    randomIndex
+                }
+            }
+            else -> {
+                if (curIndex == songList.size - 1) 0 else curIndex + 1
+            }
+        }
+    }
+
+    fun changePlayMode(playMode: PlayMode) {
+        this.playMode = playMode
+    }
 
     //状态变化回调
     override fun onStatusChanged(status: PlayerStatus) {
@@ -133,11 +181,10 @@ object MusicPlayController  : IPlayerListener {
     }
 
     private fun autoPlayNext() {
-        // 循环播放：超过末尾时返回第一首
-        val newIndex = (curIndex + 1) % songList.size
-
-        // 如果索引变化了，播放下一首
-        if (newIndex != curIndex) {
+        if(playMode == PlayMode.SINGLE) {
+            resume()
+        }else {
+            val newIndex = getNextIndex()
             play(newIndex)
         }
     }

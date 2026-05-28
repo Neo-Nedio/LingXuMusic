@@ -1,7 +1,5 @@
 package com.neo.lingxumusic.ui.page.mine
 
-import android.annotation.SuppressLint
-import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.*
@@ -37,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.LifecycleOwner
 import com.neo.lingxumusic.R
 import com.neo.lingxumusic.core.MusicPlayController
+import com.neo.lingxumusic.core.player.PlayMode
 import com.neo.lingxumusic.core.viewState.listener.ComposeLifeCycleListener
 import com.neo.lingxumusic.model.Song
 import com.neo.lingxumusic.ui.common.CommonIcon
@@ -53,7 +52,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.abs
-import kotlin.math.max
 
 private const val DISK_ROTATE_ANIM_CYCLE = 10000
 var showBottomMusicPlay by mutableStateOf(false) //是否显示底部播放组件
@@ -334,6 +332,7 @@ private suspend fun controlSheetNeedleAndDiskAnim() {
 
 @Composable
 private fun DiskItem(song: Song) {
+    val scope = rememberCoroutineScope()
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -349,8 +348,11 @@ private fun DiskItem(song: Song) {
                             if (pointer.pressed) { //按压
                                 sheetNeedleUp = true  // 抬起唱针
                             } else { //松开处理
-                                if (MusicPlayController.isPlaying()) {
-                                    sheetNeedleUp = false  // 落下唱针
+                                scope.launch {
+                                    delay(400)
+                                    if (MusicPlayController.isPlaying()) {
+                                        sheetNeedleUp = false  // 落下唱针
+                                    }
                                 }
                                 break
                             }
@@ -361,7 +363,7 @@ private fun DiskItem(song: Song) {
             .graphicsLayer {
                 rotationZ =
                         // 当前播放的歌曲 → 旋转
-                    if (song.hash == MusicPlayController.songList[MusicPlayController.curIndex].hash)
+                    if (MusicPlayController.isPlaying(song))
                         sheetDiskRotate.value
                     else 0f
             },
@@ -467,11 +469,22 @@ private fun BottomActionLayout() {
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceEvenly
     ) {
+        val playModeResId = when(MusicPlayController.playMode) {
+            PlayMode.RANDOM -> R.drawable.ic_play_mode_random
+            PlayMode.SINGLE -> R.drawable.ic_play_mode_single
+            PlayMode.LOOP -> R.drawable.ic_play_mode_loop
+        }
         // 播放模式（顺序/随机/单曲循环）
-        ActionButton(R.drawable.ic_play_serial)
+        ActionButton(playModeResId) {
+            when (MusicPlayController.playMode) {
+                PlayMode.RANDOM -> MusicPlayController.changePlayMode(PlayMode.SINGLE)
+                PlayMode.SINGLE -> MusicPlayController.changePlayMode(PlayMode.LOOP)
+                PlayMode.LOOP -> MusicPlayController.changePlayMode(PlayMode.RANDOM)
+            }
+        }
         // 播放上一曲
-        ActionButton(R.drawable.ic_action_pre, enable = MusicPlayController.curIndex != 0) {
-            val newIndex = max(0, MusicPlayController.curIndex - 1) //新位置
+        ActionButton(R.drawable.ic_action_pre) {
+            val newIndex = MusicPlayController.getPreIndex()
             coroutineScopeScope.launch {
                 sheetDiskRotate.stop()               // 停止旋转
                 lastSheetDiskRotateAngleForSnap = 0f // 重置角度
@@ -494,8 +507,8 @@ private fun BottomActionLayout() {
             }
         }
         // 播放下一曲
-        ActionButton(R.drawable.ic_action_next, enable = MusicPlayController.curIndex != MusicPlayController.songList.size - 1) {
-            val newIndex = (MusicPlayController.songList.size - 1).coerceAtMost(MusicPlayController.curIndex + 1)
+        ActionButton(R.drawable.ic_action_next) {
+            val newIndex = MusicPlayController.getNextIndex()
             sheetNeedleUp = true
             coroutineScopeScope.launch {
                 lastSheetDiskRotateAngleForSnap = 0f

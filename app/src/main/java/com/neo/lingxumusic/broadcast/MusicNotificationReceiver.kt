@@ -30,16 +30,14 @@ class MusicNotificationReceiver : BroadcastReceiver() {
                         MusicPlayController.resume()
                     }
                 }
-                //todo 循环播放时上下播放不应该有边缘，最后一首的下一首直接从0开始，第一首的上一首直接到末尾
-                //todo 以上是循环播放的，还要根据播放选择的播放情况判断
                 ACTION_NEXT -> {
-                    // 下一曲：不能超过列表末尾
-                    val newIndex = (MusicPlayController.songList.size - 1).coerceAtMost(MusicPlayController.curIndex + 1)
+                    // 下一曲
+                    val newIndex =MusicPlayController.getNextIndex()
                     MusicPlayController.play(newIndex)
                 }
                 ACTION_PRE -> {
-                    // 上一曲：不能小于 0
-                    val newIndex = 0.coerceAtLeast(MusicPlayController.curIndex - 1)
+                    // 上一曲
+                    val newIndex = MusicPlayController.getPreIndex()
                     MusicPlayController.play(newIndex)
                 }
             }
