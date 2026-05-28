@@ -405,8 +405,8 @@ private fun DiskItem(song: Song) {
                     color = Color.Black,
                     shape = CircleShape
                 ),
-            placeholder = R.drawable.ic_defalut_disk_cover,
-            error = R.drawable.ic_defalut_disk_cover,
+            placeholder = R.drawable.ic_default_disk_cover,
+            error = R.drawable.ic_default_disk_cover,
         )
     }
 }

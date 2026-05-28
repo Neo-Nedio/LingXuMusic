@@ -2,8 +2,11 @@ package com.neo.lingxumusic.core.player
 
 import android.media.MediaPlayer
 import com.neo.lingxumusic.core.MusicPlayController
+import com.neo.lingxumusic.core.player.event.PauseSongEvent
+import com.neo.lingxumusic.core.player.event.PlaySongEvent
 import com.neo.lingxumusic.hilt.entrypoint.EntryPointFinder
 import com.neo.lingxumusic.model.Song
+import com.neo.lingxumusic.service.MusicPlayService
 import com.neo.lingxumusic.utils.showToast
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -11,6 +14,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.greenrobot.eventbus.EventBus
 import org.json.JSONObject
 import retrofit2.HttpException
 import java.util.*
@@ -125,9 +129,10 @@ object Player : IPlayer,
             if (url.isNullOrBlank()) setStatus(PlayerStatus.ERROR)
             return
         }
-        mMediaPlayer.reset()
-        mMediaPlayer.setDataSource(url)
-        mMediaPlayer.prepareAsync()
+        mMediaPlayer.reset()           // 重置播放器（清除之前设置的资源）
+        mMediaPlayer.setDataSource(url) // 设置新的音频数据源（URL或文件路径）
+        mMediaPlayer.prepareAsync()     // 异步准备播放器（不阻塞UI线程） ,回调onPrepared
+        MusicPlayService.start() // 启动前台服务，显示通知栏
     }
 
     //暂停播放
@@ -136,6 +141,7 @@ object Player : IPlayer,
             mUpdateDuringTask?.cancel() //取消定时任务，停止更新进度
             setStatus(PlayerStatus.PAUSED)
             mMediaPlayer.pause() //调用 MediaPlayer 暂停播放
+            EventBus.getDefault().post(PauseSongEvent()) // 发送暂停事件
         }
     }
 
@@ -177,6 +183,7 @@ object Player : IPlayer,
     private fun innerStartPlay() {
         mMediaPlayer.start()                      // 1. 开始播放
         setStatus(PlayerStatus.STARTED)           // 2. 更新状态
+        EventBus.getDefault().post(PlaySongEvent())  // 发送播放事件
         mUpdateDuringTask?.cancel()               // 3. 取消旧的定时任务
         mUpdateDuringTask = object : TimerTask() { // 4. 创建新的定时任务
             override fun run() {

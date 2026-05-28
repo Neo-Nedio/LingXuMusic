@@ -152,8 +152,8 @@ private fun BottomMusicPlayBar() {
                 // 旋转的封面图
                 CommonNetworkImage(
                     url = currentSong.cover?.replaceSize(),
-                    placeholder = R.drawable.ic_defalut_disk_cover,
-                    error = R.drawable.ic_defalut_disk_cover,
+                    placeholder = R.drawable.ic_default_disk_cover,
+                    error = R.drawable.ic_default_disk_cover,
                     modifier = Modifier
                         .size(70.cdp)
                         .clip(CircleShape)

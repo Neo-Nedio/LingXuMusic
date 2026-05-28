@@ -93,6 +93,8 @@ dependencies {
     implementation("androidx.core:core-splashscreen:1.2.0")
 
     implementation("com.airbnb.android:lottie-compose:6.4.0")
+
+    implementation(libs.eventbus)
 }
 
 kapt {

@@ -3,8 +3,11 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
+        android:name=".core.LingxuApplication"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -12,19 +15,24 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:name=".core.LingxuApplication"
         android:usesCleartextTraffic="true"
         android:theme="@style/Theme.CustomSplash">  <!--  应用级别主题 -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:theme="@style/Theme.CustomSplash">  <!--  应用级别主题 -->
+            android:launchMode="singleTask"
+            android:theme="@style/Theme.CustomSplash">  <!--  singleTask设置全局只有一个实例，位于栈底 -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <service
+            android:name=".service.MusicPlayService"
+            android:enabled="true"
+            android:exported="false" />
     </application>
 
 </manifest>
