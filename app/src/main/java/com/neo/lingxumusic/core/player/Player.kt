@@ -4,7 +4,6 @@ import android.media.MediaPlayer
 import com.neo.lingxumusic.core.MusicPlayController
 import com.neo.lingxumusic.core.player.event.PauseSongEvent
 import com.neo.lingxumusic.core.player.event.PlaySongEvent
-import com.neo.lingxumusic.core.player.event.ChangeSongEvent
 import com.neo.lingxumusic.hilt.entrypoint.EntryPointFinder
 import com.neo.lingxumusic.model.Song
 import com.neo.lingxumusic.service.MusicPlayService
@@ -150,7 +149,7 @@ object Player : IPlayer,
     override fun resume() {
         //if (mStatus == PlayerStatus.PAUSED) {
         innerStartPlay()
-        EventBus.getDefault().post(PlaySongEvent())
+        //EventBus.getDefault().post(PlaySongEvent())
         //}
     }
 
@@ -186,7 +185,7 @@ object Player : IPlayer,
         mMediaPlayer.start()                      // 1. 开始播放
         setStatus(PlayerStatus.STARTED)           // 2. 更新状态
         mCurSong?.let {
-            EventBus.getDefault().post(ChangeSongEvent(it))
+            EventBus.getDefault().post(PlaySongEvent())
         }
         mUpdateDuringTask?.cancel()               // 3. 取消旧的定时任务
         mUpdateDuringTask = object : TimerTask() { // 4. 创建新的定时任务

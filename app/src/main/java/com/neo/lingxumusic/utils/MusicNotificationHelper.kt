@@ -20,11 +20,11 @@ import com.neo.lingxumusic.R
 import com.neo.lingxumusic.broadcast.MusicNotificationReceiver
 import com.neo.lingxumusic.core.LingxuApplication
 import com.neo.lingxumusic.core.MusicPlayController
-import com.neo.lingxumusic.core.player.event.ChangeSongEvent
 import com.neo.lingxumusic.core.player.event.PauseSongEvent
 import com.neo.lingxumusic.core.player.event.PlaySongEvent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -34,14 +34,15 @@ import org.greenrobot.eventbus.ThreadMode
 
 object MusicNotificationHelper {
 
-    const val CHANNEL_ID = "channel_id_music"
-    const val CHANNEL_NAME = "聆序音乐"
+    private const val CHANNEL_ID = "channel_id_music"
+    private const val CHANNEL_NAME = "聆序音乐"
     const val NOTIFICATION_ID = 100
 
     private var mNotification: Notification? = null
     private var mRemoteViews: RemoteViews? = null
     private var mNotificationManager: NotificationManager? = null
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+    private var loadSongCoverJob: Job? = null //图像加载任务
 
     // 注册 EventBus
     init {
@@ -59,6 +60,8 @@ object MusicNotificationHelper {
     }
 
     private fun initNotification() {
+        loadSongCoverJob?.cancel()
+
         initRemoteViews() // 创建 RemoteViews
 
         // 2. 创建点击通知栏的 PendingIntent（跳转到 MainActivity）
@@ -141,16 +144,12 @@ object MusicNotificationHelper {
         mRemoteViews?.setImageViewResource(R.id.ivPlay, R.drawable.ic_music_notification_play)
         mNotificationManager?.notify(NOTIFICATION_ID, mNotification) //刷新通知栏
     }
+    //这里不需要更改歌曲信息，每次歌曲的play都会调用service的start,会刷新ui
     @Subscribe(threadMode = ThreadMode.MAIN) //回调在主线程执行（可以更新 UI）
     fun onEvent(event: PlaySongEvent) {
         // 收到播放事件 → 更新通知栏图标为"暂停"
         mRemoteViews?.setImageViewResource(R.id.ivPlay, R.drawable.ic_music_notification_pause)
         mNotificationManager?.notify(NOTIFICATION_ID, mNotification) //刷新通知栏
-    }
-
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    fun onEvent(event: ChangeSongEvent) {
-        updateNotificationUI()
     }
 
     fun getNotification() = mNotification
@@ -195,8 +194,10 @@ object MusicNotificationHelper {
 
         val context = LingxuApplication.getAppContext()
 
+        //取消上一次加载
+        loadSongCoverJob?.cancel()
         // 2. 启动协程（主线程）
-        scope.launch {
+        loadSongCoverJob = scope.launch {
             // 3. 切换到 IO 线程加载图片
             val bitmap = withContext(Dispatchers.IO) {
                 runCatching {

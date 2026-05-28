@@ -2,6 +2,7 @@ package com.neo.lingxumusic.viewmodel.mine
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import com.neo.lingxumusic.http.api.UserApi
 import com.neo.lingxumusic.core.AppGlobalData
@@ -26,6 +27,9 @@ class MineViewModel @Inject constructor(private val api: UserApi) : BaseViewStat
 
     // 请求状态
     val userPlaylistResult = ViewStateMutableLiveData()
+
+    // 当前选中的 Tab 索引（0=创建歌单，1=收藏歌单，2=歌单助手）
+    var selectedTabIndex by mutableStateOf(0)
 
     // 获取歌单
     fun getUserPlayList() {
