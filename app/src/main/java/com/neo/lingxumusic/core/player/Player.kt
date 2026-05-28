@@ -4,6 +4,7 @@ import android.media.MediaPlayer
 import com.neo.lingxumusic.core.MusicPlayController
 import com.neo.lingxumusic.core.player.event.PauseSongEvent
 import com.neo.lingxumusic.core.player.event.PlaySongEvent
+import com.neo.lingxumusic.core.player.event.ChangeSongEvent
 import com.neo.lingxumusic.hilt.entrypoint.EntryPointFinder
 import com.neo.lingxumusic.model.Song
 import com.neo.lingxumusic.service.MusicPlayService
@@ -83,6 +84,7 @@ object Player : IPlayer,
             stop()
         }
         mCurSong?.let {
+            MusicPlayService.start() // 启动前台服务，显示通知栏
             getSongUrl(it.hash)
         }
     }
@@ -132,7 +134,6 @@ object Player : IPlayer,
         mMediaPlayer.reset()           // 重置播放器（清除之前设置的资源）
         mMediaPlayer.setDataSource(url) // 设置新的音频数据源（URL或文件路径）
         mMediaPlayer.prepareAsync()     // 异步准备播放器（不阻塞UI线程） ,回调onPrepared
-        MusicPlayService.start() // 启动前台服务，显示通知栏
     }
 
     //暂停播放
@@ -148,7 +149,8 @@ object Player : IPlayer,
     //恢复播放
     override fun resume() {
         //if (mStatus == PlayerStatus.PAUSED) {
-            innerStartPlay()
+        innerStartPlay()
+        EventBus.getDefault().post(PlaySongEvent())
         //}
     }
 
@@ -183,7 +185,9 @@ object Player : IPlayer,
     private fun innerStartPlay() {
         mMediaPlayer.start()                      // 1. 开始播放
         setStatus(PlayerStatus.STARTED)           // 2. 更新状态
-        EventBus.getDefault().post(PlaySongEvent())  // 发送播放事件
+        mCurSong?.let {
+            EventBus.getDefault().post(ChangeSongEvent(it))
+        }
         mUpdateDuringTask?.cancel()               // 3. 取消旧的定时任务
         mUpdateDuringTask = object : TimerTask() { // 4. 创建新的定时任务
             override fun run() {

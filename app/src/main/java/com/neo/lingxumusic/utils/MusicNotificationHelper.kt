@@ -7,6 +7,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import android.util.Log
 import android.widget.RemoteViews
 import androidx.core.app.NotificationCompat
 import coil3.ImageLoader
@@ -19,6 +20,7 @@ import com.neo.lingxumusic.R
 import com.neo.lingxumusic.broadcast.MusicNotificationReceiver
 import com.neo.lingxumusic.core.LingxuApplication
 import com.neo.lingxumusic.core.MusicPlayController
+import com.neo.lingxumusic.core.player.event.ChangeSongEvent
 import com.neo.lingxumusic.core.player.event.PauseSongEvent
 import com.neo.lingxumusic.core.player.event.PlaySongEvent
 import kotlinx.coroutines.CoroutineScope
@@ -144,6 +146,11 @@ object MusicNotificationHelper {
         mNotificationManager?.notify(NOTIFICATION_ID, mNotification) //刷新通知栏
     }
 
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    fun onEvent(event: ChangeSongEvent) {
+        updateNotificationUI()
+    }
+
     fun getNotification() = mNotification
 
     fun getNotificationManager() = mNotificationManager
@@ -205,8 +212,12 @@ object MusicNotificationHelper {
                     // 执行请求
                     val result = loader.execute(request)
 
-                    // 成功则转为 Bitmap
-                    if (result is SuccessResult) result.image.toBitmap() else null
+                    // 成功则转为 Bitmap，并处理圆角
+                    if (result is SuccessResult) {
+                        BitmapUtil.getRoundedCornerBitmap(result.image.toBitmap(), 30)
+                    } else {
+                        null
+                    }
                 }.getOrNull()  // 失败返回 null
             }
 
