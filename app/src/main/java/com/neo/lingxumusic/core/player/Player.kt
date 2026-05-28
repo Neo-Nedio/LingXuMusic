@@ -7,6 +7,7 @@ import com.neo.lingxumusic.hilt.entrypoint.EntryPointFinder
 import com.neo.lingxumusic.model.Song
 import com.neo.lingxumusic.utils.showToast
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
@@ -142,9 +143,9 @@ object Player : IPlayer,
 
     //恢复播放
     override fun resume() {
-        if (mStatus == PlayerStatus.PAUSED) {
+        //if (mStatus == PlayerStatus.PAUSED) {
             innerStartPlay()
-        }
+        //}
     }
 
     //停止播放

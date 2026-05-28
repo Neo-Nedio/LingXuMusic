@@ -1,33 +1,28 @@
 package com.neo.lingxumusic.core
 
-import androidx.compose.animation.core.tween
+import android.os.Handler
+import android.os.Looper
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.foundation.pager.PagerState
 import com.neo.lingxumusic.core.player.IPlayerListener
 import com.neo.lingxumusic.core.player.Player
 import com.neo.lingxumusic.core.player.PlayerStatus
 import com.neo.lingxumusic.model.Song
-import com.neo.lingxumusic.ui.page.mine.showPlayMusicSheet
 import com.neo.lingxumusic.utils.StringUtil
 import com.neo.lingxumusic.utils.showToast
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
-
 
 object MusicPlayController  : IPlayerListener {
     var songList = mutableStateListOf<Song>()     // 歌单列表（可观察）
     var curIndex by mutableStateOf(0)             // 当前播放索引
+        private set
     var progress by mutableStateOf(0)             // 进度百分比
     var curPositionStr by mutableStateOf("00:00") // 当前播放时间
     var totalDuringStr by mutableStateOf("00:00") // 总时长
 
     private var totalDuring = 0                   // 总时长（毫秒）
     private var seeking = false                   // 是否正在拖动进度条
-    var pagerState: PagerState? = null
-    var pagerStateScope: CoroutineScope? = null
     private var playing by mutableStateOf(false)  // 是否正在播放，onStatusChanged()维护
 
     init {
@@ -61,7 +56,7 @@ object MusicPlayController  : IPlayerListener {
         Player.start()
     }
 
-    fun play(index: Int,delegateByPageState: Boolean = false) {
+    fun play(index: Int) {
         if (songList.isEmpty()) {
             showToast("歌单为空")
             return
@@ -74,16 +69,9 @@ object MusicPlayController  : IPlayerListener {
         }
 
         // 播放
-        if(delegateByPageState) {
-            pagerStateScope?.launch {
-                pagerState?.scrollToPage(index)
-            }
-        }else {
-            curIndex = index
-            Player.setDataSource(songList[curIndex])
-            Player.start()
-        }
-
+        curIndex = index
+        Player.setDataSource(songList[curIndex])
+        Player.start()
     }
 
     fun pause() {
@@ -131,7 +119,9 @@ object MusicPlayController  : IPlayerListener {
             PlayerStatus.COMPLETED -> autoPlayNext()           // 播放完成，自动下一首
             PlayerStatus.ERROR -> {
                 showToast("播放失败")
-                autoPlayNext()                                 // 播放失败，自动下一首
+                Handler(Looper.getMainLooper()) //延迟400ms后变化，防止过快ui来不及更新而请求错误
+                    .postDelayed({ autoPlayNext() }, //自动播放下一首
+                        400)
             }
             PlayerStatus.STOPPED -> {
                 totalDuringStr = "00:00"                   // 重置总时长显示
@@ -142,20 +132,12 @@ object MusicPlayController  : IPlayerListener {
         }
     }
 
-    private fun autoPlayNext() {
-        // 计算下一首索引（不能超过列表末尾）
+    private fun autoPlayNext() {        // 计算下一首索引（不能超过列表末尾）
         val newIndex = (songList.size - 1).coerceAtMost(curIndex + 1)
 
         // 如果索引变化了，播放下一首
         if (newIndex != curIndex) {
-            //根据页面是否存在判断是否动画滚动
-            if(showPlayMusicSheet) {
-                pagerStateScope?.launch {
-                    pagerState?.animateScrollToPage(newIndex, animationSpec = tween(400))
-                }
-            }else {
-                play(newIndex)
-            }
+            play(newIndex)
         }
     }
 

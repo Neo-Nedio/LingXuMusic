@@ -89,7 +89,7 @@ private fun PlayListItem(index : Int, song: Song) {
             .height(100.cdp) // 高度固定100
             .clickable {
                 // 点击歌曲播放
-                MusicPlayController.play(index, delegateByPageState = showPlayMusicSheet)
+                MusicPlayController.play(index)
             }
             .padding(horizontal = 48.cdp),
         verticalAlignment = Alignment.CenterVertically

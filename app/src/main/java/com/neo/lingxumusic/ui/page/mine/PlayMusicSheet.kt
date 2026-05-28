@@ -1,5 +1,7 @@
 package com.neo.lingxumusic.ui.page.mine
 
+import android.annotation.SuppressLint
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.*
@@ -32,20 +34,25 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.LifecycleOwner
 import com.neo.lingxumusic.R
 import com.neo.lingxumusic.core.MusicPlayController
+import com.neo.lingxumusic.core.viewState.listener.ComposeLifeCycleListener
 import com.neo.lingxumusic.model.Song
 import com.neo.lingxumusic.ui.common.CommonIcon
 import com.neo.lingxumusic.ui.common.CommonLocalImage
 import com.neo.lingxumusic.ui.common.CommonNetworkImage
 import com.neo.lingxumusic.ui.common.CommonTopAppBar
+import com.neo.lingxumusic.ui.common.LifeCycleObserverComponent
 import com.neo.lingxumusic.ui.common.SeekBar
 import com.neo.lingxumusic.utils.StringUtil
 import com.neo.lingxumusic.utils.cdp
 import com.neo.lingxumusic.utils.csp
 import com.neo.lingxumusic.utils.replaceSize
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlin.math.abs
 import kotlin.math.max
 
 private const val DISK_ROTATE_ANIM_CYCLE = 10000
@@ -81,7 +88,7 @@ fun PlayMusicSheet() {
     BackHandler(enabled = showPlayMusicSheet) {
         scope.launch {
             lastSheetDiskRotateAngleForSnap = 0f
-            sheetDiskRotate.snapTo(lastSheetDiskRotateAngleForSnap)
+            sheetDiskRotate.snapTo(0f)
             sheetDiskRotate.stop()
             showPlayMusicSheet = false
             showBottomMusicPlay = true
@@ -154,6 +161,7 @@ fun PlayMusicContent(scope: CoroutineScope) {
                     }
 
                 },
+                //todo 图标不够大，不明显
                 leftIconResId = R.drawable.ic_arrow_down,
                 appBarHeight = 120.cdp,
                 customRightLayout = { //右侧有占位组件，这样让文字水平居中
@@ -162,7 +170,7 @@ fun PlayMusicContent(scope: CoroutineScope) {
                 leftClick = {
                     scope.launch {
                         lastSheetDiskRotateAngleForSnap = 0f
-                        sheetDiskRotate.snapTo(lastSheetDiskRotateAngleForSnap)
+                        sheetDiskRotate.snapTo(0f)
                         sheetDiskRotate.stop()
                         showPlayMusicSheet = false
                         showBottomMusicPlay = true
@@ -182,9 +190,9 @@ fun PlayMusicContent(scope: CoroutineScope) {
 
                 //底部区域
                 Column(modifier = Modifier.align(Alignment.BottomCenter)) {
-                    BottomActionLayout()
+                    MiddleActionLayout()
                     ProgressLayout()
-                    BottomActionLayout(pagerState)
+                    BottomActionLayout()
                 }
             }
         }
@@ -239,62 +247,106 @@ private fun DiskNeedle() {
 }
 
 //唱片轮播
+private var onStopBefore = false //记录页面是否曾经停止过，用于恢复时判断是否需要重新启动动画
+
 @Composable
 private fun DiskPager(pagerState: PagerState) {
     val coroutineScope = rememberCoroutineScope()
-    MusicPlayController.pagerState = pagerState
-    MusicPlayController.pagerStateScope = coroutineScope
+    //记录值，当歌曲索引curIndex变化时会引起pagerState变化，但是当pagerState变化时，会使用play逻辑
+    //索引curIndex变化时内部已经处理了音乐播放逻辑，此时引起的pagerState动画会导致其内再次play造成冲突
+    //因此在引curIndex变化时会引起pagerState变化时，suppressPagerSync为true，让pagerState监听不起作用，防止冲突
+    var suppressPagerSync by remember { mutableStateOf(false) }
 
-    // 当播放状态改变时
-    LaunchedEffect(MusicPlayController.isPlaying()) {
-        if (MusicPlayController.isPlaying()) { ///正在播放
-            sheetNeedleUp = false                      // 唱针落下
-            sheetDiskRotate.stop()                     // 停止当前动画
-            //lastSheetDiskRotateAngleForSnap = 0f       // 重置角度
-            sheetDiskRotate.snapTo(lastSheetDiskRotateAngleForSnap)  // 设置初始角度
-            sheetDiskRotate.animateTo(                 // 开始旋转动画
-                targetValue = 360f + lastSheetDiskRotateAngleForSnap,
-                animationSpec = infiniteRepeatable(
-                    animation = tween(durationMillis = DISK_ROTATE_ANIM_CYCLE, easing = LinearEasing),
-                    repeatMode = RepeatMode.Restart
-                )
+    //通过生命周期控制，当页面不存在时后台不要转动，节省资源
+    LifeCycleObserverComponent(lifeCycleListener = object : ComposeLifeCycleListener {
+        //页面恢复时重新启动
+        override fun onResume(owner: LifecycleOwner) {
+            super.onResume(owner)
+            if(onStopBefore) {
+                onStopBefore = false
+                coroutineScope.launch {
+                    delay(300) // 等待页面完全可见
+                    controlSheetNeedleAndDiskAnim()
+                }
+            }
+        }
+
+        //页面不可见时停止唱片旋转动画，防止浪费资源
+        override fun onStop(owner: LifecycleOwner) {
+            super.onStop(owner)
+            onStopBefore = true
+            coroutineScope.launch {
+                lastSheetDiskRotateAngleForSnap = 0f // 重置角度
+                sheetDiskRotate.snapTo(0f) // 立即设置到 0°
+                sheetDiskRotate.stop()  // 停止旋转
+            }
+        }
+    }) {
+        //播放状态监听
+        LaunchedEffect(MusicPlayController.isPlaying()) {
+            controlSheetNeedleAndDiskAnim()
+        }
+
+        //外部切歌时同步 UI
+        LaunchedEffect(MusicPlayController.curIndex) {
+            if (MusicPlayController.curIndex != -1 &&
+                MusicPlayController.curIndex != pagerState.currentPage) {
+
+                // 1. 重置旋转角度
+                lastSheetDiskRotateAngleForSnap = 0f
+                sheetDiskRotate.snapTo(lastSheetDiskRotateAngleForSnap)
+
+                // 2. 滚动 Pager 到目标页
+                suppressPagerSync = true
+                if (abs(MusicPlayController.curIndex - pagerState.currentPage) > 1) {
+                    pagerState.scrollToPage(MusicPlayController.curIndex)  // 无动画跳转
+                } else {
+                    pagerState.animateScrollToPage(                         // 动画滚动
+                        MusicPlayController.curIndex,
+                        animationSpec = tween(400)
+                    )
+                }
+                suppressPagerSync = false
+            }
+        }
+
+        //用户滑动时同步数据
+        LaunchedEffect(pagerState.settledPage) {
+            if (!suppressPagerSync && MusicPlayController.curIndex != pagerState.settledPage) {
+                lastSheetDiskRotateAngleForSnap = 0f
+                sheetDiskRotate.snapTo(lastSheetDiskRotateAngleForSnap)
+                MusicPlayController.play(pagerState.settledPage)
+            }
+        }
+
+        //页面
+        HorizontalPager(
+            modifier = Modifier
+                .padding(top = 100.dp)
+                .fillMaxWidth()
+                .height(274.dp),
+            state = pagerState,
+        ) { position ->
+            DiskItem(MusicPlayController.songList[position])
+        }
+    }
+}
+
+//播放状态监听
+private suspend fun controlSheetNeedleAndDiskAnim() {
+    if (MusicPlayController.isPlaying()) {
+        sheetNeedleUp = false  // 唱针落下
+        sheetDiskRotate.stop()
+        sheetDiskRotate.snapTo(lastSheetDiskRotateAngleForSnap) // 从上次角度开始
+        sheetDiskRotate.animateTo(
+            targetValue = 360f + lastSheetDiskRotateAngleForSnap,
+            animationSpec = infiniteRepeatable(
+                animation = tween(durationMillis = DISK_ROTATE_ANIM_CYCLE, easing = LinearEasing),
+                repeatMode = RepeatMode.Restart
             )
-        }
-    }
-
-    //页面变化逻辑
-    LaunchedEffect(pagerState.settledPage) {
-        if (MusicPlayController.curIndex != pagerState.settledPage) {
-            MusicPlayController.play(pagerState.settledPage) // 开始播放新歌曲
-            //不重置唱片旋转的方法
-            sheetDiskRotate.snapTo(lastSheetDiskRotateAngleForSnap)
-
-            //重置唱片旋转的方法
-            /*sheetNeedleUp = false // 唱针落下
-            sheetDiskRotate.stop()
-            lastSheetDiskRotateAngleForSnap = 0f
-            sheetDiskRotate.snapTo(lastSheetDiskRotateAngleForSnap)
-            MusicPlayController.curIndex = pagerState.settledPage // 更新当前索引
-            sheetDiskRotate.animateTo(  // 开始旋转
-                targetValue = 360f + lastSheetDiskRotateAngleForSnap,
-                animationSpec = infiniteRepeatable(
-                    animation = tween(durationMillis = DISK_ROTATE_ANIM_CYCLE, easing = LinearEasing),
-                    repeatMode = RepeatMode.Restart
-                )
-            )*/
-        }
-    }
-
-    //滑动切换歌曲
-    //分页器只包含DiskItem，所以只有滑动唱片附近的区域才能左右滑动
-    HorizontalPager(
-        modifier = Modifier
-            .padding(top = 100.dp)
-            .fillMaxWidth()
-            .height(274.dp),
-        state = pagerState,
-    ) { position ->
-        DiskItem(MusicPlayController.songList[position])
+        )
+    } else {
+        sheetNeedleUp = true // 唱针抬起
     }
 }
 
@@ -359,9 +411,9 @@ private fun DiskItem(song: Song) {
     }
 }
 
-//音乐播放器底部的操作按钮栏
+//音乐播放器中部的操作按钮栏
 @Composable
-private fun BottomActionLayout() {
+private fun MiddleActionLayout() {
     Row(
         modifier = Modifier
             .padding(start = 44.cdp, end = 44.cdp, bottom = 32.cdp)
@@ -423,7 +475,7 @@ private fun ProgressLayout() {
 
 //底部按钮
 @Composable
-private fun BottomActionLayout(pagerState: PagerState) {
+private fun BottomActionLayout() {
     val coroutineScopeScope = rememberCoroutineScope()
     Row(
         modifier = Modifier
@@ -437,12 +489,11 @@ private fun BottomActionLayout(pagerState: PagerState) {
         ActionButton(R.drawable.ic_play_serial)
         // 播放上一曲
         ActionButton(R.drawable.ic_action_pre, enable = MusicPlayController.curIndex != 0) {
-            sheetNeedleUp = true // 唱针抬起
             val newIndex = max(0, MusicPlayController.curIndex - 1) //新位置
             coroutineScopeScope.launch {
                 sheetDiskRotate.stop()               // 停止旋转
                 lastSheetDiskRotateAngleForSnap = 0f // 重置角度
-                pagerState.animateScrollToPage(newIndex)  // 滚动到上一页
+                MusicPlayController.play(newIndex)
             }
         }
         // 播放or暂停
@@ -465,9 +516,8 @@ private fun BottomActionLayout(pagerState: PagerState) {
             val newIndex = (MusicPlayController.songList.size - 1).coerceAtMost(MusicPlayController.curIndex + 1)
             sheetNeedleUp = true
             coroutineScopeScope.launch {
-                sheetDiskRotate.stop()
                 lastSheetDiskRotateAngleForSnap = 0f
-                pagerState.animateScrollToPage(newIndex)
+                MusicPlayController.play(newIndex)
             }
         }
         ActionButton(R.drawable.ic_play_list){
