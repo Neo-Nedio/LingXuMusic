@@ -4,7 +4,7 @@
     <style name="Theme.Lingxumusic" parent="android:Theme.Material.Light.NoActionBar" />
 
     <style name="Theme.CustomSplash" parent="Theme.SplashScreen">
-        <item name="windowSplashScreenBackground">#FFE4E1</item>
+        <item name="windowSplashScreenBackground">@android:color/white</item>
         <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash_logo</item>
         <item name="windowSplashScreenAnimationDuration">1000</item>
         <!-- 启动后应用的主题 -->

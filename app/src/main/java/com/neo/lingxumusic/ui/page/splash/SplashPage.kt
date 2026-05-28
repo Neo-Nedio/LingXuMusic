@@ -93,7 +93,7 @@ fun SplashPage() {
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = "LingXuMusic",
+                text = "聆序音乐",
                 fontSize = 32.sp,
                 color = AppColorsProvider.current.thirdText
             )
@@ -111,7 +111,7 @@ fun SplashPage() {
                     containerColor = buttonColor
                 )
             ) {
-                Text("Get Started", fontSize = 18.sp)
+                Text("开始", fontSize = 18.sp)
             }
         }
     }
