@@ -3,6 +3,7 @@ package com.neo.lingxumusic
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
@@ -13,6 +14,7 @@ import com.neo.lingxumusic.utils.RequestNotificationPermission
 import com.neo.lingxumusic.ui.page.mine.PlayListSheet
 import com.neo.lingxumusic.ui.page.mine.PlayMusicPage
 import com.neo.lingxumusic.ui.page.mine.component.BottomMusicPlay
+import com.neo.lingxumusic.ui.theme.AppColorsProvider
 import com.neo.lingxumusic.ui.theme.AppTheme
 import com.neo.lingxumusic.ui.theme.themeTypeState
 import dagger.hilt.android.AndroidEntryPoint
@@ -32,7 +34,11 @@ class MainActivity : ComponentActivity() {
                 //申请权限，用于前台service
                 RequestNotificationPermission()
                 val navController = rememberNavController()
-                Box(modifier = Modifier.fillMaxSize()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(AppColorsProvider.current.background)
+                ) {
                     LingXuNavGraph(navController) {
                         finish()
                     }
