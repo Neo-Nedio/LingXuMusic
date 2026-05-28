@@ -32,7 +32,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import com.neo.lingxumusic.R
 import com.neo.lingxumusic.core.MusicPlayController
 import com.neo.lingxumusic.model.Song
@@ -51,7 +50,7 @@ import kotlin.math.max
 
 private const val DISK_ROTATE_ANIM_CYCLE = 10000
 var showBottomMusicPlay by mutableStateOf(false) //是否显示底部播放组件
-var showPlayMusicPage by mutableStateOf(false)      // 是否显示播放页
+var showPlayMusicSheet by mutableStateOf(false)      // 是否显示播放页
 var sheetNeedleUp by mutableStateOf(true)           // 唱针是否抬起
 val sheetDiskRotate by mutableStateOf(Animatable(0f)) // 唱片旋转角度
 var lastSheetDiskRotateAngleForSnap = 0f            // 上次暂停时的角度
@@ -60,7 +59,7 @@ var lastSheetDiskRotateAngleForSnap = 0f            // 上次暂停时的角度
 fun PlayMusicPage() {
     // 动画显示/隐藏播放页
     AnimatedVisibility(
-        visible = showPlayMusicPage,  // 根据这个变量控制显示
+        visible = showPlayMusicSheet,  // 根据这个变量控制显示
         enter = slideInVertically(
             initialOffsetY = { fullHeight -> fullHeight },  // 从底部滑入
             animationSpec = tween(600)
@@ -79,12 +78,12 @@ fun PlayMusicSheet() {
     val scope = rememberCoroutineScope()
     //当播放页打开时，按返回键关闭播放页
     //防止按返回键直接退出 App 或返回上一个路由，而不是关闭播放页
-    BackHandler(enabled = showPlayMusicPage) {
+    BackHandler(enabled = showPlayMusicSheet) {
         scope.launch {
             lastSheetDiskRotateAngleForSnap = 0f
             sheetDiskRotate.snapTo(lastSheetDiskRotateAngleForSnap)
             sheetDiskRotate.stop()
-            showPlayMusicPage = false
+            showPlayMusicSheet = false
             showBottomMusicPlay = true
         }
     }
@@ -165,7 +164,7 @@ fun PlayMusicContent(scope: CoroutineScope) {
                         lastSheetDiskRotateAngleForSnap = 0f
                         sheetDiskRotate.snapTo(lastSheetDiskRotateAngleForSnap)
                         sheetDiskRotate.stop()
-                        showPlayMusicPage = false
+                        showPlayMusicSheet = false
                         showBottomMusicPlay = true
                     }
                 },
@@ -194,6 +193,7 @@ fun PlayMusicContent(scope: CoroutineScope) {
 
 @Composable
 private fun BlurBackground(song: Song) {
+    //todo 使用BlurTransformation实现真正的高斯模糊效果
     // 高斯模糊背景
     CommonNetworkImage(
         url = song.cover?.replaceSize(),
@@ -470,7 +470,9 @@ private fun BottomActionLayout(pagerState: PagerState) {
                 pagerState.animateScrollToPage(newIndex)
             }
         }
-        ActionButton(R.drawable.ic_play_list)
+        ActionButton(R.drawable.ic_play_list){
+            showPlayListSheet = true
+        }
     }
 }
 

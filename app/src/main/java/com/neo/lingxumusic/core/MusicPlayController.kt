@@ -10,7 +10,7 @@ import com.neo.lingxumusic.core.player.IPlayerListener
 import com.neo.lingxumusic.core.player.Player
 import com.neo.lingxumusic.core.player.PlayerStatus
 import com.neo.lingxumusic.model.Song
-import com.neo.lingxumusic.ui.page.mine.showPlayMusicPage
+import com.neo.lingxumusic.ui.page.mine.showPlayMusicSheet
 import com.neo.lingxumusic.utils.StringUtil
 import com.neo.lingxumusic.utils.showToast
 import kotlinx.coroutines.CoroutineScope
@@ -61,7 +61,7 @@ object MusicPlayController  : IPlayerListener {
         Player.start()
     }
 
-    fun play(index: Int) {
+    fun play(index: Int,delegateByPageState: Boolean = false) {
         if (songList.isEmpty()) {
             showToast("歌单为空")
             return
@@ -74,9 +74,15 @@ object MusicPlayController  : IPlayerListener {
         }
 
         // 播放
-        curIndex = index
-        Player.setDataSource(songList[curIndex])
-        Player.start()
+        if(delegateByPageState) {
+            pagerStateScope?.launch {
+                pagerState?.scrollToPage(index)
+            }
+        }else {
+            curIndex = index
+            Player.setDataSource(songList[curIndex])
+            Player.start()
+        }
 
     }
 
@@ -112,6 +118,9 @@ object MusicPlayController  : IPlayerListener {
         seeking = false                          // 释放锁
     }
 
+    //判断某个索引的歌曲是否正在播放
+    fun isPlaying(index: Int) = curIndex == index
+
     //状态变化回调
     override fun onStatusChanged(status: PlayerStatus) {
         // 1. 更新播放状态
@@ -119,10 +128,10 @@ object MusicPlayController  : IPlayerListener {
 
         // 2. 根据状态执行不同逻辑
         when (status) {
-            PlayerStatus.COMPLETED -> playNext()           // 播放完成，自动下一首
+            PlayerStatus.COMPLETED -> autoPlayNext()           // 播放完成，自动下一首
             PlayerStatus.ERROR -> {
                 showToast("播放失败")
-                playNext()                                 // 播放失败，自动下一首
+                autoPlayNext()                                 // 播放失败，自动下一首
             }
             PlayerStatus.STOPPED -> {
                 totalDuringStr = "00:00"                   // 重置总时长显示
@@ -133,14 +142,14 @@ object MusicPlayController  : IPlayerListener {
         }
     }
 
-    private fun playNext() {
+    private fun autoPlayNext() {
         // 计算下一首索引（不能超过列表末尾）
         val newIndex = (songList.size - 1).coerceAtMost(curIndex + 1)
 
         // 如果索引变化了，播放下一首
         if (newIndex != curIndex) {
             //根据页面是否存在判断是否动画滚动
-            if(showPlayMusicPage) {
+            if(showPlayMusicSheet) {
                 pagerStateScope?.launch {
                     pagerState?.animateScrollToPage(newIndex, animationSpec = tween(400))
                 }

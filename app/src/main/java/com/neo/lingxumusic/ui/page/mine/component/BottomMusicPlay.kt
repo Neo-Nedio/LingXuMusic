@@ -4,8 +4,6 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.*
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -29,16 +27,16 @@ import com.neo.lingxumusic.core.MusicPlayController
 import com.neo.lingxumusic.core.navigation.NavController
 import com.neo.lingxumusic.core.navigation.Routes
 import com.neo.lingxumusic.ui.common.CircleProgress
+import com.neo.lingxumusic.ui.common.CommonIcon
 import com.neo.lingxumusic.ui.common.CommonLocalImage
 import com.neo.lingxumusic.ui.common.CommonNetworkImage
 import com.neo.lingxumusic.ui.page.mine.showBottomMusicPlay
-import com.neo.lingxumusic.ui.page.mine.showPlayMusicPage
+import com.neo.lingxumusic.ui.page.mine.showPlayMusicSheet
 import com.neo.lingxumusic.ui.theme.AppColorsProvider
 import com.neo.lingxumusic.utils.StringUtil
 import com.neo.lingxumusic.utils.cdp
 import com.neo.lingxumusic.utils.replaceSize
-
-
+import com.neo.lingxumusic.ui.page.mine.showPlayListSheet
 
 val BottomMusicPlayPadding = 104.cdp
 
@@ -60,7 +58,7 @@ fun BoxScope.BottomMusicPlay() {
                 .align(Alignment.BottomCenter)      // 定位在 Box 底部中央
                 .padding(bottom = paddingBottom.value),  // 动态底部间距
             visibleState = remember { MutableTransitionState(false) }
-                .apply { targetState = showBottomMusicPlay && // 播放页打开时隐藏
+                .apply { targetState = showBottomMusicPlay &&
                         //在引导页时隐藏
                         NavController.instance.currentBackStackEntryAsState().value?.destination?.route != Routes.SPLASH &&
                         //在登录页时隐藏
@@ -119,7 +117,7 @@ private fun BottomMusicPlayBar() {
             .fillMaxWidth()
             .height(104.cdp)
             .clickable {
-                showPlayMusicPage = true // 点击打开播放页
+                showPlayMusicSheet = true // 点击打开播放页
                 showBottomMusicPlay = false
             }
     ) {
@@ -195,6 +193,7 @@ private fun BottomMusicPlayBar() {
             // 3. 播放控制区域
             Box(
                 Modifier
+                    .padding(end = 16.cdp)
                     .size(75.cdp)
                     .clip(CircleShape)
                     .clickable {
@@ -217,6 +216,19 @@ private fun BottomMusicPlayBar() {
                 // 进度圆环
                 CircleProgress(modifier = Modifier.size(58.cdp), MusicPlayController.progress)
             }
+
+            //播放列表图标
+            CommonIcon(
+                R.drawable.ic_play_list,
+                tint = Color.Gray,
+                modifier = Modifier
+                    .size(75.cdp)
+                    .clip(CircleShape)
+                    .clickable {
+                        showPlayListSheet = true
+                    }
+                    .padding(12.cdp)
+            )
         }
     }
 }

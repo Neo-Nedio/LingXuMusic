@@ -9,6 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.compose.rememberNavController
 import com.neo.lingxumusic.core.navigation.LingXuNavGraph
+import com.neo.lingxumusic.ui.page.mine.PlayListSheet
 import com.neo.lingxumusic.ui.page.mine.PlayMusicPage
 import com.neo.lingxumusic.ui.page.mine.component.BottomMusicPlay
 import com.neo.lingxumusic.ui.theme.AppTheme
@@ -34,7 +35,10 @@ class MainActivity : ComponentActivity() {
                     }
                     // 底部播放器组件
                     BottomMusicPlay()
+                    // 音乐播放Sheet
                     PlayMusicPage()
+                    // 播放列表Sheet
+                    PlayListSheet()
                 }
                 }
             }

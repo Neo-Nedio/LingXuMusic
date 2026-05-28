@@ -1,6 +1,7 @@
 package com.neo.lingxumusic.ui.page.mine
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -294,7 +295,7 @@ private fun Body() {
         val songs = detail?.songs.orEmpty()
 
         Column {
-            PlayListHeader(detail?.count ?:  viewModel.playlist.count)
+            PlayListHeader( viewModel.playlist)
             HorizontalDivider(Modifier.fillMaxWidth(), thickness = 1.cdp, color = Color.LightGray)
             songs.forEachIndexed { index, item ->
                 SongItem(index, item) {
@@ -307,7 +308,7 @@ private fun Body() {
                             viewModel.songList,
                             viewModel.songList[index].hash
                         )
-                        showPlayMusicPage = true
+                        showPlayMusicSheet = true
                     }
                 }
             }
@@ -317,9 +318,19 @@ private fun Body() {
 
 //歌曲列表的头部，显示"播放全部"按钮和歌曲数量
 @Composable
-private fun PlayListHeader(trackCount: Int) {
+private fun PlayListHeader(playlist: PlaylistBrief) {
+    val viewModel: PlayListViewModel = hiltViewModel()
     Row(
-        modifier = Modifier.height(100.cdp),        // 高度 100dp
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(100.cdp)
+            .clickable {
+                MusicPlayController.setDataSource(
+                    viewModel.songList,
+                    viewModel.songList.firstOrNull()?.hash
+                )
+                showPlayMusicSheet = true
+            },
         verticalAlignment = Alignment.CenterVertically  // 垂直居中
     ) {
         // 左侧播放图标
@@ -340,7 +351,7 @@ private fun PlayListHeader(trackCount: Int) {
         )
         // 歌曲数量，如 "(24)"
         Text(
-            text = "($trackCount)",
+            text = "(${playlist.count})",
             fontSize = 28.csp,
             color = AppColorsProvider.current.secondText,
         )
