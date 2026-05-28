@@ -1,0 +1,105 @@
+package com.ssk.ncmusic.ui.page.mine.component
+
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
+import com.neo.lingxumusic.utils.cdp
+
+/*
+播放中（脉冲动画）：
+██      ████      ██       ← 条1
+████    ████    ████
+████    ████    ████
+
+暂停时（静止）：
+████    ████    ██
+████    ████    ████*/
+//动态脉冲效果
+@Composable
+fun PlayingMark(
+    modifier: Modifier = Modifier,
+    contentAlignment: Alignment = Alignment.Center,
+    playing: Boolean = false
+) {
+    val color = Color.White
+
+    val anim by remember {
+        mutableStateOf(Animatable(0.4f))
+    }
+
+    // 监听播放状态，控制动画
+    LaunchedEffect(playing) {
+        if (playing) {
+            // 播放中：开始脉冲动画（0.4 → 1.0 往复）
+            anim.animateTo(
+                targetValue = 1f,
+                animationSpec = infiniteRepeatable(
+                    animation = tween(durationMillis = 600, easing = LinearEasing),
+                    repeatMode = RepeatMode.Reverse
+                )
+            )
+        } else {
+            // 停止播放：停止动画
+            anim.stop()
+        }
+    }
+
+    //动画
+    Box(modifier = modifier, contentAlignment = contentAlignment) {
+        Canvas(modifier = Modifier
+            .width(32.cdp)
+            .height(32.cdp)) {
+            val rectWidth = size.width / 5      // 每个条宽度 = 总宽的 1/5
+            val canvasHeight = size.height
+
+            // ========== 条1（左边） ==========
+            val rectHeight1 = if (playing) {
+                canvasHeight * (0.75f - anim.value * 0.75f + 0.25f)
+            } else {
+                canvasHeight * 0.7f
+            }
+            drawRoundRect(
+                color = color,                                    // 主题主色
+                cornerRadius = CornerRadius(16.cdp.toPx()),      // 圆角半径 16px
+                topLeft = Offset(0f, canvasHeight - rectHeight1), // 左上角位置
+                size = Size(rectWidth, rectHeight1)               // 宽度和高度
+            )
+
+            // ========== 条2（中间） ==========
+            val rectHeight2 = if (playing) {
+                canvasHeight * (anim.value * 0.65f + 0.2f)
+            } else {
+                canvasHeight * 0.9f
+            }
+            drawRoundRect(
+                color = color,
+                cornerRadius = CornerRadius(16.cdp.toPx()),
+                topLeft = Offset(rectWidth * 2, canvasHeight - rectHeight2),
+                size = Size(rectWidth, rectHeight2)
+            )
+
+            // ========== 条3（右边） ==========
+            val rectHeight3 = if (playing) {
+                canvasHeight * (0.6f - anim.value * 0.6f + 0.4f)
+            } else {
+                canvasHeight * 0.5f
+            }
+            drawRoundRect(
+                color = color,
+                cornerRadius = CornerRadius(16.cdp.toPx()),
+                topLeft = Offset(rectWidth * 4, canvasHeight - rectHeight3),
+                size = Size(rectWidth, rectHeight3)
+            )
+        }
+    }
+}
+

@@ -14,6 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -21,12 +22,15 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import com.neo.lingxumusic.core.MusicPlayController
 import com.neo.lingxumusic.model.Song
+import com.neo.lingxumusic.ui.common.CommonNetworkImage
 import com.neo.lingxumusic.ui.page.mine.showPlayMusicSheet
 import com.neo.lingxumusic.ui.theme.AppColorsProvider
 import com.neo.lingxumusic.utils.StringUtil
 import com.neo.lingxumusic.utils.cdp
 import com.neo.lingxumusic.utils.csp
 import com.neo.lingxumusic.ui.page.mine.showPlayListSheet
+import com.neo.lingxumusic.utils.replaceSize
+import com.ssk.ncmusic.ui.page.mine.component.PlayingMark
 
 @Composable
 fun CurrentPlayList() {
@@ -49,7 +53,8 @@ fun CurrentPlayList() {
             .padding(top = 48.cdp) // 顶部内边距
     ) {
         //标题区域 Row
-        Row(modifier = Modifier.padding(horizontal = 48.cdp), // 水平内边距
+        Row(
+            modifier = Modifier.padding(horizontal = 48.cdp), // 水平内边距
             verticalAlignment = Alignment.Bottom) // 文字底部对齐
          {
             Text(
@@ -90,12 +95,34 @@ private fun PlayListItem(index : Int, song: Song) {
             .padding(horizontal = 48.cdp),
         verticalAlignment = Alignment.CenterVertically
     ) {
+        //左侧封面，富含动脉脉冲效果
+        Box(
+            modifier = Modifier
+                .padding(end = 32.cdp)
+                .size(80.cdp),
+        ) {
+            CommonNetworkImage(
+                url = song.cover?.replaceSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clip(RoundedCornerShape(16.cdp))
+                    .graphicsLayer {
+                        alpha = if (MusicPlayController.isPlaying(song)) 0.7f else 1f
+                    },
+            )
+            if (MusicPlayController.isPlaying(song)) {
+                PlayingMark(
+                    playing = MusicPlayController.isPlaying(),
+                    modifier = Modifier.align(Alignment.Center),
+                )
+            }
+        }
         // 富文本显示 "歌曲名 - 歌手"
         Text(
             text = buildAnnotatedString {
                 withStyle(
                     style = SpanStyle(
-                        color = if (!MusicPlayController.isPlaying(index))
+                        color = if (!MusicPlayController.isPlaying(song))
                             AppColorsProvider.current.firstText
                         else
                             AppColorsProvider.current.primary,
@@ -106,7 +133,7 @@ private fun PlayListItem(index : Int, song: Song) {
                 }
                 withStyle(
                     style = SpanStyle(
-                        color = if (!MusicPlayController.isPlaying(index))
+                        color = if (!MusicPlayController.isPlaying(song))
                             AppColorsProvider.current.secondText
                         else
                             AppColorsProvider.current.secondary,

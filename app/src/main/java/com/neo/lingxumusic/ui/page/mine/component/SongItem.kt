@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.style.TextOverflow
 import com.neo.lingxumusic.model.Song
 import com.neo.lingxumusic.ui.common.CommonIcon
@@ -15,9 +16,11 @@ import com.neo.lingxumusic.ui.theme.AppColorsProvider
 import com.neo.lingxumusic.utils.cdp
 import com.neo.lingxumusic.utils.csp
 import com.neo.lingxumusic.R
+import com.neo.lingxumusic.core.MusicPlayController
 import com.neo.lingxumusic.ui.common.CommonNetworkImage
 import com.neo.lingxumusic.utils.replaceSize
 import com.neo.lingxumusic.utils.StringUtil
+import com.ssk.ncmusic.ui.page.mine.component.PlayingMark
 
 @Composable
 fun SongItem(index: Int, song: Song,onClick: (index: Int) -> Unit) {
@@ -31,13 +34,28 @@ fun SongItem(index: Int, song: Song,onClick: (index: Int) -> Unit) {
         horizontalArrangement = Arrangement.spacedBy(16.cdp)  // 子元素之间间距
     ) {
 
-        // 左侧：歌曲封面
-        CommonNetworkImage(
-            url = song.cover?.replaceSize(),
+        //左侧封面，富含动脉脉冲效果
+        Box(
             modifier = Modifier
-                .size(80.cdp)
-                .clip(RoundedCornerShape(16.cdp))
-        )
+                .padding(end = 32.cdp)
+                .size(80.cdp),
+        ) {
+            CommonNetworkImage(
+                url = song.cover?.replaceSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clip(RoundedCornerShape(16.cdp))
+                    .graphicsLayer {
+                        alpha = if (MusicPlayController.isPlaying(song)) 0.7f else 1f
+                    },
+            )
+            if (MusicPlayController.isPlaying(song)) {
+                PlayingMark(
+                    playing = MusicPlayController.isPlaying(),
+                    modifier = Modifier.align(Alignment.Center),
+                )
+            }
+        }
 
         //歌曲信息
         val (singer, songName) = StringUtil.parseSongName(song.name ?: "")

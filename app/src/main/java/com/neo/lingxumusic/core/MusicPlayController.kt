@@ -119,7 +119,7 @@ object MusicPlayController  : IPlayerListener {
     }
 
     //判断某个索引的歌曲是否正在播放
-    fun isPlaying(index: Int) = curIndex == index
+    fun isPlaying(song: Song) = songList.getOrNull(curIndex)?.hash == song.hash
 
     //状态变化回调
     override fun onStatusChanged(status: PlayerStatus) {
