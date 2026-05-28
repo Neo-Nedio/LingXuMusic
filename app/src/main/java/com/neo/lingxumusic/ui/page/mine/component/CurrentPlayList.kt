@@ -48,7 +48,7 @@ fun CurrentPlayList() {
             .fillMaxWidth() // 宽度填满父容器
             .heightIn(0.cdp, 1080.cdp) // 高度限制，防止过高
             .clip(RoundedCornerShape(topStart = 40.cdp, topEnd = 40.cdp)) // 顶部圆角
-            .background(Color.White) // 白色背景
+            .background(AppColorsProvider.current.background)
             .padding(top = 48.cdp) // 顶部内边距
     ) {
         //标题区域 Row
