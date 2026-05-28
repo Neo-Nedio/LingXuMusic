@@ -9,6 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.compose.rememberNavController
 import com.neo.lingxumusic.core.navigation.LingXuNavGraph
+import com.neo.lingxumusic.utils.RequestNotificationPermission
 import com.neo.lingxumusic.ui.page.mine.PlayListSheet
 import com.neo.lingxumusic.ui.page.mine.PlayMusicPage
 import com.neo.lingxumusic.ui.page.mine.component.BottomMusicPlay
@@ -28,6 +29,8 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             AppTheme(themeTypeState.value) {
+                //申请权限，用于前台service
+                RequestNotificationPermission()
                 val navController = rememberNavController()
                 Box(modifier = Modifier.fillMaxSize()) {
                     LingXuNavGraph(navController) {
