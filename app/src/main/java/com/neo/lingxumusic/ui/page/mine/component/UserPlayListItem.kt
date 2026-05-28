@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.dp
 import com.neo.lingxumusic.R
 import com.neo.lingxumusic.core.navigation.NavController
 import com.neo.lingxumusic.core.navigation.Routes
+import com.neo.lingxumusic.core.navigation.RoutesConstant
 import com.neo.lingxumusic.model.Playlist
 import com.neo.lingxumusic.model.toBrief
 import com.neo.lingxumusic.ui.common.CommonNetworkImage
@@ -40,7 +41,7 @@ fun UserPlaylistItem(platListItem: Playlist?) {
                 platListItem?.let {
                     NavController.instance.currentBackStackEntry
                         ?.savedStateHandle
-                        ?.set(Routes.KEY_PLAY_LIST_BRIEF, it.toBrief())
+                        ?.set(RoutesConstant.KEY_PLAY_LIST_BRIEF, it.toBrief())
                     NavController.instance.navigate(Routes.PLAY_LIST)
                 }
             }

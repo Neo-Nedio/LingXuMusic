@@ -32,9 +32,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.LifecycleOwner
 import com.neo.lingxumusic.R
 import com.neo.lingxumusic.core.MusicPlayController
+import com.neo.lingxumusic.core.navigation.NavController
+import com.neo.lingxumusic.core.navigation.Routes
+import com.neo.lingxumusic.core.navigation.RoutesConstant
 import com.neo.lingxumusic.core.player.PlayMode
 import com.neo.lingxumusic.core.viewState.listener.ComposeLifeCycleListener
 import com.neo.lingxumusic.model.Song
@@ -48,13 +52,17 @@ import com.neo.lingxumusic.utils.StringUtil
 import com.neo.lingxumusic.utils.cdp
 import com.neo.lingxumusic.utils.csp
 import com.neo.lingxumusic.utils.replaceSize
+import com.neo.lingxumusic.viewmodel.mine.PlayMusicViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlin.compareTo
 import kotlin.math.abs
 
 private const val DISK_ROTATE_ANIM_CYCLE = 10000
 var showBottomMusicPlay by mutableStateOf(false) //是否显示底部播放组件
+
+var showPlayMusicSheetWithoutAnim  = false //是否评论
 var showPlayMusicSheet by mutableStateOf(false)      // 是否显示播放页
 var sheetNeedleUp by mutableStateOf(true)           // 唱针是否抬起
 val sheetDiskRotate by mutableStateOf(Animatable(0f)) // 唱片旋转角度
@@ -62,16 +70,29 @@ var lastSheetDiskRotateAngleForSnap = 0f            // 上次暂停时的角度
 
 @Composable
 fun PlayMusicPage() {
+    //根据标志决定动画时长
+    //从播放页跳转到评论页：瞬间消失
+    //从评论页返回播放页/其他时候：有动画
+    val animationDuration = if (showPlayMusicSheetWithoutAnim) 0 else 600
+
+    //动画结束后重置标志（防止影响下次）
+    LaunchedEffect(showPlayMusicSheet) {
+        if (showPlayMusicSheet) {
+            delay(animationDuration.toLong())
+            showPlayMusicSheetWithoutAnim = false //关闭评论(并不是这个变量控制页面)
+        }
+    }
+
     // 动画显示/隐藏播放页
     AnimatedVisibility(
         visible = showPlayMusicSheet,  // 根据这个变量控制显示
         enter = slideInVertically(
             initialOffsetY = { fullHeight -> fullHeight },  // 从底部滑入
-            animationSpec = tween(600)
+            animationSpec = tween(animationDuration)
         ),
         exit = slideOutVertically(
             targetOffsetY = { fullHeight -> fullHeight }, // 向底部滑出
-            animationSpec = tween(600)
+            animationSpec = tween(animationDuration)
         )
     ){
         PlayMusicSheet()
@@ -398,6 +419,13 @@ private fun DiskItem(song: Song) {
 //音乐播放器中部的操作按钮栏
 @Composable
 private fun MiddleActionLayout() {
+    val viewModel: PlayMusicViewModel = hiltViewModel()
+    //页面变化时获取新的评论
+    LaunchedEffect(MusicPlayController.curIndex) {
+        viewModel.songCommentResult = null //先把原评论置为空，防止新评论没加载出来之前受原数据影响
+        viewModel.getSongComment(MusicPlayController.songList[MusicPlayController.curIndex])
+    }
+
     Row(
         modifier = Modifier
             .padding(start = 44.cdp, end = 44.cdp, bottom = 32.cdp)
@@ -408,7 +436,38 @@ private fun MiddleActionLayout() {
         MiddleActionIcon(R.drawable.ic_like_no)      // 点赞（未点赞状态）
         MiddleActionIcon(R.drawable.ic_download)     // 下载
         MiddleActionIcon(R.drawable.ic_action_sing)  // K歌/唱歌
-        MiddleActionIcon(R.drawable.ic_comment_count) // 评论
+        Box(modifier = Modifier.width(100.cdp)) { //评论
+            MiddleActionIcon(
+                R.drawable.ic_comment_count,
+                modifier = Modifier.align(if (viewModel.songCommentResult == null) Alignment.Center else Alignment.CenterStart)
+            ) {
+                //设置参数
+                NavController.instance.currentBackStackEntry
+                    ?.savedStateHandle
+                    ?.set(
+                        RoutesConstant.SONG,
+                        MusicPlayController.songList[MusicPlayController.curIndex]
+                    )
+                NavController.instance.navigate(Routes.SONG_COMMENT)
+                showPlayMusicSheetWithoutAnim = true //打开评论(并不是这个变量控制页面)
+                showPlayMusicSheet = false //关闭播放页
+            }
+            //显示评论数量
+            viewModel.songCommentResult?.let {
+                val commentText = StringUtil.friendlyNumber(it.count)
+                Text(
+                    text = commentText,
+                    color = Color.White,
+                    fontSize = 18.csp,
+                    modifier = Modifier
+                        .padding(
+                            top = 6.cdp,
+                            start = if (commentText.length >= 4) 50.cdp else 60.cdp
+                        )
+                        .align(Alignment.TopStart)
+                )
+            }
+        }
         MiddleActionIcon(R.drawable.ic_song_more)    // 更多
 
     }

@@ -15,6 +15,8 @@ import com.neo.lingxumusic.ui.page.mine.PlaylistPage
 import com.neo.lingxumusic.ui.page.profile.ProfilePage
 import com.neo.lingxumusic.ui.page.splash.SplashPage
 import com.neo.lingxumusic.model.PlaylistBrief
+import com.neo.lingxumusic.model.Song
+import com.neo.lingxumusic.ui.page.mine.SongCommentPage
 import com.neo.lingxumusic.utils.TwoBackFinish
 
 object NavController {
@@ -55,8 +57,14 @@ fun LingXuNavGraph(
         composable(Routes.PLAY_LIST) {
             navController.previousBackStackEntry
                 ?.savedStateHandle
-                ?.get<PlaylistBrief>(Routes.KEY_PLAY_LIST_BRIEF)
+                ?.get<PlaylistBrief>(RoutesConstant.KEY_PLAY_LIST_BRIEF)
                 ?.let { PlaylistPage(it) }
+        }
+        composable(Routes.SONG_COMMENT) {
+            val songBean = navController.previousBackStackEntry
+                ?.savedStateHandle
+                ?.get<Song>(RoutesConstant.SONG)
+            SongCommentPage(songBean)
         }
     }
 }

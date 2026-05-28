@@ -36,6 +36,7 @@ import com.neo.lingxumusic.utils.csp
 fun CommonTopAppBar(
     modifier: Modifier = Modifier,
     title: String = "",
+    titleAlign: TextAlign = TextAlign.Center,
     customTitleLayout: (@Composable () -> Unit)? = null,
     appBarHeight: Dp = 88.cdp,
     backgroundColor: Color = AppColorsProvider.current.appBarBackground,
@@ -83,7 +84,7 @@ fun CommonTopAppBar(
                     text = title,
                     fontSize = 36.csp,  // 字体大小 36（按屏幕比例）
                     fontWeight = FontWeight.Medium,
-                    textAlign = TextAlign.Center,
+                    textAlign = titleAlign,
                     color = contentColor,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,

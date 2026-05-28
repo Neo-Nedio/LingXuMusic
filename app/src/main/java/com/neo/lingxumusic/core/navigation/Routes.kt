@@ -9,7 +9,5 @@ object Routes {
 
     const val PLAY_LIST = "playList"
 
-
-    //---------------------------------------------------------//
-    const val KEY_PLAY_LIST_BRIEF = "playListBrief"
+    const val SONG_COMMENT = "songComment"
 }
