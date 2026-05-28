@@ -164,11 +164,11 @@ object MusicPlayController  : IPlayerListener {
 
         // 2. 根据状态执行不同逻辑
         when (status) {
-            PlayerStatus.COMPLETED -> autoPlayNext()           // 播放完成，自动下一首
+            PlayerStatus.COMPLETED -> autoPlayNext(fromError = false) // 播放完成，自动下一首
             PlayerStatus.ERROR -> {
                 showToast("播放失败")
                 Handler(Looper.getMainLooper()) //延迟400ms后变化，防止过快ui来不及更新而请求错误
-                    .postDelayed({ autoPlayNext() }, //自动播放下一首
+                    .postDelayed({ autoPlayNext(fromError = true) }, //自动播放下一首
                         400)
             }
             PlayerStatus.STOPPED -> {
@@ -180,12 +180,11 @@ object MusicPlayController  : IPlayerListener {
         }
     }
 
-    private fun autoPlayNext() {
-        if(playMode == PlayMode.SINGLE) {
+    private fun autoPlayNext(fromError: Boolean) {
+        if (playMode == PlayMode.SINGLE && !fromError) { //单曲循环遇到错误时，应该继续下一首，而不是一直错误播放
             resume()
-        }else {
-            val newIndex = getNextIndex()
-            play(newIndex)
+        } else {
+            play(getNextIndex())
         }
     }
 
