@@ -76,10 +76,11 @@ object MusicNotificationHelper {
             val channel = NotificationChannel(
                 CHANNEL_ID,                          // 渠道 ID
                 CHANNEL_NAME,                        // 渠道名称（显示给用户）
-                NotificationManager.IMPORTANCE_HIGH  // 重要性：高（会弹窗、出声）
+                NotificationManager.IMPORTANCE_MIN  // 重要性：低（不在状态栏显示图标只在通知抽屉底部折叠显示）
             ).apply {
                 enableLights(false)      // 关闭呼吸灯
                 enableVibration(false)   // 关闭震动
+                setSound(null, null) // 完全不播放任何铃声
             }
             mNotificationManager!!.createNotificationChannel(channel)
         }
@@ -88,8 +89,9 @@ object MusicNotificationHelper {
         mNotification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setContentIntent(pendingIntent)
             .setSmallIcon(R.drawable.ic_music_notification)
-            .setCustomContentView(mRemoteViews)
-            .setOngoing(true)
+            .setContent(mRemoteViews)              //  收起状态（通知列表中的普通显示）
+            .setCustomBigContentView(mRemoteViews) //  展开状态（用户下拉后的详细视图）
+            .setOngoing(true)  //前台服务通知（用户无法划掉）
             .build()
 
         // 5. 更新通知栏 UI
@@ -152,8 +154,6 @@ object MusicNotificationHelper {
     }
 
     fun getNotification() = mNotification
-
-    fun getNotificationManager() = mNotificationManager
 
     //更新文字和图标
     private fun updateNotificationUI() {
