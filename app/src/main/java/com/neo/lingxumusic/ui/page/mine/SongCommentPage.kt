@@ -9,6 +9,7 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
+import com.neo.lingxumusic.core.MusicPlayController
 import com.neo.lingxumusic.core.navigation.NavController
 import com.neo.lingxumusic.model.Song
 import com.neo.lingxumusic.ui.common.CommonTopAppBar
@@ -18,8 +19,8 @@ import com.neo.lingxumusic.ui.theme.AppColorsProvider
 fun SongCommentPage(song: Song?) {
 
     BackHandler(true) {
-        showPlayMusicSheet = true
         NavController.instance.popBackStack()
+        MusicPlayController.playMusicSheetOffset = 0
     }
 
     Column(
@@ -31,8 +32,8 @@ fun SongCommentPage(song: Song?) {
         CommonTopAppBar(title = "评论",
             titleAlign = TextAlign.Start,
             leftClick = {
-                showPlayMusicSheet = true
                 NavController.instance.popBackStack()
+                MusicPlayController.playMusicSheetOffset = 0
             })
         Text(text = song?.name.orEmpty())
     }

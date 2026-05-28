@@ -45,10 +45,7 @@ fun LingXuNavGraph(
             LoginPage()
         }
         composable(Routes.HOME) {
-            HomePage()
-            BackHandler {
-                TwoBackFinish().execute(onFinish)
-            }
+            HomePage{ onFinish() }
         }
         composable(Routes.PROFILE,
             enterTransition = { EnterTransition.None }) { // 进入动画：无

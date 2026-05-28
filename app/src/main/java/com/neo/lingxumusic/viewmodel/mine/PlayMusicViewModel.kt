@@ -1,5 +1,6 @@
 package com.neo.lingxumusic.viewmodel.mine
 
+import androidx.compose.animation.core.Animatable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -14,6 +15,12 @@ import kotlinx.coroutines.launch
 
 @HiltViewModel
 class PlayMusicViewModel @Inject constructor(private val api: SongApi) : BaseViewStateViewModel() {
+    // disk旋转动画
+    val sheetDiskRotate by mutableStateOf(Animatable(0f))
+    // 上一次disk旋转角度
+    var lastSheetDiskRotateAngleForSnap = 0f
+    // 是否抬起磁针
+    var sheetNeedleUp by mutableStateOf(true)
 
     var songCommentResult by mutableStateOf<SongCommentResult?>(null)
 

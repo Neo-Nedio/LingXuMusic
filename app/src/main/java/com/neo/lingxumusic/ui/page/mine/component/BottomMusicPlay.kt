@@ -30,50 +30,56 @@ import com.neo.lingxumusic.ui.common.CircleProgress
 import com.neo.lingxumusic.ui.common.CommonIcon
 import com.neo.lingxumusic.ui.common.CommonLocalImage
 import com.neo.lingxumusic.ui.common.CommonNetworkImage
-import com.neo.lingxumusic.ui.page.mine.showBottomMusicPlay
-import com.neo.lingxumusic.ui.page.mine.showPlayMusicSheet
+import com.neo.lingxumusic.ui.page.mine.showPlayListSheet
 import com.neo.lingxumusic.ui.theme.AppColorsProvider
 import com.neo.lingxumusic.utils.StringUtil
 import com.neo.lingxumusic.utils.cdp
 import com.neo.lingxumusic.utils.replaceSize
-import com.neo.lingxumusic.ui.page.mine.showPlayListSheet
 
 val BottomMusicPlayPadding = 104.cdp
 
 @Composable
 fun BoxScope.BottomMusicPlay() {
     if (MusicPlayController.songList.isNotEmpty()) { // 有歌曲才显示
-        //动态计算底部内边距（首页需要避开底部导航栏）
-        val paddingBottom = animateDpAsState(
-            targetValue = if (NavController.instance.currentBackStackEntryAsState().value?.destination?.route == Routes.HOME) {
-                80.dp
-            } else {
-                0.dp
-            }
-        )
-        // 动画显示/隐藏播放条
-        AnimatedVisibility(
-            modifier = Modifier
-                .fillMaxWidth()                     // 宽度占满
-                .align(Alignment.BottomCenter)      // 定位在 Box 底部中央
-                .padding(bottom = paddingBottom.value),  // 动态底部间距
-            visibleState = remember { MutableTransitionState(false) }
-                .apply { targetState = showBottomMusicPlay &&
-                        //在引导页时隐藏
-                        NavController.instance.currentBackStackEntryAsState().value?.destination?.route != Routes.SPLASH &&
-                        //在登录页时隐藏
-                        NavController.instance.currentBackStackEntryAsState().value?.destination?.route != Routes.LOGIN
-                       },
-            enter = slideInVertically(
-                initialOffsetY = { fullHeight -> fullHeight },  // 从底部滑入
-                animationSpec = tween(200)
-            ),
-            exit = slideOutVertically(
-                targetOffsetY = { fullHeight -> fullHeight }, // 向底部滑出
-                animationSpec = tween(200)
-            )
+        //只有在 首页（HOME） 个人主页（PROFILE） 歌单详情页（PLAY_LIST） 才显示底部播放器
+        val curRouteName = NavController.instance.currentBackStackEntryAsState().value?.destination?.route
+        if (curRouteName == Routes.HOME
+            || curRouteName == Routes.PROFILE
+            || curRouteName == Routes.PLAY_LIST
         ) {
-            BottomMusicPlayBar() // 实际播放条 UI
+            //动态计算底部内边距（首页需要避开底部导航栏）
+            val paddingBottom = animateDpAsState(
+                targetValue = if (NavController.instance.currentBackStackEntryAsState().value?.destination?.route == Routes.HOME) {
+                    80.dp
+                } else {
+                    0.dp
+                }
+            )
+            // 动画显示/隐藏播放条
+            AnimatedVisibility(
+                modifier = Modifier
+                    .fillMaxWidth()                     // 宽度占满
+                    .align(Alignment.BottomCenter)      // 定位在 Box 底部中央
+                    .padding(bottom = paddingBottom.value),  // 动态底部间距
+                visibleState = remember { MutableTransitionState(false) }
+                    .apply {
+                        targetState = MusicPlayController.showBottomMusicPlay &&
+                            //在引导页时隐藏
+                            NavController.instance.currentBackStackEntryAsState().value?.destination?.route != Routes.SPLASH &&
+                            //在登录页时隐藏
+                            NavController.instance.currentBackStackEntryAsState().value?.destination?.route != Routes.LOGIN
+                    },
+                enter = slideInVertically(
+                    initialOffsetY = { fullHeight -> fullHeight },  // 从底部滑入
+                    animationSpec = tween(200)
+                ),
+                exit = slideOutVertically(
+                    targetOffsetY = { fullHeight -> fullHeight }, // 向底部滑出
+                    animationSpec = tween(200)
+                )
+            ) {
+                BottomMusicPlayBar() // 实际播放条 UI
+            }
         }
     }
 }
@@ -117,8 +123,8 @@ private fun BottomMusicPlayBar() {
             .fillMaxWidth()
             .height(104.cdp)
             .clickable {
-                showPlayMusicSheet = true // 点击打开播放页
-                showBottomMusicPlay = false
+                MusicPlayController.showPlayMusicSheet = true
+                MusicPlayController.showBottomMusicPlay = false
             }
     ) {
 

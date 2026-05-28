@@ -1,5 +1,6 @@
 package com.neo.lingxumusic.ui.page.home
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -8,6 +9,7 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.neo.lingxumusic.R
+import com.neo.lingxumusic.core.MusicPlayController
 import com.neo.lingxumusic.ui.common.BottomNavigationBar
 import com.neo.lingxumusic.ui.common.BottomNavigationItem
 import com.neo.lingxumusic.ui.page.cloudcountry.CloudCountryPage
@@ -16,6 +18,7 @@ import com.neo.lingxumusic.ui.page.mine.MinePage
 import com.neo.lingxumusic.ui.page.podcast.PodcastPage
 import com.neo.lingxumusic.ui.page.sing.SingPage
 import com.neo.lingxumusic.ui.theme.AppColorsProvider
+import com.neo.lingxumusic.utils.TwoBackFinish
 
 private val bottomNavigationItems = listOf(
     BottomNavigationItem("发现", R.drawable.ic_discovery),
@@ -28,7 +31,16 @@ private val bottomNavigationItems = listOf(
 private const val DEFAULT_SELECTED_INDEX = 2
 
 @Composable
-fun HomePage() {
+fun HomePage(onFinish: () -> Unit = { }) {
+    BackHandler {
+        if(MusicPlayController.showPlayMusicSheet) {
+            MusicPlayController.showPlayMusicSheet = false //关闭播放页
+            MusicPlayController.showBottomMusicPlay = true //打开底部播放器
+        }else { //退出应用
+            TwoBackFinish().execute(onFinish)
+        }
+    }
+
     Column(modifier = Modifier.fillMaxSize()) {
         val pagerState = rememberPagerState(
             initialPage = DEFAULT_SELECTED_INDEX,

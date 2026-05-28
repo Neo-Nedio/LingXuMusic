@@ -62,7 +62,7 @@ fun PlaylistPage(playlist: PlaylistBrief) {
     val showPlayListTitle = scrollState.value >= 188.cdp.toPx   // 滚动超过188dp时显示标题
 
     //底部边距（当播放条出来时上移，可以看到所有音乐）
-    val paddingBottom = if (showBottomMusicPlay) {
+    val paddingBottom = if (MusicPlayController.showBottomMusicPlay) {
         BottomMusicPlayPadding
     } else {
         0.dp
@@ -308,7 +308,8 @@ private fun Body() {
                             viewModel.songList,
                             viewModel.songList[index].hash
                         )
-                        showPlayMusicSheet = true
+                        MusicPlayController.showBottomMusicPlay = false
+                        MusicPlayController.showPlayMusicSheet = true
                     }
                 }
             }
@@ -329,7 +330,8 @@ private fun PlayListHeader(playlist: PlaylistBrief) {
                     viewModel.songList,
                     viewModel.songList.firstOrNull()?.hash
                 )
-                showPlayMusicSheet = true
+                MusicPlayController.showBottomMusicPlay = false
+                MusicPlayController.showPlayMusicSheet = true
             },
         verticalAlignment = Alignment.CenterVertically  // 垂直居中
     ) {

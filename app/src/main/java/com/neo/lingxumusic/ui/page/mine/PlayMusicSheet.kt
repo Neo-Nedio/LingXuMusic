@@ -11,7 +11,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
@@ -31,6 +30,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.LifecycleOwner
@@ -48,6 +48,7 @@ import com.neo.lingxumusic.ui.common.CommonNetworkImage
 import com.neo.lingxumusic.ui.common.CommonTopAppBar
 import com.neo.lingxumusic.ui.common.LifeCycleObserverComponent
 import com.neo.lingxumusic.ui.common.SeekBar
+import com.neo.lingxumusic.utils.ScreenUtil
 import com.neo.lingxumusic.utils.StringUtil
 import com.neo.lingxumusic.utils.cdp
 import com.neo.lingxumusic.utils.csp
@@ -56,61 +57,61 @@ import com.neo.lingxumusic.viewmodel.mine.PlayMusicViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlin.compareTo
 import kotlin.math.abs
 
 private const val DISK_ROTATE_ANIM_CYCLE = 10000
-var showBottomMusicPlay by mutableStateOf(false) //是否显示底部播放组件
-
-var showPlayMusicSheetWithoutAnim  = false //是否评论
-var showPlayMusicSheet by mutableStateOf(false)      // 是否显示播放页
-var sheetNeedleUp by mutableStateOf(true)           // 唱针是否抬起
-val sheetDiskRotate by mutableStateOf(Animatable(0f)) // 唱片旋转角度
-var lastSheetDiskRotateAngleForSnap = 0f            // 上次暂停时的角度
 
 @Composable
 fun PlayMusicPage() {
-    //根据标志决定动画时长
-    //从播放页跳转到评论页：瞬间消失
-    //从评论页返回播放页/其他时候：有动画
-    val animationDuration = if (showPlayMusicSheetWithoutAnim) 0 else 600
+    val viewModel: PlayMusicViewModel = hiltViewModel()
 
-    //动画结束后重置标志（防止影响下次）
-    LaunchedEffect(showPlayMusicSheet) {
-        if (showPlayMusicSheet) {
-            delay(animationDuration.toLong())
-            showPlayMusicSheetWithoutAnim = false //关闭评论(并不是这个变量控制页面)
+    // 从评论页返回时 offset 归零，恢复唱片旋转；跳转到评论页时 offset 下移，停止旋转
+    LaunchedEffect(MusicPlayController.playMusicSheetOffset) {
+        if (MusicPlayController.playMusicSheetOffset == 0 && MusicPlayController.isPlaying()) {
+            viewModel.sheetDiskRotate.snapTo(viewModel.lastSheetDiskRotateAngleForSnap)
+            viewModel.sheetDiskRotate.animateTo(
+                targetValue = 360f + viewModel.lastSheetDiskRotateAngleForSnap,
+                animationSpec = infiniteRepeatable(
+                    animation = tween(durationMillis = DISK_ROTATE_ANIM_CYCLE, easing = LinearEasing),
+                    repeatMode = RepeatMode.Restart
+                )
+            )
+        } else {
+            viewModel.lastSheetDiskRotateAngleForSnap = viewModel.sheetDiskRotate.value
+            viewModel.sheetDiskRotate.stop()
         }
     }
 
-    // 动画显示/隐藏播放页
+    // 动画显示/隐藏播放页；offset 用于跳转评论页时不遮挡 NavGraph
     AnimatedVisibility(
-        visible = showPlayMusicSheet,  // 根据这个变量控制显示
+        modifier = Modifier.offset { IntOffset(0, MusicPlayController.playMusicSheetOffset) },
+        visible = MusicPlayController.showPlayMusicSheet,  // 根据这个变量控制显示
         enter = slideInVertically(
             initialOffsetY = { fullHeight -> fullHeight },  // 从底部滑入
-            animationSpec = tween(animationDuration)
+            animationSpec = tween(600)
         ),
         exit = slideOutVertically(
             targetOffsetY = { fullHeight -> fullHeight }, // 向底部滑出
-            animationSpec = tween(animationDuration)
+            animationSpec = tween(600)
         )
-    ){
+    ) {
         PlayMusicSheet()
     }
 }
 
 @Composable
 fun PlayMusicSheet() {
+    val viewModel: PlayMusicViewModel = hiltViewModel()
     val scope = rememberCoroutineScope()
     //当播放页打开时，按返回键关闭播放页
     //防止按返回键直接退出 App 或返回上一个路由，而不是关闭播放页
-    BackHandler(enabled = showPlayMusicSheet) {
+    BackHandler(enabled = MusicPlayController.showPlayMusicSheet) {
         scope.launch {
-            lastSheetDiskRotateAngleForSnap = 0f
-            sheetDiskRotate.snapTo(0f)
-            sheetDiskRotate.stop()
-            showPlayMusicSheet = false
-            showBottomMusicPlay = true
+            viewModel.lastSheetDiskRotateAngleForSnap = 0f
+            viewModel.sheetDiskRotate.snapTo(0f)
+            viewModel.sheetDiskRotate.stop()
+            MusicPlayController.showPlayMusicSheet = false
+            MusicPlayController.showBottomMusicPlay = true
         }
     }
     PlayMusicContent(scope)
@@ -118,6 +119,7 @@ fun PlayMusicSheet() {
 
 @Composable
 fun PlayMusicContent(scope: CoroutineScope) {
+    val viewModel: PlayMusicViewModel = hiltViewModel()
     val pagerState = rememberPagerState(
         initialPage = MusicPlayController.curIndex,  // 从当前播放歌曲开始
         pageCount = { MusicPlayController.songList.size }  // 总页数 = 歌单数量
@@ -160,8 +162,8 @@ fun PlayMusicContent(scope: CoroutineScope) {
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.fillMaxWidth()
                     )
-
                 },
+
                 //todo 图标不够大，不明显
                 leftIconResId = R.drawable.ic_arrow_down,
                 appBarHeight = 120.cdp,
@@ -170,11 +172,11 @@ fun PlayMusicContent(scope: CoroutineScope) {
                 },
                 leftClick = {
                     scope.launch {
-                        lastSheetDiskRotateAngleForSnap = 0f
-                        sheetDiskRotate.snapTo(0f)
-                        sheetDiskRotate.stop()
-                        showPlayMusicSheet = false
-                        showBottomMusicPlay = true
+                        viewModel.lastSheetDiskRotateAngleForSnap = 0f
+                        viewModel.sheetDiskRotate.snapTo(0f)
+                        viewModel.sheetDiskRotate.stop()
+                        MusicPlayController.showPlayMusicSheet = false
+                        MusicPlayController.showBottomMusicPlay = true
                     }
                 },
                 backgroundColor = Color.Transparent,
@@ -228,9 +230,10 @@ private fun DiskRoundBackground() {
 //唱针
 @Composable
 private fun DiskNeedle() {
+    val viewModel: PlayMusicViewModel = hiltViewModel()
     // 唱针旋转角度动画
     val needleRotateAnim by animateFloatAsState(
-        targetValue = if (sheetNeedleUp) -25f else 0f,  // 抬起 = -25°，落下 = 0°
+        targetValue = if (viewModel.sheetNeedleUp) -25f else 0f,  // 抬起 = -25°，落下 = 0°
         animationSpec = tween(durationMillis = 200, easing = LinearEasing)  // 200ms 线性动画
     )
     Image(
@@ -252,6 +255,7 @@ private var onStopBefore = false //记录页面是否曾经停止过，用于恢
 
 @Composable
 private fun DiskPager(pagerState: PagerState) {
+    val viewModel: PlayMusicViewModel = hiltViewModel()
     val coroutineScope = rememberCoroutineScope()
     //记录值，当歌曲索引curIndex变化时会引起pagerState变化，但是当pagerState变化时，会使用play逻辑
     //索引curIndex变化时内部已经处理了音乐播放逻辑，此时引起的pagerState动画会导致其内再次play造成冲突
@@ -263,11 +267,11 @@ private fun DiskPager(pagerState: PagerState) {
         //页面恢复时重新启动
         override fun onResume(owner: LifecycleOwner) {
             super.onResume(owner)
-            if(onStopBefore) {
+            if (onStopBefore) {
                 onStopBefore = false
                 coroutineScope.launch {
                     delay(300) // 等待页面完全可见
-                    controlSheetNeedleAndDiskAnim()
+                    controlSheetNeedleAndDiskAnim(viewModel)
                 }
             }
         }
@@ -277,25 +281,25 @@ private fun DiskPager(pagerState: PagerState) {
             super.onStop(owner)
             onStopBefore = true
             coroutineScope.launch {
-                lastSheetDiskRotateAngleForSnap = 0f // 重置角度
-                sheetDiskRotate.snapTo(0f) // 立即设置到 0°
-                sheetDiskRotate.stop()  // 停止旋转
+                viewModel.lastSheetDiskRotateAngleForSnap = 0f // 重置角度
+                viewModel.sheetDiskRotate.snapTo(0f) // 立即设置到 0°
+                viewModel.sheetDiskRotate.stop()  // 停止旋转
             }
         }
     }) {
         //播放状态监听
         LaunchedEffect(MusicPlayController.isPlaying()) {
-            controlSheetNeedleAndDiskAnim()
+            controlSheetNeedleAndDiskAnim(viewModel)
         }
 
         //外部切歌时同步 UI
         LaunchedEffect(MusicPlayController.curIndex) {
             if (MusicPlayController.curIndex != -1 &&
-                MusicPlayController.curIndex != pagerState.currentPage) {
-
+                MusicPlayController.curIndex != pagerState.currentPage
+            ) {
                 // 1. 重置旋转角度
-                lastSheetDiskRotateAngleForSnap = 0f
-                sheetDiskRotate.snapTo(lastSheetDiskRotateAngleForSnap)
+                viewModel.lastSheetDiskRotateAngleForSnap = 0f
+                viewModel.sheetDiskRotate.snapTo(viewModel.lastSheetDiskRotateAngleForSnap)
 
                 // 2. 滚动 Pager 到目标页
                 suppressPagerSync = true
@@ -314,8 +318,8 @@ private fun DiskPager(pagerState: PagerState) {
         //用户滑动时同步数据
         LaunchedEffect(pagerState.settledPage) {
             if (!suppressPagerSync && MusicPlayController.curIndex != pagerState.settledPage) {
-                lastSheetDiskRotateAngleForSnap = 0f
-                sheetDiskRotate.snapTo(lastSheetDiskRotateAngleForSnap)
+                viewModel.lastSheetDiskRotateAngleForSnap = 0f
+                viewModel.sheetDiskRotate.snapTo(viewModel.lastSheetDiskRotateAngleForSnap)
                 MusicPlayController.play(pagerState.settledPage)
             }
         }
@@ -334,25 +338,26 @@ private fun DiskPager(pagerState: PagerState) {
 }
 
 //播放状态监听
-private suspend fun controlSheetNeedleAndDiskAnim() {
+private suspend fun controlSheetNeedleAndDiskAnim(viewModel: PlayMusicViewModel) {
     if (MusicPlayController.isPlaying()) {
-        sheetNeedleUp = false  // 唱针落下
-        sheetDiskRotate.stop()
-        sheetDiskRotate.snapTo(lastSheetDiskRotateAngleForSnap) // 从上次角度开始
-        sheetDiskRotate.animateTo(
-            targetValue = 360f + lastSheetDiskRotateAngleForSnap,
+        viewModel.sheetNeedleUp = false  // 唱针落下
+        viewModel.sheetDiskRotate.stop()
+        viewModel.sheetDiskRotate.snapTo(viewModel.lastSheetDiskRotateAngleForSnap) // 从上次角度开始
+        viewModel.sheetDiskRotate.animateTo(
+            targetValue = 360f + viewModel.lastSheetDiskRotateAngleForSnap,
             animationSpec = infiniteRepeatable(
                 animation = tween(durationMillis = DISK_ROTATE_ANIM_CYCLE, easing = LinearEasing),
                 repeatMode = RepeatMode.Restart
             )
         )
     } else {
-        sheetNeedleUp = true // 唱针抬起
+        viewModel.sheetNeedleUp = true // 唱针抬起
     }
 }
 
 @Composable
 private fun DiskItem(song: Song) {
+    val viewModel: PlayMusicViewModel = hiltViewModel()
     val scope = rememberCoroutineScope()
     Box(
         modifier = Modifier
@@ -367,12 +372,12 @@ private fun DiskItem(song: Song) {
                         if (event.changes.size == 1) {
                             val pointer = event.changes[0]
                             if (pointer.pressed) { //按压
-                                sheetNeedleUp = true  // 抬起唱针
+                                viewModel.sheetNeedleUp = true // 抬起唱针
                             } else { //松开处理
                                 scope.launch {
                                     delay(400)
                                     if (MusicPlayController.isPlaying()) {
-                                        sheetNeedleUp = false  // 落下唱针
+                                        viewModel.sheetNeedleUp = false  // 落下唱针
                                     }
                                 }
                                 break
@@ -383,16 +388,18 @@ private fun DiskItem(song: Song) {
             }
             .graphicsLayer {
                 rotationZ =
-                        // 当前播放的歌曲 → 旋转
-                    if (MusicPlayController.isPlaying(song))
-                        sheetDiskRotate.value
-                    else 0f
+                    // 当前播放的歌曲 → 旋转
+                    if (MusicPlayController.isPlaying(song)) {
+                        viewModel.sheetDiskRotate.value
+                    } else {
+                        0f
+                    }
             },
         contentAlignment = Alignment.Center
     ) {
         //背景圆环
         CommonLocalImage(
-             R.drawable.ic_disc_background,
+            R.drawable.ic_disc_background,
             modifier = Modifier
                 .width(270.dp)
                 .height(270.dp)
@@ -420,6 +427,7 @@ private fun DiskItem(song: Song) {
 @Composable
 private fun MiddleActionLayout() {
     val viewModel: PlayMusicViewModel = hiltViewModel()
+    val scope = rememberCoroutineScope()
     //页面变化时获取新的评论
     LaunchedEffect(MusicPlayController.curIndex) {
         viewModel.songCommentResult = null //先把原评论置为空，防止新评论没加载出来之前受原数据影响
@@ -439,7 +447,9 @@ private fun MiddleActionLayout() {
         Box(modifier = Modifier.width(100.cdp)) { //评论
             MiddleActionIcon(
                 R.drawable.ic_comment_count,
-                modifier = Modifier.align(if (viewModel.songCommentResult == null) Alignment.Center else Alignment.CenterStart)
+                modifier = Modifier.align(
+                    if (viewModel.songCommentResult == null) Alignment.Center else Alignment.CenterStart
+                )
             ) {
                 //设置参数
                 NavController.instance.currentBackStackEntry
@@ -449,8 +459,11 @@ private fun MiddleActionLayout() {
                         MusicPlayController.songList[MusicPlayController.curIndex]
                     )
                 NavController.instance.navigate(Routes.SONG_COMMENT)
-                showPlayMusicSheetWithoutAnim = true //打开评论(并不是这个变量控制页面)
-                showPlayMusicSheet = false //关闭播放页
+                scope.launch {
+                    delay(300)
+                    // 播放页下移，避免遮挡评论页（返回评论页时 offset 置 0 恢复）
+                    MusicPlayController.playMusicSheetOffset = ScreenUtil.getScreenHeight()
+                }
             }
             //显示评论数量
             viewModel.songCommentResult?.let {
@@ -500,12 +513,8 @@ private fun ProgressLayout() {
         //进度条
         SeekBar(
             progress = MusicPlayController.progress,
-            seeking = {
-                MusicPlayController.seeking(it)
-            },
-            seekTo = {
-                MusicPlayController.seekTo(it)
-            },
+            seeking = { MusicPlayController.seeking(it) },
+            seekTo = { MusicPlayController.seekTo(it) },
             modifier = Modifier
                 .padding(horizontal = 20.cdp)
                 .weight(1f)
@@ -519,7 +528,9 @@ private fun ProgressLayout() {
 //底部按钮
 @Composable
 private fun BottomActionLayout() {
-    val coroutineScopeScope = rememberCoroutineScope()
+    val viewModel: PlayMusicViewModel = hiltViewModel()
+    val coroutineScope = rememberCoroutineScope()
+
     Row(
         modifier = Modifier
             .padding(start = 20.cdp, end = 20.cdp, bottom = 60.cdp)
@@ -528,7 +539,7 @@ private fun BottomActionLayout() {
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceEvenly
     ) {
-        val playModeResId = when(MusicPlayController.playMode) {
+        val playModeResId = when (MusicPlayController.playMode) {
             PlayMode.RANDOM -> R.drawable.ic_play_mode_random
             PlayMode.SINGLE -> R.drawable.ic_play_mode_single
             PlayMode.LOOP -> R.drawable.ic_play_mode_loop
@@ -544,20 +555,23 @@ private fun BottomActionLayout() {
         // 播放上一曲
         ActionButton(R.drawable.ic_action_pre) {
             val newIndex = MusicPlayController.getPreIndex()
-            coroutineScopeScope.launch {
-                sheetDiskRotate.stop()               // 停止旋转
-                lastSheetDiskRotateAngleForSnap = 0f // 重置角度
+            coroutineScope.launch {
+                viewModel.sheetDiskRotate.stop()               // 停止旋转
+                viewModel.lastSheetDiskRotateAngleForSnap = 0f // 重置角度
                 MusicPlayController.play(newIndex)
             }
         }
         // 播放or暂停
-        ActionButton(if (MusicPlayController.isPlaying()) R.drawable.ic_action_pause else R.drawable.ic_action_play, size = 116) {
+        ActionButton(
+            if (MusicPlayController.isPlaying()) R.drawable.ic_action_pause else R.drawable.ic_action_play,
+            size = 116
+        ) {
             if (MusicPlayController.isPlaying()) {
                 MusicPlayController.pause()
-                coroutineScopeScope.launch {
-                    sheetNeedleUp = true                      // 唱针抬起
-                    lastSheetDiskRotateAngleForSnap = sheetDiskRotate.value  // 记录角度
-                    sheetDiskRotate.stop()                    // 停止旋转
+                coroutineScope.launch {
+                    viewModel.sheetNeedleUp = true                      // 唱针抬起
+                    viewModel.lastSheetDiskRotateAngleForSnap = viewModel.sheetDiskRotate.value  // 记录角度
+                    viewModel.sheetDiskRotate.stop()                    // 停止旋转
                 }
             } else {
                 // 播放逻辑
@@ -568,18 +582,17 @@ private fun BottomActionLayout() {
         // 播放下一曲
         ActionButton(R.drawable.ic_action_next) {
             val newIndex = MusicPlayController.getNextIndex()
-            sheetNeedleUp = true
-            coroutineScopeScope.launch {
-                lastSheetDiskRotateAngleForSnap = 0f
+            viewModel.sheetNeedleUp = true
+            coroutineScope.launch {
+                viewModel.lastSheetDiskRotateAngleForSnap = 0f
                 MusicPlayController.play(newIndex)
             }
         }
-        ActionButton(R.drawable.ic_play_list){
+        ActionButton(R.drawable.ic_play_list) {
             showPlayListSheet = true
         }
     }
 }
-
 
 @Composable
 private fun ActionButton(
@@ -602,4 +615,3 @@ private fun ActionButton(
             .padding(16.cdp)
     )
 }
-

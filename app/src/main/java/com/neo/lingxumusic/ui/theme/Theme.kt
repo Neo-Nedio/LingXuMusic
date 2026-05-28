@@ -23,6 +23,8 @@ import com.neo.lingxumusic.ui.theme.color.palette.dark.DarkColorPalette
 import com.neo.lingxumusic.ui.theme.color.palette.light.BlueColorPalette
 import com.neo.lingxumusic.ui.theme.color.palette.light.DefaultColorPalette
 
+// 夜间模式
+const val THEME_NIGHT = -1
 
 // 默认主题
 const val THEME_DEFAULT = 0
@@ -45,9 +47,18 @@ var AppColorsProvider = compositionLocalOf {
 const val TWEEN_DURATION = 600
 
 @Composable
+@ReadOnlyComposable //标记这是一个只读的 Composable 函数，不产生任何副作用
+//判断当前是否处于深色模式，支持系统设置和用户手动选择两种方式
+fun isInDarkTheme(): Boolean {
+    return themeTypeState.value != THEME_BLUE && //用户主动选择蓝色主题就是蓝色主题
+            //没有选择则根据用户是否是暗色主题或者自己选择
+            (isSystemInDarkTheme() || themeTypeState.value == THEME_NIGHT)
+}
+
+@Composable
 fun AppTheme(
     themeType: Int,           // 主题类型（0=默认，1=蓝色）
-    isDark: Boolean = isSystemInDarkTheme(),  // 是否深色模式，默认跟随系统
+    isDark: Boolean = isInDarkTheme(),  // 是否深色模式，默认跟随系统
     content: @Composable () -> Unit
 ) {
 
