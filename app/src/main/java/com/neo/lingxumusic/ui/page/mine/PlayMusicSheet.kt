@@ -128,37 +128,19 @@ fun PlayMusicContent(scope: CoroutineScope) {
             CommonTopAppBar(
                 //todo 自定义一个组件，当文本过长时显示走马灯效果，从右往左轮播，文本不超出时用text
                 customTitleLayout = {
-                    Column(
-                        modifier = Modifier.fillMaxSize(),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Top
-                    ) {
-                        val name = curSong.name.orEmpty()
-                        val (singer, songName) = StringUtil.parseSongName(name)
-                        // 歌名
-                        Text(
-                            text = songName,
-                            fontSize = 36.csp,
-                            fontWeight = FontWeight.Medium,
-                            textAlign = TextAlign.Center,
-                            color = Color.White,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                        //歌手名
-                        Text(
-                            text = singer,
-                            fontSize = 24.csp,
-                            fontWeight = FontWeight.Medium,
-                            textAlign = TextAlign.Center,
-                            color = Color.White,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                        )
-                    }
+                    val name = curSong.name.orEmpty()
+                    val (singer, songName) = StringUtil.parseSongName(name)
+                    // 歌名 - 歌手名
+                    Text(
+                        text = "$songName - $singer",
+                        fontSize = 24.csp,
+                        fontWeight = FontWeight.Medium,
+                        textAlign = TextAlign.Center,
+                        color = Color.White,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.fillMaxWidth()
+                    )
 
                 },
                 //todo 图标不够大，不明显
