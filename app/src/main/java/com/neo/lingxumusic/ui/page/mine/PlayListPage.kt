@@ -40,7 +40,6 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.neo.lingxumusic.R
@@ -54,6 +53,7 @@ import com.neo.lingxumusic.ui.common.CommonHeadBackgroundShape
 import com.neo.lingxumusic.ui.common.CommonIcon
 import com.neo.lingxumusic.ui.common.CommonNetworkImage
 import com.neo.lingxumusic.ui.common.CommonTopAppBar
+import com.neo.lingxumusic.ui.common.MarqueeText
 import com.neo.lingxumusic.ui.page.mine.component.BottomMusicPlayPadding
 import com.neo.lingxumusic.ui.page.mine.component.SongItem
 import com.neo.lingxumusic.ui.theme.AppColorsProvider
@@ -242,7 +242,12 @@ private fun HeadPlayListInfo(modifier: Modifier, playlist: PlaylistBrief) {
             }
 
             // 歌单简介
-            Text(text = playlist.descriptionText(), color = Color.White, fontSize = 28.csp, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            MarqueeText(
+                text = playlist.descriptionText(),
+                color = Color.White,
+                fontSize = 28.csp,
+                modifier = Modifier.fillMaxWidth(),
+            )
         }
     }
 }
