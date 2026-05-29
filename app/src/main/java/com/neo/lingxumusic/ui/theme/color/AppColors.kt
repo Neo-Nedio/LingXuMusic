@@ -24,6 +24,7 @@ class AppColors(
     appBarContent: Color,    // AppBar 内容颜色（标题、图标）
     card: Color,            // 卡片背景色
     bottomMusicPlayBarBackground: Color,
+    divider: Color
 ) {
     var statusBarColor: Color by mutableStateOf(statusBar)
         internal set
@@ -56,5 +57,7 @@ class AppColors(
     var card: Color by mutableStateOf(card)
         private set
     var bottomMusicPlayBarBackground: Color by mutableStateOf(bottomMusicPlayBarBackground)
+        private set
+    var divider: Color by mutableStateOf(divider)
         private set
 }
