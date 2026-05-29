@@ -25,11 +25,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.BiasAlignment
 import androidx.compose.ui.Modifier
@@ -119,30 +115,34 @@ private fun CollapsingToolbarScope.ScrollHeader(
     pagerState: PagerState,
 ) {
     val statusBarTop = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
-    val maxHeight = statusBarTop + (88 + 150 + 100 + 20).cdp // 动态计算头部高度
+    val maxHeight = statusBarTop + (88 + 150 + 100 + 20).cdp
+    // progress：1=展开，0=折叠（由 toolbar 高度计算）；折叠后显示固定 Tab
+    val showPinnedStickyHeader = toolbarState.progress < 0.5f
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .height(maxHeight)
-            .parallax(1f) // 正常速度滚动
+            .parallax(1f)// 正常速度滚动
             .verticalScroll(rememberScrollState())
     ) {
-        SongInfoComponent(song)   // 歌曲信息
-        StickyHeader(pagerState)  // 评论区标题 + Tab
+        SongInfoComponent(song) // 歌曲信息
+        if (!showPinnedStickyHeader) {
+            StickyHeader(pagerState) // 评论区标题 + Tab
+        }
     }
 
     //没有parallax，不滚动
-    Column {
-        Box(
-            Modifier
-                .fillMaxWidth()
-                .height(statusBarTop) // 高度 = 状态栏高度
-                .background(AppColorsProvider.current.background)
-        )
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(AppColorsProvider.current.background),
+    ) {
         CommonTopAppBar(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(88.cdp),  // 高度 = 88dp
+                .statusBarsPadding(),
+            appBarHeight = 88.cdp,
             title = "评论",
             titleAlign = TextAlign.Start,
             leftClick = {
@@ -150,9 +150,10 @@ private fun CollapsingToolbarScope.ScrollHeader(
                 MusicPlayController.showPlayMusicSheet = true
             },
         )
-        Box(modifier = Modifier // 高度 = 100dp
-            .fillMaxWidth()
-            .height(100.cdp))
+        //粘性的 评论区标题 + Tab
+        if (showPinnedStickyHeader) {
+            StickyHeader(pagerState)
+        }
     }
 }
 
@@ -220,9 +221,8 @@ private fun SongInfoComponent(song: Song) {
 @Composable
 private fun StickyHeader(pagerState: PagerState) {
     val viewModel: SongCommentViewModel = hiltViewModel()
-    var selectedIndex by remember {
-        mutableStateOf(0)
-    }
+    val selectedIndex = viewModel.commentSortTabs.indexOfFirst { it.type == viewModel.curSelectedTabType }
+        .coerceAtLeast(0)
     val scopeState = rememberCoroutineScope()
 
     Row(
@@ -263,13 +263,12 @@ private fun StickyHeader(pagerState: PagerState) {
                 },
                 customIndicator = { } //指示器为空，不需要指示器
             ),
-            selectedIndex = selectedIndex
+            selectedIndex = selectedIndex,
         ) {
-            selectedIndex = it
             viewModel.curSelectedTabType = viewModel.commentSortTabs[it].type // 切换 Tab
             scopeState.launch {
                 //滚向该tab页面
-                pagerState.scrollToPage(selectedIndex)
+                pagerState.scrollToPage(it)
             }
         }
     }
