@@ -83,7 +83,7 @@ fun SongCommentPage(song: Song?) {
     // 返回键处理
     BackHandler(true) {
         NavController.instance.popBackStack()
-        MusicPlayController.playMusicSheetOffset = 0 // 重置播放器偏移量
+        MusicPlayController.showPlayMusicSheet = true
     }
 
     Box {
@@ -147,7 +147,7 @@ private fun CollapsingToolbarScope.ScrollHeader(
             titleAlign = TextAlign.Start,
             leftClick = {
                 NavController.instance.popBackStack()
-                MusicPlayController.playMusicSheetOffset = 0
+                MusicPlayController.showPlayMusicSheet = true
             },
         )
         Box(modifier = Modifier // 高度 = 100dp

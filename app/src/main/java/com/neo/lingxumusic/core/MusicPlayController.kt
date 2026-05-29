@@ -20,15 +20,6 @@ object MusicPlayController  : IPlayerListener {
     // 是否显示音乐播放组件
     var showPlayMusicSheet by mutableStateOf(false)
 
-    /**
-     * 音乐播放组件偏移量
-     * 当从音乐播放组件跳转到其他页面，例如歌曲评论页面时，
-     * 由于 PlayMusicSheet 覆盖在 NavGraph 上层，会遮挡新打开的页面，
-     * 这里通过 offset 将其移到屏幕下方，从而不遮挡 NavGraph（播放页仍保持 showPlayMusicSheet = true）
-     * todo 也可以跳过设置 showPlayMusicSheet =false 关闭 ，后续思考选择用偏移还是直接关闭
-     */
-    var playMusicSheetOffset by mutableStateOf(0)
-
     var songList = mutableStateListOf<Song>()     // 歌单列表（可观察）
     var curIndex by mutableStateOf(0)             // 当前播放索引
         private set

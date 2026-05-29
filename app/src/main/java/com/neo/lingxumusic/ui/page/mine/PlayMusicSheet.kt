@@ -30,7 +30,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.LifecycleOwner
@@ -48,7 +47,6 @@ import com.neo.lingxumusic.ui.common.CommonNetworkImage
 import com.neo.lingxumusic.ui.common.CommonTopAppBar
 import com.neo.lingxumusic.ui.common.LifeCycleObserverComponent
 import com.neo.lingxumusic.ui.common.SeekBar
-import com.neo.lingxumusic.utils.ScreenUtil
 import com.neo.lingxumusic.utils.StringUtil
 import com.neo.lingxumusic.utils.cdp
 import com.neo.lingxumusic.utils.csp
@@ -65,9 +63,9 @@ private const val DISK_ROTATE_ANIM_CYCLE = 10000
 fun PlayMusicPage() {
     val viewModel: PlayMusicViewModel = hiltViewModel()
 
-    // 从评论页返回时 offset 归零，恢复唱片旋转；跳转到评论页时 offset 下移，停止旋转
-    LaunchedEffect(MusicPlayController.playMusicSheetOffset) {
-        if (MusicPlayController.playMusicSheetOffset == 0 && MusicPlayController.isPlaying()) {
+    // 播放 Sheet 显示时恢复唱片旋转，隐藏时暂停并记录角度
+    LaunchedEffect(MusicPlayController.showPlayMusicSheet) {
+        if (MusicPlayController.showPlayMusicSheet && MusicPlayController.isPlaying()) {
             viewModel.sheetDiskRotate.snapTo(viewModel.lastSheetDiskRotateAngleForSnap)
             viewModel.sheetDiskRotate.animateTo(
                 targetValue = 360f + viewModel.lastSheetDiskRotateAngleForSnap,
@@ -82,10 +80,8 @@ fun PlayMusicPage() {
         }
     }
 
-    // 动画显示/隐藏播放页；offset 用于跳转评论页时不遮挡 NavGraph
     AnimatedVisibility(
-        modifier = Modifier.offset { IntOffset(0, MusicPlayController.playMusicSheetOffset) },
-        visible = MusicPlayController.showPlayMusicSheet,  // 根据这个变量控制显示
+        visible = MusicPlayController.showPlayMusicSheet,
         enter = slideInVertically(
             initialOffsetY = { fullHeight -> fullHeight },  // 从底部滑入
             animationSpec = tween(600)
@@ -427,7 +423,6 @@ private fun DiskItem(song: Song) {
 @Composable
 private fun MiddleActionLayout() {
     val viewModel: PlayMusicViewModel = hiltViewModel()
-    val scope = rememberCoroutineScope()
     //页面变化时获取新的评论
     LaunchedEffect(MusicPlayController.curIndex) {
         viewModel.songCommentResult = null //先把原评论置为空，防止新评论没加载出来之前受原数据影响
@@ -458,12 +453,8 @@ private fun MiddleActionLayout() {
                         RoutesConstant.SONG,
                         MusicPlayController.songList[MusicPlayController.curIndex]
                     )
+                MusicPlayController.showPlayMusicSheet = false
                 NavController.instance.navigate(Routes.SONG_COMMENT)
-                scope.launch {
-                    delay(300)
-                    // 播放页下移，避免遮挡评论页（返回评论页时 offset 置 0 恢复）
-                    MusicPlayController.playMusicSheetOffset = ScreenUtil.getScreenHeight()
-                }
             }
             //显示评论数量
             viewModel.songCommentResult?.let {
