@@ -1,5 +1,6 @@
 package com.neo.lingxumusic.http.api
 
+import com.neo.lingxumusic.model.FloorCommentResult
 import com.neo.lingxumusic.model.SongCommentResult
 import com.neo.lingxumusic.model.SongPlayInfo
 import retrofit2.http.GET
@@ -15,4 +16,13 @@ interface SongApi {
         @Query("page") page: String = "1",
         @Query("pagesize") pagesize: String = "30"
     ): SongCommentResult
+
+    @GET("/comment/floor")
+    suspend fun getCommentFloor(
+        @Query("special_id") specialId: String,      // 评论下的 special_child_id
+        @Query("mixsongid") mixsongid: String,        // 歌曲的 mixsongid
+        @Query("tid") tid: String,                    // 主评论 ID
+        @Query("page") page: String = "1",
+        @Query("pagesize") pagesize: String = "30"
+    ): FloorCommentResult
 }

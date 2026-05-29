@@ -2,8 +2,6 @@ package com.neo.lingxumusic.ui.page.mine
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,25 +16,33 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PagerState
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
-import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.BiasAlignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.neo.lingxumusic.R
 import com.neo.lingxumusic.core.MusicPlayController
@@ -45,13 +51,17 @@ import com.neo.lingxumusic.core.viewState.ViewStateListPagingComponent
 import com.neo.lingxumusic.model.Song
 import com.neo.lingxumusic.ui.common.CommonLocalImage
 import com.neo.lingxumusic.ui.common.CommonNetworkImage
+import com.neo.lingxumusic.ui.common.CommonTabLayout
+import com.neo.lingxumusic.ui.common.CommonTabLayoutStyle
 import com.neo.lingxumusic.ui.common.CommonTopAppBar
+import com.neo.lingxumusic.ui.page.mine.component.CommentItem
 import com.neo.lingxumusic.ui.theme.AppColorsProvider
 import com.neo.lingxumusic.utils.StringUtil
 import com.neo.lingxumusic.utils.cdp
 import com.neo.lingxumusic.utils.csp
 import com.neo.lingxumusic.utils.replaceSize
 import com.neo.lingxumusic.viewmodel.mine.SongCommentViewModel
+import kotlinx.coroutines.launch
 import me.onebone.toolbar.CollapsingToolbarScaffold
 import me.onebone.toolbar.CollapsingToolbarScope
 import me.onebone.toolbar.CollapsingToolbarState
@@ -68,30 +78,46 @@ fun SongCommentPage(song: Song?) {
         return
     }
 
+    val viewModel: SongCommentViewModel = hiltViewModel()
+
     // 返回键处理
     BackHandler(true) {
         NavController.instance.popBackStack()
         MusicPlayController.playMusicSheetOffset = 0 // 重置播放器偏移量
     }
 
+    Box {
+        val pagerState = rememberPagerState(
+            initialPage = 0,
+            pageCount = { viewModel.commentSortTabs.size },
+        )
 
-    val state = rememberCollapsingToolbarScaffoldState()
-    CollapsingToolbarScaffold(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(AppColorsProvider.current.background),
-        state = state,
-        scrollStrategy = ScrollStrategy.ExitUntilCollapsed, // 折叠后退出
-        toolbar = {
-            ScrollHeader(song, state.toolbarState)
+        val state = rememberCollapsingToolbarScaffoldState()
+        CollapsingToolbarScaffold(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(AppColorsProvider.current.background),
+            state = state,
+            scrollStrategy = ScrollStrategy.ExitUntilCollapsed, // 折叠后退出
+            toolbar = {
+                //可折叠头部
+                ScrollHeader(song, state.toolbarState, pagerState)
+            }
+        ) {
+            Body(song, pagerState)
         }
-    ) {
-        Body(song)
+
+        //楼中楼评论弹窗
+        FloorCommentSheet()
     }
 }
 
 @Composable
-private fun CollapsingToolbarScope.ScrollHeader(song: Song, toolbarState: CollapsingToolbarState) {
+private fun CollapsingToolbarScope.ScrollHeader(
+    song: Song,
+    toolbarState: CollapsingToolbarState,
+    pagerState: PagerState,
+) {
     val statusBarTop = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
     val maxHeight = statusBarTop + (88 + 150 + 100 + 20).cdp // 动态计算头部高度
     Column(
@@ -99,9 +125,10 @@ private fun CollapsingToolbarScope.ScrollHeader(song: Song, toolbarState: Collap
             .fillMaxWidth()
             .height(maxHeight)
             .parallax(1f) // 正常速度滚动
+            .verticalScroll(rememberScrollState())
     ) {
         SongInfoComponent(song)   // 歌曲信息
-        StickyHeader()            // 评论区标题 + Tab
+        StickyHeader(pagerState)  // 评论区标题 + Tab
     }
 
     //没有parallax，不滚动
@@ -130,41 +157,8 @@ private fun CollapsingToolbarScope.ScrollHeader(song: Song, toolbarState: Collap
 }
 
 @Composable
-private fun Body(song: Song) {
-    val viewModel: SongCommentViewModel = viewModel()
-
-    //选择变化时，重新加载数据
-    LaunchedEffect(viewModel.curSelectedTabType) {
-        viewModel.buildNewCommentListPager(song, viewModel.curSelectedTabType)
-    }
-    if (viewModel.commentBeanListFlows[viewModel.curSelectedTabType] != null) {
-        val commentBeanList = viewModel.commentBeanListFlows[viewModel.curSelectedTabType]!!.collectAsLazyPagingItems()
-        ViewStateListPagingComponent(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(AppColorsProvider.current.background),
-            viewStateComponentModifier = Modifier
-                .fillMaxSize()
-                .background(AppColorsProvider.current.background),
-            enableRefresh = false, //不允许下拉刷新
-            collectAsLazyPagingItems = commentBeanList,
-        ) {
-            items(count = commentBeanList.itemCount) { index ->
-                commentBeanList[index]?.let {
-                    Text(
-                        text = "${it.content}", modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 20.cdp)
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
 private fun SongInfoComponent(song: Song) {
-    val name = song.singerinfo?.firstOrNull()?.name.orEmpty()
+    val name = song.name ?: ""
     val (singer, songName) = StringUtil.parseSongName(name)
     Column {
         Row(
@@ -224,8 +218,13 @@ private fun SongInfoComponent(song: Song) {
 
 //粘性头部
 @Composable
-private fun StickyHeader() {
-    val viewModel: SongCommentViewModel = viewModel()
+private fun StickyHeader(pagerState: PagerState) {
+    val viewModel: SongCommentViewModel = hiltViewModel()
+    var selectedIndex by remember {
+        mutableStateOf(0)
+    }
+    val scopeState = rememberCoroutineScope()
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -243,39 +242,88 @@ private fun StickyHeader() {
         )
 
         // 右侧：Tab 切换（如"最热"、"最新"）
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            viewModel.commentSortTabs.forEachIndexed { index, item ->
-                Text(
-                    modifier = Modifier
-                        .width(100.cdp)
-                        .clickable(
-                            //// 提供交互源
-                            interactionSource = remember { MutableInteractionSource() },
-                            indication = null //移除点击时的默认涟漪效果
-                        ) {
-                            viewModel.curSelectedTabType = item.type // 切换 Tab
-                        },
-                    textAlign = TextAlign.Center,
-                    text = item.title,
-                    color = if (item.type == viewModel.curSelectedTabType) {
-                        AppColorsProvider.current.firstText
-                    } else {
-                        AppColorsProvider.current.secondText
-                    },
-                    fontSize = 28.csp,
-                    fontWeight = if (item.type == viewModel.curSelectedTabType) {
-                        FontWeight.Bold
-                    } else {
-                        FontWeight.Normal
+        CommonTabLayout(
+            tabTexts = viewModel.commentSortTabs.map { it.title },
+            backgroundColor = Color.Transparent,
+            style = CommonTabLayoutStyle(
+                isScrollable = false, //不可滚动
+                modifier = Modifier.width(300.cdp),
+                selectedTextSize = 28.csp,
+                unselectedTextSize = 28.csp,
+                //画分割线
+                tabItemDrawBehindBlock = { position ->
+                    if (position != viewModel.commentSortTabs.size - 1) {
+                        drawLine(
+                            Color.LightGray,
+                            Offset(size.width, size.height * 0.35f),
+                            Offset(size.width, size.height * 0.65f),
+                            strokeWidth = 2.cdp.toPx()
+                        )
                     }
-                )
-                // 分割线（最后一个不显示）
-                if (index != viewModel.commentSortTabs.size - 1) {
-                    VerticalDivider(
-                        modifier = Modifier
-                            .width(2.cdp)
-                            .height(30.cdp),
-                        color = AppColorsProvider.current.divider
+                },
+                customIndicator = { } //指示器为空，不需要指示器
+            ),
+            selectedIndex = selectedIndex
+        ) {
+            selectedIndex = it
+            viewModel.curSelectedTabType = viewModel.commentSortTabs[it].type // 切换 Tab
+            scopeState.launch {
+                //滚向该tab页面
+                pagerState.scrollToPage(selectedIndex)
+            }
+        }
+    }
+}
+
+@Composable
+private fun Body(song: Song, pagerState: PagerState) {
+    val viewModel: SongCommentViewModel = hiltViewModel()
+
+    //水平分页
+    HorizontalPager(
+        modifier = Modifier.fillMaxSize(),
+        state = pagerState,
+        userScrollEnabled = false, //用户不能滚动
+    ) { position ->
+        CommentPager(song, viewModel.commentSortTabs[position].type)
+    }
+}
+
+@Composable
+private fun CommentPager(song: Song, sortType: Int) {
+
+    val viewModel: SongCommentViewModel = hiltViewModel()
+    //当需要的tab数据没有时，加载数据
+    if (viewModel.commentBeanListFlows[sortType] == null) {
+        viewModel.buildNewCommentListPager(song, sortType)
+    }
+
+    //构建评论
+    viewModel.commentBeanListFlows[sortType]?.let {
+        val commentBeanList = it.collectAsLazyPagingItems()
+        ViewStateListPagingComponent(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(AppColorsProvider.current.background),
+            viewStateComponentModifier = Modifier
+                .fillMaxSize()
+                .background(AppColorsProvider.current.background),
+            collectAsLazyPagingItems = commentBeanList,
+            viewStateContentAlignment = BiasAlignment(0f, -0.6f),
+            enableRefresh = false, //不允许下拉刷新
+        ) {
+            items(count = commentBeanList.itemCount) { index ->
+                commentBeanList[index]?.let { data ->
+                    CommentItem(
+                        comment = data,
+                        //点击后赋值楼中楼加载需要的数据，触发FloorCommentSheet里面的协程重新加载数据
+                        onFloorCommentClick = { comment ->
+                            viewModel.song = song
+                            viewModel.floorOwnerComment = comment
+                            viewModel.floorOwnerCommentId = comment.id
+                            viewModel.floorOwnerSpecialChildId = comment.special_child_id
+                            viewModel.showFloorCommentSheet = true
+                        }
                     )
                 }
             }

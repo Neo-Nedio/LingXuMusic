@@ -69,7 +69,7 @@ fun PlayingMark(
             }
             drawRoundRect(
                 color = color,                                    // 主题主色
-                cornerRadius = CornerRadius(16.cdp.toPx()),      // 圆角半径 16px
+                cornerRadius = CornerRadius(rectWidth / 2),     // 圆角半径
                 topLeft = Offset(0f, canvasHeight - rectHeight1), // 左上角位置
                 size = Size(rectWidth, rectHeight1)               // 宽度和高度
             )
@@ -82,7 +82,7 @@ fun PlayingMark(
             }
             drawRoundRect(
                 color = color,
-                cornerRadius = CornerRadius(16.cdp.toPx()),
+                cornerRadius = CornerRadius(rectWidth / 2),
                 topLeft = Offset(rectWidth * 2, canvasHeight - rectHeight2),
                 size = Size(rectWidth, rectHeight2)
             )
@@ -95,7 +95,7 @@ fun PlayingMark(
             }
             drawRoundRect(
                 color = color,
-                cornerRadius = CornerRadius(16.cdp.toPx()),
+                cornerRadius = CornerRadius(rectWidth / 2),
                 topLeft = Offset(rectWidth * 4, canvasHeight - rectHeight3),
                 size = Size(rectWidth, rectHeight3)
             )
