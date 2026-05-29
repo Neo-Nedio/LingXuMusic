@@ -7,9 +7,9 @@ import androidx.compose.runtime.setValue
 import androidx.paging.PagingData
 import androidx.paging.PagingSource
 import com.neo.lingxumusic.core.viewState.BaseViewStateViewModel
-import com.neo.lingxumusic.core.viewState.ViewStateMutableLiveData
 import com.neo.lingxumusic.core.viewState.paging.AppPagingConfig
 import com.neo.lingxumusic.core.viewState.paging.PagingException
+import com.neo.lingxumusic.core.viewState.paging.buildPager
 import com.neo.lingxumusic.core.viewState.paging.pager
 import com.neo.lingxumusic.http.api.SongApi
 import com.neo.lingxumusic.model.BaseResult
@@ -49,8 +49,8 @@ class SongCommentViewModel @Inject constructor(
     var floorOwnerComment by mutableStateOf<SongCommentItem?>(null)
     // 楼中楼接口 special_id
     var floorOwnerSpecialChildId by mutableStateOf<String?>(null)
-    // 楼中楼加载结果
-    val floorCommentResult = ViewStateMutableLiveData()
+    // 楼中楼回复分页数据流
+    var floorCommentListFlow by mutableStateOf<Flow<PagingData<SongCommentItem>>?>(null)
 
     /**
      * 构建评论列表的分页数据流
@@ -117,42 +117,49 @@ class SongCommentViewModel @Inject constructor(
     }
 
     /**
-     * 加载楼中楼回复列表
-     * @param commentId 主评论 ID
-     * @param mixsongid 歌曲 mixsongid
-     * @param specialChildId 楼中楼 special_id
+     * 构建楼中楼回复分页数据流
      */
-    fun getFloorCommentResult(
+    fun buildFloorCommentPager(
         commentId: Long,
         mixsongid: Long,
         specialChildId: String? = floorOwnerSpecialChildId
     ) {
         if (commentId <= 0L || mixsongid <= 0L) return
 
-        launch(floorCommentResult) {
-            val result = songApi.getCommentFloor(
-                specialId = specialChildId.orEmpty(),
-                mixsongid = mixsongid.toString(),
-                tid = commentId.toString()
-            )
-            // 包装成 ViewStateComponent 可用的 BaseResult（主要是把原评论放进去）
-            FloorCommentSuccessResult(
-                ownerComment = floorOwnerComment ?: SongCommentItem(id = commentId), //原评论
-                replies = result.list.orEmpty(),
-                status = result.status,
-                error_code = result.err_code
-            )
-        }
+        val ownerComment = floorOwnerComment ?: SongCommentItem(id = commentId)
+        floorCommentListFlow = buildPager(
+            //转换数据
+            transformListBlock = { result ->
+                val replies = result?.replies.orEmpty()
+                result?.ownerComment?.let { listOf(it) + replies } ?: replies
+            },
+            //加载数据的方法
+            callBlock = { page, pageSize ->
+                val apiResult = songApi.getCommentFloor(
+                    specialId = specialChildId.orEmpty(),
+                    mixsongid = mixsongid.toString(),
+                    tid = commentId.toString(),
+                    page = page.toString(),
+                    pagesize = pageSize.toString()
+                )
+                FloorCommentSuccessResult(
+                    ownerComment = if (page == 1) ownerComment else null,
+                    replies = apiResult.list.orEmpty(),
+                    status = apiResult.status,
+                    error_code = apiResult.err_code
+                )
+            }
+        )
     }
 }
 
 data class CommentSortTab(var title: String, var type: Int)
 
 /**
- * 楼中楼 UI 数据包装，适配 ViewStateComponent 所需的 BaseResult
+ * 楼中楼分页数据包装，第一页携带原评论
  */
 class FloorCommentSuccessResult(
-    val ownerComment: SongCommentItem,
+    val ownerComment: SongCommentItem?,
     val replies: List<SongCommentItem>,
     status: Int = 1,
     error_code: Int = 0,

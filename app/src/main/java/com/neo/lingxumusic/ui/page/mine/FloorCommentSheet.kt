@@ -15,8 +15,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Divider
 import androidx.compose.material.Text
@@ -28,12 +26,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.neo.lingxumusic.core.viewState.ViewStateComponent
+import androidx.paging.compose.collectAsLazyPagingItems
+import com.neo.lingxumusic.core.viewState.ViewStateListPagingComponent
 import com.neo.lingxumusic.ui.page.mine.component.CommentItem
 import com.neo.lingxumusic.ui.theme.AppColorsProvider
 import com.neo.lingxumusic.utils.cdp
 import com.neo.lingxumusic.utils.csp
-import com.neo.lingxumusic.viewmodel.mine.FloorCommentSuccessResult
 import com.neo.lingxumusic.viewmodel.mine.SongCommentViewModel
 
 @Composable
@@ -84,6 +82,15 @@ private fun FloorCommentList() {
     val viewModel: SongCommentViewModel = hiltViewModel()
     val mixsongid = viewModel.song?.mixsongid ?: 0L
 
+    // 监听参数变化，重新加载数据
+    LaunchedEffect(viewModel.floorOwnerCommentId, mixsongid, viewModel.floorOwnerSpecialChildId) {
+        viewModel.buildFloorCommentPager(
+            commentId = viewModel.floorOwnerCommentId,
+            mixsongid = mixsongid,
+            specialChildId = viewModel.floorOwnerSpecialChildId
+        )
+    }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -107,45 +114,33 @@ private fun FloorCommentList() {
             )
         }
 
-        // 监听参数变化，重新加载数据
-        LaunchedEffect(viewModel.floorOwnerCommentId, mixsongid, viewModel.floorOwnerSpecialChildId) {
-            viewModel.getFloorCommentResult(
-                commentId = viewModel.floorOwnerCommentId,
-                mixsongid = mixsongid,
-                specialChildId = viewModel.floorOwnerSpecialChildId
-            )
-        }
-
-        // 状态处理组件（加载中/空数据/错误/成功）
-        ViewStateComponent(
-            viewStateLiveData = viewModel.floorCommentResult,
-            specialRetryBlock = { // 自定义重试逻辑
-                viewModel.getFloorCommentResult(
-                    commentId = viewModel.floorOwnerCommentId,
-                    mixsongid = mixsongid,
-                    specialChildId = viewModel.floorOwnerSpecialChildId
-                )
-            }
-        ) { result ->
-            val data = result as? FloorCommentSuccessResult ?: return@ViewStateComponent
-            LazyColumn {
-                // 主评论（被回复的那条）
-                data.ownerComment.let { ownerComment ->
-                    item {
-                        Column {
-                            CommentItem(comment = ownerComment, isFloorComment = true)
-                            Divider(
-                                color = AppColorsProvider.current.divider.copy(0.6f),
-                                modifier = Modifier.fillMaxWidth(),
-                                thickness = 20.cdp
-                            )
+        viewModel.floorCommentListFlow?.let { flow ->
+            val floorCommentList = flow.collectAsLazyPagingItems()
+            ViewStateListPagingComponent(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+                viewStateComponentModifier = Modifier.fillMaxSize(),
+                collectAsLazyPagingItems = floorCommentList,
+                enableRefresh = false,
+            ) {
+                items(count = floorCommentList.itemCount) { index ->
+                    floorCommentList[index]?.let { data ->
+                        //根据条件判断是否是原评论，是原评论加上分隔符
+                        val isOwnerComment = index == 0 && data.id == viewModel.floorOwnerCommentId
+                        if (isOwnerComment) {
+                            Column {
+                                CommentItem(comment = data, isFloorComment = true)
+                                Divider(
+                                    color = AppColorsProvider.current.divider.copy(0.6f),
+                                    modifier = Modifier.fillMaxWidth(),
+                                    thickness = 20.cdp
+                                )
+                            }
+                        } else {
+                            CommentItem(comment = data, isFloorComment = true)
                         }
                     }
-                }
-
-                // 楼中楼回复列表
-                items(data.replies) {
-                    CommentItem(comment = it, isFloorComment = true)
                 }
             }
         }
