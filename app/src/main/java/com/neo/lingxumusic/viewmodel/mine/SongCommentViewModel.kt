@@ -24,6 +24,7 @@ class SongCommentViewModel : BaseViewStateViewModel() {
 
 
     // 评论排序选项列表
+    //todo 酷狗没有这些分类，根据热词修改，使用可移动tab
     val commentSortTabs = listOf(
         CommentSortTab("推荐", 1),
         CommentSortTab("最热", 2),

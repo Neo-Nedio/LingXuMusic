@@ -160,6 +160,7 @@ private fun CollapsingToolbarScope.ScrollHeader(
         )
     }
 
+    //没有parallax，不滚动
     // 顶部导航栏（固定在顶部）
     CommonTopAppBar(
         modifier = Modifier
