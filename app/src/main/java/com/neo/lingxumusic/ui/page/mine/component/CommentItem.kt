@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import com.neo.lingxumusic.R
 import com.neo.lingxumusic.model.SongCommentItem
@@ -89,12 +90,16 @@ fun CommentItem(
                     text = comment.user_name.orEmpty(),
                     fontSize = 28.csp,
                     color = AppColorsProvider.current.firstText,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
 
                 Text(
                     text = commentTime,
                     fontSize = 24.csp,
                     color = AppColorsProvider.current.secondText,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
             }
 
