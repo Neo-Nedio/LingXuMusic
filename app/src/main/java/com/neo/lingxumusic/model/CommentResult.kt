@@ -30,7 +30,6 @@ data class SongCommentItem(
     val user_pic: String? = null,           // 用户头像
     val user_sex: Int = 0,                  // 用户性别
     val like: LikeInfo? = null,             // 点赞信息
-    val udetail: UDetail? = null            // 用户勋章（可选）
 ) : Parcelable
 
 /**
@@ -40,13 +39,4 @@ data class SongCommentItem(
 data class LikeInfo(
     val count: Int = 0,                     // 点赞数
     val haslike: Boolean = false            // 是否已点赞
-) : Parcelable
-
-/**
- * 用户勋章
- */
-@Parcelize
-data class UDetail(
-    val medal_roll_word: String? = null,    // 勋章名称
-    val medal_def_small_pic: String? = null // 勋章图标
 ) : Parcelable

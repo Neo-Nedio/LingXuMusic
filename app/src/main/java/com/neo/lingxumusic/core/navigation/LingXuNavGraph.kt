@@ -20,7 +20,6 @@ import com.neo.lingxumusic.model.PlaylistBrief
 import com.neo.lingxumusic.model.Song
 import com.neo.lingxumusic.ui.page.mine.SongCommentPage
 import com.neo.lingxumusic.ui.theme.AppColorsProvider
-import com.neo.lingxumusic.utils.TwoBackFinish
 
 object NavController {
     @SuppressLint("StaticFieldLeak")
