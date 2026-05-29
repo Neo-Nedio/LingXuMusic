@@ -1,5 +1,6 @@
 package com.neo.lingxumusic.ui.page.mine
 
+import androidx.compose.foundation.LocalOverscrollFactory
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -7,13 +8,17 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -22,13 +27,17 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.BiasAlignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -55,12 +64,14 @@ import com.neo.lingxumusic.utils.toPx
 import com.neo.lingxumusic.utils.replaceSize
 import com.neo.lingxumusic.utils.showToast
 import com.neo.lingxumusic.viewmodel.mine.PlayListViewModel
+import me.onebone.toolbar.CollapsingToolbarScaffold
+import me.onebone.toolbar.CollapsingToolbarScaffoldState
+import me.onebone.toolbar.CollapsingToolbarScope
+import me.onebone.toolbar.ScrollStrategy
+import me.onebone.toolbar.rememberCollapsingToolbarScaffoldState
 
 @Composable
 fun PlaylistPage(playlist: PlaylistBrief) {
-    val scrollState = rememberScrollState()                      // 滚动状态
-    val showPlayListTitle = scrollState.value >= 188.cdp.toPx   // 滚动超过188dp时显示标题
-
     //底部边距（当播放条出来时上移，可以看到所有音乐）
     val paddingBottom = if (MusicPlayController.showBottomMusicPlay) {
         BottomMusicPlayPadding
@@ -71,53 +82,66 @@ fun PlaylistPage(playlist: PlaylistBrief) {
     val viewModel: PlayListViewModel = hiltViewModel()
     viewModel.playlist = playlist
 
-    Box(
+    //工具栏状态
+    val state = rememberCollapsingToolbarScaffoldState()
+    //标题切换阈值计算
+    val density = LocalDensity.current
+    val statusBarTop = WindowInsets.statusBars.getTop(density)
+    val showPlayListTitleThreshold =
+        //state.toolbarState.progress：折叠进度（0=完全展开，1=完全折叠）
+        (1 - state.toolbarState.progress) >= (statusBarTop + 188.cdp.toPx) / 584.cdp.toPx
+
+    CollapsingToolbarScaffold(
         modifier = Modifier
             .fillMaxSize()
             .background(AppColorsProvider.current.background)
-            .padding(bottom = paddingBottom)
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(scrollState)
-        ) {
-            ScrollHeader(playlist)  // 头部
-            Body()          // 歌曲列表
+            .padding(bottom = paddingBottom),
+        state = state,  // 折叠状态
+        scrollStrategy = ScrollStrategy.ExitUntilCollapsed,  // 滚动策略：折叠后退出
+        toolbar = { // 可折叠的头部内容
+            ScrollHeader(
+                playlist,
+                state,
+                if (showPlayListTitleThreshold) playlist.displayName() else "歌单" // 动态标题
+            )
         }
-
-        // 顶部导航栏（固定在顶部）
-        CommonTopAppBar(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(88.cdp),
-            backgroundColor = if (showPlayListTitle) AppColorsProvider.current.background else Color.Transparent,
-            title = if (showPlayListTitle) playlist.displayName() else "歌单",
-            contentColor = Color.White,
-            leftIconResId = R.drawable.ic_drawer_toggle,
-            leftClick = { },
-            rightIconResId = R.drawable.ic_search
-        )
+    ) {
+        Body()          // 歌曲列表
     }
 }
 
 @Composable
-private fun ScrollHeader(playlist: PlaylistBrief) {
+//实现了可折叠头部的所有视觉效果
+private fun CollapsingToolbarScope.ScrollHeader(
+    playlist: PlaylistBrief,
+    toolbarState: CollapsingToolbarScaffoldState,
+    title: String,
+) {
+    //底部按钮栏淡出阈值计算
+/*    584f：头部总高度
+    88：导航栏高度
+    584 - 88 = 496：内容区域高度
+    1 - 496/584 = 1 - 0.85 = 0.15*/
+    //当折叠进度超过 15% 时，底部按钮栏开始淡出
+    val headCountInfoLayoutChangeAlphaThreshold = remember { 1 - (584f - 88) / 584 }
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .height(584.cdp)
+            .parallax(1f)              // 视差效果，1f=正常速度
     ) {
         // 背景层（带渐变和裁剪）
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .clip(CommonHeadBackgroundShape())
+                // progress * 80：圆角半径随折叠进度变化（0→80）
+                .clip(CommonHeadBackgroundShape(toolbarState.toolbarState.progress * 80))
                 .background(brush = Brush.linearGradient(listOf(Color.Gray.copy(0.7f), Color.LightGray.copy(0.7f), Color.Gray.copy(0.7f))))
         ) {
             HeadBackground(playlist)  // 背景图片
             HeadPlayListInfo(
-                modifier = Modifier, // 歌单信息（封面、名称、创建者）
+                //渐隐效果
+                modifier = Modifier.graphicsLayer { alpha = toolbarState.toolbarState.progress }, // 歌单信息（封面、名称、创建者）
                 playlist
             )
         }
@@ -125,10 +149,30 @@ private fun ScrollHeader(playlist: PlaylistBrief) {
         HeadCountInfoLayout(
             modifier = Modifier
                 .align(Alignment.BottomCenter) //位于底部
-                .graphicsLayer { alpha = 1f },
+                .graphicsLayer {
+                    val alphaValue = toolbarState.toolbarState.progress
+                    //当 progress < 0.15 时，按钮栏随滚动逐渐淡出
+                    if (alphaValue < headCountInfoLayoutChangeAlphaThreshold) {
+                        alpha = toolbarState.toolbarState.progress
+                    }
+                },
             playlist
         )
     }
+
+    // 顶部导航栏（固定在顶部）
+    CommonTopAppBar(
+        modifier = Modifier
+            .statusBarsPadding()
+            .fillMaxWidth()
+            .height(88.cdp),
+        backgroundColor = Color.Transparent,
+        title = title, // 动态标题（"歌单" 或 歌单名）
+        contentColor = Color.White,
+        leftIconResId = R.drawable.ic_drawer_toggle,
+        leftClick = { },
+        rightIconResId = R.drawable.ic_search
+    )
 }
 
 //背景图
@@ -289,27 +333,34 @@ private fun Body() {
             viewModel.getSongDetail()
         },
         viewStateComponentModifier = Modifier
-            .fillMaxSize()
+            .fillMaxSize(),
+        viewStateContentAlignment = BiasAlignment(0f, -0.6f)  // 内容向上偏移
     ) { data ->
         val detail = data.dataAs<PlaylistDetailData>()
         val songs = detail?.songs.orEmpty()
 
-        Column {
-            PlayListHeader( viewModel.playlist)
-            HorizontalDivider(Modifier.fillMaxWidth(), thickness = 1.cdp, color = Color.LightGray)
-            songs.forEachIndexed { index, item ->
-                SongItem(index, item) {
-                    if (viewModel.songList[index].hash.isNullOrEmpty()) {
-                        showToast("该歌曲暂不支持播放")
-                    } else {
-                        MusicPlayController.songList.clear()
-                        //通过这个函数过滤所有无法播放的歌曲
-                        MusicPlayController.setDataSource(
-                            viewModel.songList,
-                            viewModel.songList[index].hash
-                        )
-                        MusicPlayController.showBottomMusicPlay = false
-                        MusicPlayController.showPlayMusicSheet = true
+        //禁用 Android 原生的过度滚动效果（边缘发光/拉伸）
+        //让滚动效果更干净
+        CompositionLocalProvider(LocalOverscrollFactory provides null) {
+            Column {
+                PlayListHeader(viewModel.playlist)
+                HorizontalDivider(Modifier.fillMaxWidth(), thickness = 1.cdp, color = Color.LightGray)
+                LazyColumn {
+                    itemsIndexed(songs) { index, item ->
+                        SongItem(index, item) {
+                            if (viewModel.songList[index].hash.isNullOrEmpty()) {
+                                showToast("该歌曲暂不支持播放")
+                            } else {
+                                MusicPlayController.songList.clear()
+                                //通过这个函数过滤所有无法播放的歌曲
+                                MusicPlayController.setDataSource(
+                                    viewModel.songList,
+                                    viewModel.songList[index].hash
+                                )
+                                MusicPlayController.showBottomMusicPlay = false
+                                MusicPlayController.showPlayMusicSheet = true
+                            }
+                        }
                     }
                 }
             }
