@@ -9,9 +9,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.text.style.TextOverflow
 import com.neo.lingxumusic.model.Song
 import com.neo.lingxumusic.ui.common.CommonIcon
+import com.neo.lingxumusic.ui.common.MarqueeText
 import com.neo.lingxumusic.ui.theme.AppColorsProvider
 import com.neo.lingxumusic.utils.cdp
 import com.neo.lingxumusic.utils.csp
@@ -65,12 +65,10 @@ fun SongItem(index: Int, song: Song,onClick: (index: Int) -> Unit) {
                 .weight(1f),
             verticalArrangement = Arrangement.Center
         ) {
-            Text(
+            MarqueeText(
                 text = songName.ifEmpty { song.name ?: "已下架" },
                 fontSize = 32.csp,
                 color = AppColorsProvider.current.firstText,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
             )
             Text(
                 text = singer,

@@ -29,7 +29,6 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.LifecycleOwner
@@ -45,6 +44,7 @@ import com.neo.lingxumusic.ui.common.CommonIcon
 import com.neo.lingxumusic.ui.common.CommonLocalImage
 import com.neo.lingxumusic.ui.common.CommonNetworkImage
 import com.neo.lingxumusic.ui.common.CommonTopAppBar
+import com.neo.lingxumusic.ui.common.MarqueeText
 import com.neo.lingxumusic.ui.common.LifeCycleObserverComponent
 import com.neo.lingxumusic.ui.common.SeekBar
 import com.neo.lingxumusic.utils.StringUtil
@@ -143,19 +143,15 @@ fun PlayMusicContent(scope: CoroutineScope) {
         Column(modifier = Modifier.fillMaxSize()) {
             //顶部导航栏
             CommonTopAppBar(
-                //todo 自定义一个组件，当文本过长时显示走马灯效果，从右往左轮播，文本不超出时用text
                 customTitleLayout = {
                     val name = curSong.name.orEmpty()
                     val (singer, songName) = StringUtil.parseSongName(name)
-                    // 歌名 - 歌手名
-                    Text(
+                    MarqueeText(
                         text = "$songName - $singer",
                         fontSize = 24.csp,
                         fontWeight = FontWeight.Medium,
                         textAlign = TextAlign.Center,
                         color = Color.White,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.fillMaxWidth()
                     )
                 },

@@ -10,7 +10,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.neo.lingxumusic.R
 import com.neo.lingxumusic.core.navigation.NavController
@@ -19,6 +18,7 @@ import com.neo.lingxumusic.core.navigation.RoutesConstant
 import com.neo.lingxumusic.model.Playlist
 import com.neo.lingxumusic.model.toBrief
 import com.neo.lingxumusic.ui.common.CommonNetworkImage
+import com.neo.lingxumusic.ui.common.MarqueeText
 import com.neo.lingxumusic.ui.theme.AppColorsProvider
 import com.neo.lingxumusic.utils.cdp
 import com.neo.lingxumusic.utils.csp
@@ -66,12 +66,10 @@ fun UserPlaylistItem(platListItem: Playlist?) {
                 verticalArrangement = Arrangement.Center
             ) {
                 // 歌单名称
-                Text(
+                MarqueeText(
                     text = it.name.orEmpty(),
                     fontSize = 30.csp,
                     color = AppColorsProvider.current.firstText,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
                 )
                 // 歌曲数量
                 Text(

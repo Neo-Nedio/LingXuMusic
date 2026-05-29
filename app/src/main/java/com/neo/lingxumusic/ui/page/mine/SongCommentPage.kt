@@ -36,7 +36,6 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.paging.compose.collectAsLazyPagingItems
@@ -47,6 +46,7 @@ import com.neo.lingxumusic.core.viewState.ViewStateListPagingComponent
 import com.neo.lingxumusic.model.Song
 import com.neo.lingxumusic.ui.common.CommonLocalImage
 import com.neo.lingxumusic.ui.common.CommonNetworkImage
+import com.neo.lingxumusic.ui.common.MarqueeText
 import com.neo.lingxumusic.ui.common.CommonTabLayout
 import com.neo.lingxumusic.ui.common.CommonTabLayoutStyle
 import com.neo.lingxumusic.ui.common.CommonTopAppBar
@@ -191,7 +191,7 @@ private fun SongInfoComponent(song: Song) {
                 )
             }
             // 右侧：歌曲名 - 歌手名
-            Text(
+            MarqueeText(
                 text = buildAnnotatedString {
                     withStyle(style = SpanStyle(color = AppColorsProvider.current.firstText, fontSize = 36.csp)) {
                         append(songName)
@@ -200,8 +200,6 @@ private fun SongInfoComponent(song: Song) {
                         append(" - $singer")
                     }
                 },
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
                 modifier = Modifier
                     .weight(1f)
                     .padding(start = 22.cdp, end = 48.cdp)

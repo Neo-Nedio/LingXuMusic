@@ -17,13 +17,13 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import com.neo.lingxumusic.core.MusicPlayController
 import com.neo.lingxumusic.core.player.PlayMode
 import com.neo.lingxumusic.model.Song
 import com.neo.lingxumusic.ui.common.CommonIcon
 import com.neo.lingxumusic.ui.common.CommonNetworkImage
+import com.neo.lingxumusic.ui.common.MarqueeText
 import com.neo.lingxumusic.R
 import com.neo.lingxumusic.ui.theme.AppColorsProvider
 import com.neo.lingxumusic.utils.StringUtil
@@ -168,7 +168,7 @@ private fun PlayListItem(index : Int, song: Song) {
             }
         }
         // 富文本显示 "歌曲名 - 歌手"
-        Text(
+        MarqueeText(
             text = buildAnnotatedString {
                 withStyle(
                     style = SpanStyle(
@@ -193,8 +193,7 @@ private fun PlayListItem(index : Int, song: Song) {
                     append(" - $singer")
                 }
             },
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(1f),
         )
     }
 }

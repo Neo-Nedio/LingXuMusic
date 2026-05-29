@@ -15,7 +15,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.zIndex
 import com.neo.lingxumusic.R
@@ -80,14 +79,12 @@ fun CommonTopAppBar(
             },
             //标题
             title = {
-                customTitleLayout?.invoke()?: Text(
+                customTitleLayout?.invoke() ?: MarqueeText(
                     text = title,
                     fontSize = 36.csp,  // 字体大小 36（按屏幕比例）
                     fontWeight = FontWeight.Medium,
                     textAlign = titleAlign,
                     color = contentColor,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.fillMaxWidth() // 宽度占满，保证居中
                 )
             },
@@ -117,12 +114,11 @@ fun CommonTopAppBar(
                             tint = contentColor
                         )
                         // 最后：右侧文字
-                        rightText.isNotBlank() -> Text(
+                        rightText.isNotBlank() -> MarqueeText(
                             text = rightText,
                             fontSize = 30.csp,
                             textAlign = TextAlign.Center,
                             color = contentColor,
-                            maxLines = 1,
                             modifier = Modifier.padding(20.cdp)
                         )
                     }

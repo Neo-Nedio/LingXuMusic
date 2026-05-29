@@ -18,7 +18,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -30,6 +29,7 @@ import com.neo.lingxumusic.ui.common.CircleProgress
 import com.neo.lingxumusic.ui.common.CommonIcon
 import com.neo.lingxumusic.ui.common.CommonLocalImage
 import com.neo.lingxumusic.ui.common.CommonNetworkImage
+import com.neo.lingxumusic.ui.common.MarqueeText
 import com.neo.lingxumusic.ui.page.mine.showPlayListSheet
 import com.neo.lingxumusic.ui.theme.AppColorsProvider
 import com.neo.lingxumusic.utils.StringUtil
@@ -179,19 +179,15 @@ private fun BottomMusicPlayBar() {
                 Column(
                     verticalArrangement = Arrangement.Center
                 ) {
-                    Text(
+                    MarqueeText(
                         text = songName.ifEmpty {  "已下架" },
                         fontSize = 18.sp,
                         color = AppColorsProvider.current.firstText,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
                     )
-                    Text(
+                    MarqueeText(
                         text = singer,
                         fontSize = 12.sp,
                         color = AppColorsProvider.current.secondText,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
                     )
                 }
             }
