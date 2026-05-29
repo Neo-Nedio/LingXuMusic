@@ -74,7 +74,7 @@ fun String.replaceSize(size: Int = 480): String {
  * @return Triple(用户回复内容, 被引用用户名, 被引用内容)
  */
 fun String.parseReply(): Triple<String, String?, String?> {
-    val pattern = Regex("^(.*?)//@(.*?):([\\s\\S]*)$")
+    val pattern = Regex("^(.*?)//@(.*?):([\\s\\S]*)$", setOf(RegexOption.DOT_MATCHES_ALL))
     val match = pattern.find(this)
 
     return if (match != null) {
