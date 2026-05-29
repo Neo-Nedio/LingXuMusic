@@ -1,6 +1,5 @@
 package com.neo.lingxumusic.core.viewState
 
-import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -33,8 +32,10 @@ import com.neo.lingxumusic.R
 import com.neo.lingxumusic.core.viewState.listener.ComposeLifeCycleListener
 import com.neo.lingxumusic.ui.common.refresh.SwipeRefreshLayout
 import com.neo.lingxumusic.ui.common.refresh.SwipeRefreshStateType
-import com.neo.lingxumusic.ui.common.refresh.classic.footer.ClassicLoadFooter
+import com.neo.lingxumusic.ui.common.refresh.footer.CommonLoadFooter
 import com.neo.lingxumusic.ui.common.refresh.rememberSwipeRefreshState
+import com.neo.lingxumusic.ui.theme.AppColorsProvider
+import com.neo.lingxumusic.utils.csp
 
 
 // 通用列表组件，支持页面状态切换、下拉刷新、上拉加载更多
@@ -269,7 +270,7 @@ private fun <T : Any> LazyListScope.handleListPaging(
             // append：加载更多状态（滚动到底部时的加载状态）
             is LoadState.Loading -> {
                 item {
-                    ClassicLoadFooter() // 显示加载中Footer（转圈图标 + "正在加载..."）
+                    CommonLoadFooter() // 显示加载中Footer（转圈图标 + "正在加载..."）
                 }
             }
             // 加载更多失败
@@ -302,10 +303,11 @@ private fun LoadMoreDataErrorFooter(retry: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(60.dp), contentAlignment = Alignment.Center
+            .height(80.dp), contentAlignment = Alignment.Center
     ) {
         Text(text = "--加载失败,点击重试--",
-            color = Color(0xff666666),
+            fontSize = 30.csp,
+            color = AppColorsProvider.current.secondText,
             modifier = Modifier.clickable {
                 retry.invoke()
             })
@@ -321,12 +323,13 @@ private fun NoMoreDataFooter() {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(60.dp),
+            .height(80.dp),
         contentAlignment = Alignment.Center
     ) {
         Text(
             text = "--没有更多数据啦--",
-            color = Color(0xff666666)
+            fontSize = 30.csp,
+            color = AppColorsProvider.current.secondText
         )
     }
 }

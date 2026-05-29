@@ -1,4 +1,4 @@
-package com.neo.lingxumusic.ui.common.refresh.classic.footer
+package com.neo.lingxumusic.ui.common.refresh.footer
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -14,7 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.neo.lingxumusic.ui.common.refresh.classic.ProgressDrawable
+import com.neo.lingxumusic.ui.common.refresh.drawable.ProgressDrawable
 import com.neo.lingxumusic.ui.common.refresh.rememberDrawablePainter
 
 @Composable

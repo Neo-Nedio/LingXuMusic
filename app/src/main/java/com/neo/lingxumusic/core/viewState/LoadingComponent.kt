@@ -1,42 +1,56 @@
 package com.neo.lingxumusic.core.viewState
 
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.Dp
 import com.neo.lingxumusic.ui.theme.AppColorsProvider
-import kotlin.math.max
-
+import com.neo.lingxumusic.utils.cdp
 @Composable
 fun LoadingComponent(
     modifier: Modifier = Modifier.fillMaxSize(),
+    loading: Boolean = true,
+    loadingWidth: Dp = 60.cdp,
+    loadingHeight: Dp = 50.cdp,
+    loadingRadius: Boolean = true,
+    color: Color = AppColorsProvider.current.primary,
     contentAlignment: Alignment = Alignment.Center
 ) {
-    val color = AppColorsProvider.current.primary
+    val anim by remember {
+        mutableStateOf(Animatable(0.4f))
+    }
     //无限动画
-    val animateTween by rememberInfiniteTransition().animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            tween(400, easing = LinearEasing),
-            RepeatMode.Reverse
-        )
-    )
+    LaunchedEffect(loading) {
+        if (loading) {
+            anim.animateTo(
+                targetValue = 1f,
+                animationSpec = infiniteRepeatable(
+                    animation = tween(durationMillis = 450, easing = LinearEasing),
+                    repeatMode = RepeatMode.Reverse
+                )
+            )
+        } else {
+            anim.stop()
+        }
+    }
 
     Box(
         modifier = modifier,
@@ -46,44 +60,58 @@ fun LoadingComponent(
         //矩形区域的画布
         Canvas(
             modifier = Modifier
-                .padding(30.dp)
-                .width(30.dp)
-                .height(24.dp)
+                .width(loadingWidth)
+                .height(loadingHeight)
         ) {
-            val rectWidth = size.width / 10    // 每个竖条的宽度 = 总宽度的 1/10
+            val rectWidth = size.width / 7    // 每个竖条的宽度 = 总宽度的 1/7
             val canvasHeight = size.height      // 画布总高度（24dp）
 
-            //第一条：高度在 canvasHeight * 0.2f 和 canvasHeight * 0.9f 之间变化
-            val rectHeight1 = max(canvasHeight * 0.2f, canvasHeight * animateTween * 0.9f)
-            drawRect(
+            val rectHeight1 = if (loading) {
+                canvasHeight * (0.75f - anim.value * 0.75f + 0.25f)
+            } else {
+                canvasHeight * 0.7f
+            }
+            drawRoundRect(
                 color = color,
+                cornerRadius = CornerRadius(if(loadingRadius) rectWidth / 2 else 0f),
                 topLeft = Offset(0f, canvasHeight - rectHeight1),
                 size = Size(rectWidth, rectHeight1)
             )
 
-            //跳动逻辑与条1 相反（用减法）
-            val rectHeight2 = canvasHeight - (canvasHeight * animateTween * 0.75f)
-            drawRect(
+            val rectHeight2 = if (loading) {
+                canvasHeight * (anim.value * 0.65f + 0.2f)
+            } else {
+                canvasHeight * 0.52f
+            }
+            drawRoundRect(
                 color = color,
-                //条2 位置在 rectWidth * 3（距离左边 3 个竖条宽度）
-                topLeft = Offset(rectWidth * 3, canvasHeight - rectHeight2),
+                cornerRadius = CornerRadius(if(loadingRadius) rectWidth / 2 else 0f),
+                topLeft = Offset(rectWidth * 2, canvasHeight - rectHeight2),
                 size = Size(rectWidth, rectHeight2)
             )
 
-            //高度 0% ~ 100% 变化
-            val rectHeight3 = canvasHeight * animateTween * 1.0f
-            drawRect(
+            val rectHeight3 = if (loading) {
+                canvasHeight * (0.6f - anim.value * 0.6f + 0.4f)
+            } else {
+                canvasHeight * 0.43f
+            }
+            drawRoundRect(
                 color = color,
-                topLeft = Offset(rectWidth * 6, canvasHeight - rectHeight3),
+                cornerRadius = CornerRadius(if(loadingRadius) rectWidth / 2 else 0f),
+                topLeft = Offset(rectWidth * 4, canvasHeight - rectHeight3),
                 size = Size(rectWidth, rectHeight3)
             )
 
 
-            //跳动幅度 15% ~ 100%
-            val rectHeight4 = canvasHeight - (canvasHeight * animateTween * 0.85f)
-            drawRect(
+            val rectHeight4 = if (loading) {
+                canvasHeight * (anim.value * 0.45f + 0.3f)
+            } else {
+                canvasHeight * 0.48f
+            }
+            drawRoundRect(
                 color = color,
-                topLeft = Offset(rectWidth * 9, canvasHeight - rectHeight4),
+                cornerRadius = CornerRadius(if(loadingRadius) rectWidth / 2 else 0f),
+                topLeft = Offset(rectWidth * 6, canvasHeight - rectHeight4),
                 size = Size(rectWidth, rectHeight4)
             )
         }

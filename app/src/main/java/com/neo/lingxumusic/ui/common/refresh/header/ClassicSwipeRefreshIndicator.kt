@@ -1,4 +1,4 @@
-package com.neo.lingxumusic.ui.common.refresh.classic.header
+package com.neo.lingxumusic.ui.common.refresh.header
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.Image
@@ -26,8 +26,8 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.neo.lingxumusic.ui.common.refresh.SwipeRefreshState
 import com.neo.lingxumusic.ui.common.refresh.SwipeRefreshStateType
-import com.neo.lingxumusic.ui.common.refresh.classic.ArrowDrawable
-import com.neo.lingxumusic.ui.common.refresh.classic.ProgressDrawable
+import com.neo.lingxumusic.ui.common.refresh.drawable.ArrowDrawable
+import com.neo.lingxumusic.ui.common.refresh.drawable.ProgressDrawable
 import com.neo.lingxumusic.ui.common.refresh.rememberDrawablePainter
 
 //指示器的固定高度为 60dp

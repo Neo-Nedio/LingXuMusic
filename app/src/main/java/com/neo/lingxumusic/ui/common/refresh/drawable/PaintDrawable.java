@@ -1,4 +1,4 @@
-package com.neo.lingxumusic.ui.common.refresh.classic;
+package com.neo.lingxumusic.ui.common.refresh.drawable;
 
 import android.graphics.ColorFilter;
 import android.graphics.Paint;

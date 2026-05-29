@@ -19,7 +19,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
-import com.neo.lingxumusic.ui.common.refresh.classic.header.ClassicSwipeRefreshIndicator
+import com.neo.lingxumusic.ui.common.refresh.header.CommonSwipeRefreshIndicator
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -200,7 +200,7 @@ fun SwipeRefreshLayout(
     maxDragRadio: Float = 2f,  // 最大拖动比例
     indicatorHeight: Dp = 60.dp,  // 指示器高度
     indicator: @Composable (state: SwipeRefreshState, refreshTrigger: Float, maxDrag: Float) -> Unit = { state, trigger, maxDrag ->
-        ClassicSwipeRefreshIndicator(state, trigger, maxDrag)  // 默认指示器
+        CommonSwipeRefreshIndicator(state, trigger, maxDrag)  // 默认指示器
     },
     content: @Composable () -> Unit,  // 主内容
 ) {
