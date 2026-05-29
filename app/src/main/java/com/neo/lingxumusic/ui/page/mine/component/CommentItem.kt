@@ -4,11 +4,14 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Divider
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -23,6 +26,7 @@ import com.neo.lingxumusic.ui.theme.AppColorsProvider
 import com.neo.lingxumusic.utils.TimeUtil
 import com.neo.lingxumusic.utils.cdp
 import com.neo.lingxumusic.utils.csp
+import com.neo.lingxumusic.utils.replaceSize
 
 //头像右侧的内边距
 //用于让评论内容和回复按钮与头像对齐
@@ -118,12 +122,30 @@ fun CommentItem(
                 )
         )
 
+        comment.getImages().firstOrNull()?.let { image ->
+            CommonNetworkImage(
+                url = image.url?.replaceSize(),
+                modifier = Modifier
+                    .padding(start = AvatarEndPadding)
+                    .padding(bottom = if (!isFloorComment && replyCount > 0) 0.cdp else 24.cdp)
+                    .fillMaxWidth()
+                    .aspectRatio(
+                        if (image.width > 0 && image.height > 0) {
+                            image.width.toFloat() / image.height
+                        } else {
+                            1f
+                        }
+                    )
+                    .clip(RoundedCornerShape(12.cdp))
+            )
+        }
+
         //回复入口（仅非楼层评论）
         if (!isFloorComment && replyCount > 0) {
             Text(
-                text = "${replyCount}条回复 >",
+                text = "展开${replyCount}条回复 v",
                 fontSize = 24.csp,
-                color = AppColorsProvider.current.secondText,
+                color = Color.Blue,
                 modifier = Modifier
                     .padding(start = AvatarEndPadding)
                     .padding(vertical = 14.cdp)
