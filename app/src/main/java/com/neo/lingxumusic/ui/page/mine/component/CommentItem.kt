@@ -18,6 +18,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withStyle
 import com.neo.lingxumusic.R
 import com.neo.lingxumusic.model.SongCommentItem
 import com.neo.lingxumusic.ui.common.CommonIcon
@@ -27,6 +30,7 @@ import com.neo.lingxumusic.utils.TimeUtil
 import com.neo.lingxumusic.utils.cdp
 import com.neo.lingxumusic.utils.csp
 import com.neo.lingxumusic.utils.replaceSize
+import com.neo.lingxumusic.utils.parseReply
 
 //头像右侧的内边距
 //用于让评论内容和回复按钮与头像对齐
@@ -53,6 +57,7 @@ fun CommentItem(
     val commentTime = comment.addtime?.toLongOrNull()?.let { TimeUtil.parse(it) }
         ?: comment.addtime.orEmpty()
 
+    val (replyText, userName, quotedText) = comment.content.orEmpty().parseReply()
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -93,6 +98,31 @@ fun CommentItem(
                 )
             }
 
+            //回复对象名字
+            if (!userName.isNullOrBlank()) {
+                Text(
+                    text = buildAnnotatedString {
+                        withStyle(
+                            style = SpanStyle(
+                                color = AppColorsProvider.current.secondText,
+                                fontSize = 28.csp
+                            )
+                        ) {
+                            append("回复")
+                        }
+                        withStyle(
+                            style = SpanStyle(
+                                color = AppColorsProvider.current.firstText,
+                                fontSize = 28.csp
+                            )
+                        ) {
+                            append(userName)
+                        }
+                    },
+                    modifier = Modifier.padding(end = 12.cdp)
+                )
+            }
+
             //点赞区域
             Text(
                 text = (comment.like?.count ?: 0).toString(),
@@ -109,7 +139,7 @@ fun CommentItem(
 
         //评论内容
         Text(
-            text = comment.content.orEmpty(),
+            text = replyText,
             fontSize = 32.csp,
             color = AppColorsProvider.current.firstText,
             modifier = Modifier

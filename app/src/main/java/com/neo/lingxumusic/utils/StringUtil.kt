@@ -67,3 +67,20 @@ object StringUtil {
 fun String.replaceSize(size: Int = 480): String {
     return replace("{size}", size.toString())
 }
+
+/**
+ * 解析回复内容，提取用户回复和被引用的用户名
+ * 格式：回复内容 //@用户名: 被引用的内容
+ * @return Triple(用户回复内容, 被引用用户名, 被引用内容)
+ */
+fun String.parseReply(): Triple<String, String?, String?> {
+    val pattern = Regex("^(.*?)//@(.*?):([\\s\\S]*)$")
+    val match = pattern.find(this)
+
+    return if (match != null) {
+        val (reply, userName, quotedContent) = match.destructured
+        Triple(reply.trim(), userName.trim(), quotedContent.trim())
+    } else {
+        Triple(this, null, null)
+    }
+}
