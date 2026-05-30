@@ -28,7 +28,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -66,6 +65,7 @@ import com.neo.lingxumusic.ui.common.DragStatus
 import com.neo.lingxumusic.ui.common.FixHeadBackgroundDraggableBodyLayout
 import com.neo.lingxumusic.ui.common.rememberDragToggleState
 import com.neo.lingxumusic.ui.page.mine.component.MusicApplicationComponent
+import com.neo.lingxumusic.ui.page.mine.component.SongPlayListHelper
 import com.neo.lingxumusic.ui.page.mine.component.UserInfoComponent
 import com.neo.lingxumusic.ui.page.mine.component.UserPlaylistItem
 import com.neo.lingxumusic.ui.theme.AppColorsProvider
@@ -327,7 +327,6 @@ private fun Body(
                 modifier = Modifier
                     .padding(bottom = 30.cdp)
                     .mineCommonCard()
-                    .height(1000.cdp)
                     .onGloballyPositioned {
                         //boundsInParent().top 是 Tab 相对于父容器顶部的距离，记录一次就够了
                         if (itemPositionMap[KEY_PLAY_LIST_HELP] == null || itemPositionMap[KEY_PLAY_LIST_HELP] == 0f) {
@@ -336,7 +335,7 @@ private fun Body(
                     },
                 contentAlignment = Alignment.Center
             ) {
-                Text("歌单助手",color = AppColorsProvider.current.firstText)
+                SongPlayListHelper()
             }
         }
 
@@ -400,7 +399,7 @@ private fun UserPlaylistComponent(
                 Text(
                     text = "${title}(${list.size}个)",
                     color = AppColorsProvider.current.secondText,
-                    fontSize = 14.sp,
+                    fontSize = 28.csp,
                     modifier = Modifier.padding(bottom = 12.dp, top = 20.cdp, start = 32.cdp)
                 )
                 // 歌单列表
