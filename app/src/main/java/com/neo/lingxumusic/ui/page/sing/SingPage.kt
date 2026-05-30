@@ -17,14 +17,14 @@ import com.neo.lingxumusic.ui.theme.themeTypeState
 
 @Composable
 fun SingPage() {
-    Column(Modifier.fillMaxSize()) {
-        CommonTopAppBar(title = "关注", modifier = Modifier.statusBarsPadding())
-        androidx.compose.material.Text(
+    Column(Modifier.statusBarsPadding().fillMaxSize()) {
+        CommonTopAppBar(title = "关注", leftIconResId = -1)
+        Text(
             "关注",
             color = AppColorsProvider.current.firstText
         )
         Row(verticalAlignment = Alignment.CenterVertically) {
-            androidx.compose.material.Text(
+            Text(
                 text = "夜间模式", modifier = Modifier
                 .width(100.dp)
                 .clickable {
@@ -32,7 +32,7 @@ fun SingPage() {
                 }
                 .padding(15.dp),
                 color = AppColorsProvider.current.firstText)
-            androidx.compose.material.Text(
+            Text(
                 text = "默认主题", modifier = Modifier
                 .width(100.dp)
                 .clickable {
@@ -40,7 +40,7 @@ fun SingPage() {
                 }
                 .padding(15.dp),
                 color = AppColorsProvider.current.firstText)
-            androidx.compose.material.Text(
+            Text(
                 text = "蓝色主题", modifier = Modifier
                 .width(100.dp)
                 .clickable {

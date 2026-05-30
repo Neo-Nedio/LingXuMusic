@@ -11,7 +11,7 @@ import com.neo.lingxumusic.ui.common.CommonTopAppBar
 @Composable
 fun PodcastPage() {
     Column(Modifier.statusBarsPadding().fillMaxSize()) {
-        CommonTopAppBar(title = "博客")
+        CommonTopAppBar(title = "博客", leftIconResId = -1)
         Text("博客")
     }
 }

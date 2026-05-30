@@ -170,8 +170,6 @@ private fun CollapsingToolbarScope.ScrollHeader(
         backgroundColor = Color.Transparent,
         title = title, // 动态标题（"歌单" 或 歌单名）
         contentColor = Color.White,
-        leftIconResId = R.drawable.ic_drawer_toggle,
-        leftClick = { },
         rightIconResId = R.drawable.ic_search
     )
 }

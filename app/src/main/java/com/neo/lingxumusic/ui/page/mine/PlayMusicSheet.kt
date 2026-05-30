@@ -148,20 +148,16 @@ fun PlayMusicContent(scope: CoroutineScope) {
                     val (singer, songName) = StringUtil.parseSongName(name)
                     MarqueeText(
                         text = "$songName - $singer",
-                        fontSize = 24.csp,
+                        fontSize = 32
+                            .csp,
                         fontWeight = FontWeight.Medium,
                         textAlign = TextAlign.Center,
                         color = Color.White,
                         modifier = Modifier.fillMaxWidth()
                     )
                 },
-
-                //todo 图标不够大，不明显
                 leftIconResId = R.drawable.ic_arrow_down,
                 appBarHeight = 120.cdp,
-                customRightLayout = { //右侧有占位组件，这样让文字水平居中
-                    Spacer(modifier = Modifier.size(88.cdp))
-                },
                 leftClick = {
                     scope.launch {
                         viewModel.lastSheetDiskRotateAngleForSnap = 0f

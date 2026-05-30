@@ -99,6 +99,8 @@ dependencies {
     implementation(libs.eventbus)
 
     implementation("me.onebone:toolbar-compose:2.3.2")
+
+    implementation("androidx.constraintlayout:constraintlayout-compose:1.0.1")
 }
 
 kapt {

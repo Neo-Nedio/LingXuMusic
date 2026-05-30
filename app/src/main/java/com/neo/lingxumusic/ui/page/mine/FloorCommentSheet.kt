@@ -102,19 +102,17 @@ private fun FloorCommentList() {
             .padding(top = 16.cdp)
     ) {
         // 标题栏
-        Row(
+        CommonTopAppBar(
             modifier = Modifier
-                .padding(horizontal = 48.cdp)
                 .fillMaxWidth()
-                .height(80.cdp)
-        ) {
-            Text(
-                text = "回复",
-                color = AppColorsProvider.current.firstText,
-                fontSize = 36.csp,
-                fontWeight = FontWeight.Medium
-            )
-        }
+                .height(88.cdp),
+            title = "回复",
+            titleAlign = TextAlign.Left,
+            backgroundColor = Color.Transparent,
+            leftClick = {
+                viewModel.showFloorCommentSheet = false
+            },
+        )
 
         viewModel.floorCommentListFlow?.let { flow ->
             val floorCommentList = flow.collectAsLazyPagingItems()
