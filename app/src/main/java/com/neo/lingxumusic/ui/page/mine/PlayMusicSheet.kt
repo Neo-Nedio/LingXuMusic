@@ -1,8 +1,10 @@
 package com.neo.lingxumusic.ui.page.mine
 
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.*
+import androidx.compose.animation.core.animateTo
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Image
@@ -10,6 +12,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
@@ -58,6 +61,8 @@ import kotlinx.coroutines.launch
 import kotlin.math.abs
 
 private const val DISK_ROTATE_ANIM_CYCLE = 10000
+
+private var showLyric by mutableStateOf(false)
 
 @Composable
 fun PlayMusicPage() {
@@ -171,20 +176,28 @@ fun PlayMusicContent(scope: CoroutineScope) {
                 contentColor = Color.White,
             )
 
+
             //唱片区域
-            Box(modifier = Modifier.fillMaxSize()) {
-                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.TopCenter) {
-                    DiskRoundBackground()  // 底层：半透明圆形背景
-                    DiskPager(pagerState)  // 中层：唱片轮播
-                    DiskNeedle()           // 顶层：唱针
+            Column(modifier = Modifier.fillMaxSize()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                    contentAlignment = Alignment.TopCenter
+                ) {
+                    if (showLyric) {
+                        DiskRoundBackground()  // 底层：半透明圆形背景
+                        DiskPager(pagerState)  // 中层：唱片轮播
+                        DiskNeedle()           // 顶层：唱针
+                    } else {
+                        Lyric()
+                    }
                 }
 
                 //底部区域
-                Column(modifier = Modifier.align(Alignment.BottomCenter)) {
-                    MiddleActionLayout()
-                    ProgressLayout()
-                    BottomActionLayout()
-                }
+                MiddleActionLayout()
+                ProgressLayout()
+                BottomActionLayout()
             }
         }
     }
@@ -350,6 +363,12 @@ private fun DiskItem(song: Song) {
     Box(
         modifier = Modifier
             .fillMaxSize()
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null  // 设置为 null 取消涟漪效果
+            ) {
+                showLyric = !showLyric
+            }
             //手势检测详解
             .pointerInput(Unit) {
                 awaitEachGesture { // 等待一个完整的手势序列（按下→移动→松开）
@@ -408,6 +427,22 @@ private fun DiskItem(song: Song) {
             placeholder = R.drawable.ic_default_disk_cover,
             error = R.drawable.ic_default_disk_cover,
         )
+    }
+}
+
+@Composable
+private fun Lyric() {
+    Box(
+        modifier = Modifier
+            .padding(vertical = 50.cdp)
+            .fillMaxSize()
+            .background(Color.Red)
+            .clickable {
+                showLyric = !showLyric
+            },
+        contentAlignment = Alignment.Center
+    ) {
+        androidx.compose.material.Text(text = "歌词列表", fontSize = 50.csp)
     }
 }
 
