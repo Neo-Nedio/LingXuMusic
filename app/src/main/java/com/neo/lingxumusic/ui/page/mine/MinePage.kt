@@ -271,7 +271,7 @@ private fun CollapsingToolbarScope.ScrollHeader(
                 .mineCommonCard(),
             contentAlignment = Alignment.Center
         ) {
-            UserPlaylistItem(viewModel.favoritePlayList)
+            UserPlaylistItem(viewModel.favoritePlayList,0.cdp)
         }
     }
 

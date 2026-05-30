@@ -11,6 +11,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.neo.lingxumusic.R
 import com.neo.lingxumusic.core.navigation.NavController
@@ -33,10 +34,10 @@ import com.neo.lingxumusic.utils.csp
 │ └──────┘ └────────────────────────┘ └──────┘   │
 └─────────────────────────────────────────────────┘*/
 @Composable
-fun UserPlaylistItem(platListItem: Playlist?) {
+fun UserPlaylistItem(platListItem: Playlist?, horizontalPadding: Dp = 32.cdp) {
     Row(
         Modifier
-            .padding(start = 32.cdp, end = 32.cdp)
+            .padding(horizontal = horizontalPadding)
             .background(AppColorsProvider.current.card)
             .fillMaxWidth()
             .height(126.cdp)
