@@ -1,4 +1,4 @@
-package com.neo.lingxumusic.ui.page.mine.component
+package com.neo.lingxumusic.ui.page.commemt.component
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -36,16 +36,6 @@ import com.neo.lingxumusic.utils.parseReply
 //头像右侧的内边距
 //用于让评论内容和回复按钮与头像对齐
 private val AvatarEndPadding = 104.cdp
-/*
-┌────────────────────────────────────────────────────┐
-│ [头像]  用户名                          123  [❤]   │
-│         时间                                       │
-│                                                    │
-│         这是一条评论内容，可以很长，会......         │
-│                                                    │
-│         3条回复 >                                  │
-├────────────────────────────────────────────────────┤
-└────────────────────────────────────────────────────┘*/
 
 @Composable
 fun CommentItem(

@@ -20,7 +20,7 @@ import com.neo.lingxumusic.core.MusicPlayController
 import com.neo.lingxumusic.ui.common.CommonNetworkImage
 import com.neo.lingxumusic.utils.replaceSize
 import com.neo.lingxumusic.utils.StringUtil
-import com.ssk.ncmusic.ui.page.mine.component.PlayingMark
+import com.neo.lingxumusic.ui.page.playMusic.component.PlayingMark
 
 @Composable
 fun SongItem(index: Int, song: Song,onClick: (index: Int) -> Unit) {

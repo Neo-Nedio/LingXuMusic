@@ -1,4 +1,4 @@
-package com.ssk.ncmusic.ui.page.mine.component
+package com.neo.lingxumusic.ui.page.playMusic.component
 
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas

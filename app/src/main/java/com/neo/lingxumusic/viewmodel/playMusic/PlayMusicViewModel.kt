@@ -1,4 +1,4 @@
-package com.neo.lingxumusic.viewmodel.mine
+package com.neo.lingxumusic.viewmodel.playMusic
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.runtime.getValue
@@ -10,8 +10,8 @@ import com.neo.lingxumusic.http.api.SongApi
 import com.neo.lingxumusic.model.Song
 import com.neo.lingxumusic.model.SongCommentResult
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @HiltViewModel
 class PlayMusicViewModel @Inject constructor(private val api: SongApi) : BaseViewStateViewModel() {

@@ -1,4 +1,4 @@
-package com.neo.lingxumusic.viewmodel.mine
+package com.neo.lingxumusic.viewmodel.comment
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf

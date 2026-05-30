@@ -1,7 +1,6 @@
 package com.neo.lingxumusic.core.navigation
 
 import android.annotation.SuppressLint
-import androidx.activity.compose.BackHandler
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.foundation.background
@@ -18,7 +17,7 @@ import com.neo.lingxumusic.ui.page.profile.ProfilePage
 import com.neo.lingxumusic.ui.page.splash.SplashPage
 import com.neo.lingxumusic.model.PlaylistBrief
 import com.neo.lingxumusic.model.Song
-import com.neo.lingxumusic.ui.page.mine.SongCommentPage
+import com.neo.lingxumusic.ui.page.commemt.SongCommentPage
 import com.neo.lingxumusic.ui.theme.AppColorsProvider
 
 object NavController {

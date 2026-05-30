@@ -1,4 +1,4 @@
-package com.neo.lingxumusic.ui.page.mine.component
+package com.neo.lingxumusic.ui.page.playMusic.component
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -29,9 +29,8 @@ import com.neo.lingxumusic.ui.theme.AppColorsProvider
 import com.neo.lingxumusic.utils.StringUtil
 import com.neo.lingxumusic.utils.cdp
 import com.neo.lingxumusic.utils.csp
-import com.neo.lingxumusic.ui.page.mine.showPlayListSheet
+import com.neo.lingxumusic.ui.page.playMusic.showPlayListSheet
 import com.neo.lingxumusic.utils.replaceSize
-import com.ssk.ncmusic.ui.page.mine.component.PlayingMark
 
 @Composable
 fun CurrentPlayList() {

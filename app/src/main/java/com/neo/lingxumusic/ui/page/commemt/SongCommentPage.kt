@@ -1,4 +1,4 @@
-package com.neo.lingxumusic.ui.page.mine
+package com.neo.lingxumusic.ui.page.commemt
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
@@ -51,13 +50,13 @@ import com.neo.lingxumusic.ui.common.MarqueeText
 import com.neo.lingxumusic.ui.common.CommonTabLayout
 import com.neo.lingxumusic.ui.common.CommonTabLayoutStyle
 import com.neo.lingxumusic.ui.common.CommonTopAppBar
-import com.neo.lingxumusic.ui.page.mine.component.CommentItem
+import com.neo.lingxumusic.ui.page.commemt.component.CommentItem
 import com.neo.lingxumusic.ui.theme.AppColorsProvider
 import com.neo.lingxumusic.utils.StringUtil
 import com.neo.lingxumusic.utils.cdp
 import com.neo.lingxumusic.utils.csp
 import com.neo.lingxumusic.utils.replaceSize
-import com.neo.lingxumusic.viewmodel.mine.SongCommentViewModel
+import com.neo.lingxumusic.viewmodel.comment.SongCommentViewModel
 import kotlinx.coroutines.launch
 import me.onebone.toolbar.CollapsingToolbarScaffold
 import me.onebone.toolbar.CollapsingToolbarScope

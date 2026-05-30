@@ -1,4 +1,4 @@
-package com.neo.lingxumusic.ui.page.mine
+package com.neo.lingxumusic.ui.page.playMusic
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
@@ -16,7 +16,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import com.neo.lingxumusic.ui.page.mine.component.CurrentPlayList
+import com.neo.lingxumusic.ui.page.playMusic.component.CurrentPlayList
 
 var showPlayListSheet by mutableStateOf(false)
 
