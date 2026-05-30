@@ -1,6 +1,8 @@
 package com.neo.lingxumusic.http.api
 
 import com.neo.lingxumusic.model.FloorCommentResult
+import com.neo.lingxumusic.model.LyricResult
+import com.neo.lingxumusic.model.LyricSearchResult
 import com.neo.lingxumusic.model.SongCommentResult
 import com.neo.lingxumusic.model.SongPlayInfo
 import retrofit2.http.GET
@@ -34,4 +36,15 @@ interface SongApi {
         @Query("page") page: String = "1",
         @Query("pagesize") pagesize: String = "30"
     ): FloorCommentResult
+
+    @GET("/search/lyric")
+    suspend fun getLyricSearch(@Query("hash") hash: String): LyricSearchResult
+
+    @GET("/lyric")
+    suspend fun getLyric(
+        @Query("id") id: String, //可以从 /search/lyric 接口中获取
+        @Query("accesskey") accesskey: String, //可以从 /search/lyric 接口中获取
+        @Query("fmt") fmt: String = "krc",
+        @Query("decode") page: Boolean = true,
+    ): LyricResult
 }

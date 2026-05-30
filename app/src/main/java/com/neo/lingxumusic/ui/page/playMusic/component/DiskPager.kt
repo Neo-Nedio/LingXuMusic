@@ -47,7 +47,6 @@ import com.neo.lingxumusic.ui.common.CommonLocalImage
 import com.neo.lingxumusic.ui.common.CommonNetworkImage
 import com.neo.lingxumusic.ui.common.LifeCycleObserverComponent
 import com.neo.lingxumusic.ui.page.playMusic.DISK_ROTATE_ANIM_CYCLE
-import com.neo.lingxumusic.ui.page.playMusic.showLyric
 import com.neo.lingxumusic.utils.replaceSize
 import com.neo.lingxumusic.viewmodel.playMusic.PlayMusicViewModel
 import kotlinx.coroutines.delay
@@ -218,7 +217,7 @@ private fun DiskItem(song: Song) {
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null  // 设置为 null 取消涟漪效果
             ) {
-                showLyric = !showLyric
+                viewModel.showLyric = !viewModel.showLyric
             }
             //手势检测详解
             .pointerInput(Unit) {

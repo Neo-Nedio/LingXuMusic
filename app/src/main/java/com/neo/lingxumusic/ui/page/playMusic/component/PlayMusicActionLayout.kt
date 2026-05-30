@@ -46,10 +46,14 @@ fun PlayMusicActionLayout() {
 @Composable
 private fun MiddleActionLayout() {
     val viewModel: PlayMusicViewModel = hiltViewModel()
-    //页面变化时获取新的评论
+    //页面变化时获取新的评论和歌词
     LaunchedEffect(MusicPlayController.curIndex) {
         viewModel.songCommentResult = null //先把原评论置为空，防止新评论没加载出来之前受原数据影响
         viewModel.getSongComment(MusicPlayController.songList[MusicPlayController.curIndex])
+        //先把原歌词为空，防止新歌词没加载出来之前受原数据影响
+        viewModel.lyricResult = null;
+        viewModel.lyricModelList.clear()
+        viewModel.getLyric(MusicPlayController.songList[MusicPlayController.curIndex])
     }
 
     Row(

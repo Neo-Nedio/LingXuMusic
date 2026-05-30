@@ -36,7 +36,6 @@ import kotlinx.coroutines.launch
 
 const val DISK_ROTATE_ANIM_CYCLE = 10000
 
-var showLyric by mutableStateOf(false)
 
 @Composable
 fun PlayMusicPage() {
@@ -103,9 +102,9 @@ fun PlayMusicContent(scope: CoroutineScope) {
             .background(
                 Brush.verticalGradient(
                     colors = listOf(
-                        Color.Black.copy(alpha = 0.5f),   // 顶部半透明黑
-                        Color.DarkGray.copy(alpha = 0.5f), // 中间深灰
-                        Color.Black.copy(alpha = 0.5f)     // 底部半透明黑
+                        Color.Black.copy(alpha = 0.7f),
+                        Color.DarkGray.copy(alpha = 0.8f),
+                        Color.Black.copy(alpha = 0.7f)
                     )
                 )
             )
@@ -155,7 +154,7 @@ fun PlayMusicContent(scope: CoroutineScope) {
                         .weight(1f),
                     contentAlignment = Alignment.TopCenter
                 ) {
-                    if (showLyric) {
+                    if (viewModel.showLyric) {
                         DiskPagers()
                     } else {
                         Lyric()
