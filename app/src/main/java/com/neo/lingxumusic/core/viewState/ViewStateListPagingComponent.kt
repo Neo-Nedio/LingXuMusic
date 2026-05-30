@@ -53,6 +53,7 @@ fun <T : Any> ViewStateListPagingComponent(
     viewStateContentAlignment: Alignment = Alignment.Center,
     customEmptyComponent: @Composable (() -> Unit)? = null,  // 自定义空布局
     customFailComponent: @Composable (() -> Unit)? = null,  // 自定义失败布局
+    viewStateKey: Any? = null,  // 分页状态 key（如 Tab sortType），避免切换后 showViewState 重置白屏
     listContent: LazyListScope.() -> Unit,  // 正常页面内容
 ) {
 
@@ -103,9 +104,9 @@ fun <T : Any> ViewStateListPagingComponent(
     val refreshState = rememberSwipeRefreshState(refreshStateType)
 
 
-    // 首次进入改组件，数据还没加载成功，显示状态页面
-    val showViewState = remember {
-        mutableStateOf(true)
+    // 首次进入该组件，数据还没加载成功，显示状态页面；已有缓存数据时直接展示列表
+    val showViewState = remember(viewStateKey) {
+        mutableStateOf(collectAsLazyPagingItems.itemCount <= 0)
     }
 
     // 显示状态页面（加载中、空数据、错误）

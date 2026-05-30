@@ -26,7 +26,7 @@ class SongCommentViewModel @Inject constructor(
 ) : BaseViewStateViewModel() {
 
     // 缓存不同评论类型（推荐/最热/最新）的分页数据流
-    // key = 评论类型（1=推荐，2=最热，3=最新），value = 对应的 PagingData 流
+    // key = 评论类型（1=推荐），value = 对应的 PagingData 流
     var commentBeanListFlows = mutableStateMapOf<Int, Flow<PagingData<SongCommentItem>>>()
 
     // 评论排序选项列表（首屏加载后根据热词动态填充）

@@ -25,6 +25,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.key
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.BiasAlignment
@@ -284,46 +285,51 @@ private fun Body(song: Song, pagerState: PagerState) {
         state = pagerState,
         userScrollEnabled = false, //用户不能滚动
     ) { position ->
-        CommentPager(song, viewModel.commentSortTabs[position].type)
+        val sortType = viewModel.commentSortTabs[position].type
+        key(sortType) {
+            CommentPager(song, sortType)
+        }
     }
 }
 
 @Composable
 private fun CommentPager(song: Song, sortType: Int) {
+    key(sortType) {
+        val viewModel: SongCommentViewModel = hiltViewModel()
+        //当需要的tab数据没有时，加载数据
+        if (viewModel.commentBeanListFlows[sortType] == null) {
+            viewModel.buildNewCommentListPager(song, sortType)
+        }
 
-    val viewModel: SongCommentViewModel = hiltViewModel()
-    //当需要的tab数据没有时，加载数据
-    if (viewModel.commentBeanListFlows[sortType] == null) {
-        viewModel.buildNewCommentListPager(song, sortType)
-    }
-
-    //构建评论
-    viewModel.commentBeanListFlows[sortType]?.let {
-        val commentBeanList = it.collectAsLazyPagingItems()
-        ViewStateListPagingComponent(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(AppColorsProvider.current.background),
-            viewStateComponentModifier = Modifier
-                .fillMaxSize()
-                .background(AppColorsProvider.current.background),
-            collectAsLazyPagingItems = commentBeanList,
-            viewStateContentAlignment = BiasAlignment(0f, -0.6f),
-            enableRefresh = false, //不允许下拉刷新
-        ) {
-            items(count = commentBeanList.itemCount) { index ->
-                commentBeanList[index]?.let { data ->
-                    CommentItem(
-                        comment = data,
-                        //点击后赋值楼中楼加载需要的数据，触发FloorCommentSheet里面的协程重新加载数据
-                        onFloorCommentClick = { comment ->
-                            viewModel.song = song
-                            viewModel.floorOwnerComment = comment
-                            viewModel.floorOwnerCommentId = comment.id
-                            viewModel.floorOwnerSpecialChildId = comment.special_child_id
-                            viewModel.showFloorCommentSheet = true
-                        }
-                    )
+        //构建评论
+        viewModel.commentBeanListFlows[sortType]?.let { flow ->
+            val commentBeanList = flow.collectAsLazyPagingItems()
+            ViewStateListPagingComponent(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(AppColorsProvider.current.background),
+                viewStateComponentModifier = Modifier
+                    .fillMaxSize()
+                    .background(AppColorsProvider.current.background),
+                collectAsLazyPagingItems = commentBeanList,
+                viewStateKey = sortType,
+                viewStateContentAlignment = BiasAlignment(0f, -0.6f),
+                enableRefresh = false, //不允许下拉刷新
+            ) {
+                items(count = commentBeanList.itemCount) { index ->
+                    commentBeanList[index]?.let { data ->
+                        CommentItem(
+                            comment = data,
+                            //点击后赋值楼中楼加载需要的数据，触发FloorCommentSheet里面的协程重新加载数据
+                            onFloorCommentClick = { comment ->
+                                viewModel.song = song
+                                viewModel.floorOwnerComment = comment
+                                viewModel.floorOwnerCommentId = comment.id
+                                viewModel.floorOwnerSpecialChildId = comment.special_child_id
+                                viewModel.showFloorCommentSheet = true
+                            }
+                        )
+                    }
                 }
             }
         }
