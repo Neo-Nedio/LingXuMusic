@@ -2,7 +2,6 @@ package com.neo.lingxumusic.viewmodel.mine
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import com.neo.lingxumusic.http.api.UserApi
 import com.neo.lingxumusic.core.AppGlobalData
@@ -15,7 +14,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlin.collections.forEach
 import kotlin.collections.orEmpty
-
 
 // 视图模型
 @HiltViewModel
@@ -31,8 +29,15 @@ class MineViewModel @Inject constructor(private val api: UserApi) : BaseViewStat
     // 当前选中的 Tab 索引（0=创建歌单，1=收藏歌单，2=歌单助手）
     var selectedTabIndex by mutableStateOf(0)
 
-    // 是否显示粘性 Tab（原生 Tab 滚出屏幕时为 true）
-    var showStickyTabLayout by mutableStateOf(false)
+    // LazyColumn 中各模块的 item 下标（从 0 起算，含 stickyHeader、header、列表项、footer）
+    // 用于：① 点击 Tab 时 animateScrollToItem 滚到对应区块；② 滚动时根据 firstVisibleItemIndex 反推当前 Tab
+
+    // 「创建歌单」Tab 滚动目标：滚到 item 0（吸顶 Tab 位置，其下即为创建歌单区域）
+    var selfCreatePlayListHeaderIndex = 0
+    // 「收藏歌单」Tab 滚动目标：创建区块占 (size + 2) 个 item 后的 header 下标
+    var collectPlayListHeaderIndex = 0
+    // 「歌单助手」Tab 滚动目标：收藏区块结束后的歌单助手 item 下标
+    var songHelperIndex = 0
 
     // 获取歌单
     fun getUserPlayList() {
@@ -55,6 +60,13 @@ class MineViewModel @Inject constructor(private val api: UserApi) : BaseViewStat
             }
             selfCreatePlayList = selfCreateList
             collectPlayList = collectList
+
+            // 按 LazyColumn 实际 item 数量计算各 Tab 对应的滚动下标（与 MinePage.PlayList 中 item 顺序一致）
+            selfCreatePlayListHeaderIndex = 0
+            // 创建区：header(1) + 列表(size-1) + footer(1) = size + 2
+            collectPlayListHeaderIndex = selfCreatePlayListHeaderIndex + selfCreateList.size + 2
+            // 收藏区再占 size + 2，助手在收藏 footer 之后 +1
+            songHelperIndex = collectPlayListHeaderIndex + collectList.size + 1
         }) {
             api.getUserPlayList()
         }

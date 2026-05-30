@@ -3,11 +3,9 @@ package com.neo.lingxumusic.ui.page.mine
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.MutableTransitionState
-import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -23,11 +21,17 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -41,14 +45,11 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.layout.boundsInParent
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.neo.lingxumusic.R
 import com.neo.lingxumusic.core.AppGlobalData
@@ -62,6 +63,7 @@ import com.neo.lingxumusic.ui.common.CommonTabLayout
 import com.neo.lingxumusic.ui.common.CommonTabLayoutStyle
 import com.neo.lingxumusic.ui.common.CommonTopAppBar
 import com.neo.lingxumusic.ui.common.DragStatus
+import com.neo.lingxumusic.ui.common.DragToggleState
 import com.neo.lingxumusic.ui.common.FixHeadBackgroundDraggableBodyLayout
 import com.neo.lingxumusic.ui.common.rememberDragToggleState
 import com.neo.lingxumusic.ui.page.mine.component.MusicApplicationComponent
@@ -73,9 +75,15 @@ import com.neo.lingxumusic.utils.VibratorHelper
 import com.neo.lingxumusic.utils.cdp
 import com.neo.lingxumusic.utils.csp
 import com.neo.lingxumusic.utils.toPx
+import com.neo.lingxumusic.utils.transformDp
 import com.neo.lingxumusic.viewmodel.mine.MineViewModel
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import kotlin.times
+import me.onebone.toolbar.CollapsingToolbarScope
+import me.onebone.toolbar.CollapsingToolbarState
+import me.onebone.toolbar.CollapsingToolbarScaffold
+import me.onebone.toolbar.ScrollStrategy
+import me.onebone.toolbar.rememberCollapsingToolbarScaffoldState
 
 //todo 歌单和歌单内的歌曲默认一次加载30，要监听滚动加入数据
 
@@ -87,28 +95,34 @@ fun MinePage() {
     var bodyAlphaValue by remember { mutableStateOf(0f) }
     // 顶部栏的透明度（滚动时渐变，滚动的距离越大越不透明）
     val topBarAlphaValue = remember { mutableStateOf(0f) }
-    // 滚动状态（监听 Column 的滚动距离）
-    val scrollState = rememberScrollState()
-    val density = LocalDensity.current
-    // 粘性区域顶部位置 = 状态栏高度 + 100dp（用于判断 Tab 是否到达顶部）
-    val stickyPositionTop = WindowInsets.statusBars.getTop(density) + 100.cdp.toPx
-
-    //顶部栏透明度计算
-    // 滚动距离 / 粘性区域顶部位置 = 透明度（0 ~ 1）
-    var topBarAlpha = scrollState.value / stickyPositionTop
-    if (topBarAlpha > 1) topBarAlpha = 1f  // 最大为 1（完全不透明）
-    topBarAlphaValue.value = topBarAlpha
+    // LazyColumn 滚动状态
+    val lazyListState = rememberLazyListState()
+    //获取当前可见的第一项索引
+    val firstVisibleItemIndex = lazyListState.firstVisibleItemIndex
 
     // 滚动自动切换 Tab
-    // 如果不是 Tab 点击触发的滚动（animateScrolling = false）
-    if (!animateScrolling) {
-        // 从后往前遍历 itemPositionMap（存储各模块的 Y 坐标）
-        for (i in itemPositionMap.size - 1 downTo 0) {
-            // 如果当前滚动位置 + 粘性区域顶部 > 模块的 Y 坐标
-            if (scrollState.value + stickyPositionTop > itemPositionMap[i]!!) {
-                // 自动切换到对应的 Tab
-                viewModel.selectedTabIndex = i
-                break  // 找到第一个就停止
+    //不是 Tab 点击触发的滚动（避免冲突） 数据已加载完成（索引已计算） 有可见项
+    if (!animateScrolling && viewModel.songHelperIndex != 0 && lazyListState.layoutInfo.visibleItemsInfo.isNotEmpty()) {
+        when {
+            //切换到「歌单助手」Tab（index = 2）
+            //last().index == songHelperIndex：最后一项是歌单助手
+            //last().offset == viewportSize.height - last().size：该项的底部与屏幕底部对齐（完全可见）
+            lazyListState.layoutInfo.visibleItemsInfo.last().index == viewModel.songHelperIndex &&
+                    lazyListState.layoutInfo.visibleItemsInfo.last().offset == lazyListState.layoutInfo.viewportSize.height - lazyListState.layoutInfo.visibleItemsInfo.last().size -> {
+                viewModel.selectedTabIndex = 2
+            }
+            //切换到「收藏歌单」Tab（index = 1）
+            (firstVisibleItemIndex == viewModel.collectPlayListHeaderIndex - 1 //第一项是创建歌单 footer
+                    //滚动偏移量足够大
+                    && lazyListState.firstVisibleItemScrollOffset >= lazyListState.layoutInfo.visibleItemsInfo[1].size - 100.cdp.toPx)
+                    //第一项已经超过创建歌单 footer
+                    || firstVisibleItemIndex > viewModel.collectPlayListHeaderIndex - 1 -> {
+                viewModel.selectedTabIndex = 1
+            }
+            //切换到「创建歌单」Tab（index = 0）
+            //永远为 true，但只会走到这里是因为前面的条件都不满足
+            firstVisibleItemIndex >= viewModel.selfCreatePlayListHeaderIndex -> {
+                viewModel.selectedTabIndex = 0
             }
         }
     }
@@ -144,8 +158,8 @@ fun MinePage() {
                         NavController.instance.navigate(Routes.PROFILE)  // 跳转个人主页
                         dragToggleState.dragStatus = DragStatus.Idle
                     },
-                    headBackgroundComponent = { state, _ , maxDrag -> // 头部背景组件
-                        if(state.offset >= 0) {
+                    headBackgroundComponent = { state, _, maxDrag -> // 头部背景组件
+                        if (state.offset >= 0) {
                             var alpha = state.offset / maxDrag
                             if (alpha > 1f) {
                                 alpha = 1f
@@ -155,10 +169,12 @@ fun MinePage() {
                         HeaderBackground(bodyAlphaValue)
                     }) {
                     Body(
-                        1 - bodyAlphaValue,
-                        scrollState
+                        topBarAlphaValue,           // 参数1：顶部栏透明度状态
+                        lazyListState,              // 参数2：列表滚动状态
+                        dragToggleState,            // 参数3：拖拽状态
+                        1 - bodyAlphaValue          // 参数4：主体透明度（取反）
                     ) {
-                        VibratorHelper.vibrate()
+                        VibratorHelper.vibrate()    // 参数5：lambda 回调内容
                         dragToggleState.dragStatus = DragStatus.OverOpenTriggerWhenFling
                     }
                 }
@@ -170,239 +186,272 @@ fun MinePage() {
     }
 }
 
-
-private const val KEY_TAB_LAYOUT = -1 //Tab 栏自身的标识
-private const val KEY_CREATE_PLAY_LIST = 0 //"创建歌单"模块的标识
-private const val KEY_COLLECT_PLAY_LIST = 1 //"收藏歌单"模块的标识
-private const val KEY_PLAY_LIST_HELP = 2 //"歌单助手"模块的标识
-
 private var animateScrolling = false //是否正在执行 Tab 触发的自动滚动
-private val itemPositionMap = HashMap<Int, Float>() //存储每个模块的 Y 坐标
 
 @Composable
 private fun Body(
+    topBarAlphaValue: MutableState<Float>,
+    lazyListState: LazyListState,
+    dragToggleState: DragToggleState,
     bodyAlphaValue: Float,
-    scrollState: ScrollState,
-    openUserPageCallback: () -> Unit
+    openUserPageCallback: () -> Unit,
 ) {
     val density = LocalDensity.current
-    val coroutineScope = rememberCoroutineScope()
+    val statusBarsTopPx = WindowInsets.statusBars.getTop(density)
+    // 粘性区域顶部位置 = 状态栏高度 + 100dp（用于判断 Tab 是否到达顶部）
+    val stickyPositionTop = statusBarsTopPx + 100.cdp.toPx
+    val toolbarMaxHeight = statusBarsTopPx.transformDp + 88.cdp + 300.cdp +  // 状态栏高度+标题栏高度+用户信息高度
+            368.cdp +  // 音乐应用高度
+            194.cdp // 喜欢的歌单高度
+    val toolbarMaxHeightPx = toolbarMaxHeight.toPx
 
-    // 粘性区域顶部位置 = 状态栏高度 + 100dp
-    // 当原生 Tab 滚动到这个位置以上时，显示粘性 Tab
-    val stickyPositionTop = WindowInsets.statusBars.getTop(density) + 100.cdp.toPx
+    val toolbarScaffoldState = rememberCollapsingToolbarScaffoldState()
+    //顶部栏透明度计算
+    // 滚动距离 / 粘性区域顶部位置 = 透明度（0 ~ 1）
+    var topBarAlpha = (1 - toolbarScaffoldState.toolbarState.progress) / (stickyPositionTop / toolbarMaxHeightPx)
+    if (topBarAlpha > 1) topBarAlpha = 1f  // 最大为 1（完全不透明）
+    topBarAlphaValue.value = topBarAlpha
 
-    // 粘性区域底部位置 = 状态栏高度 + 188dp
-    // 用于点击 Tab 时，计算滚动目标位置，让内容正好停在 Tab 栏下方，不被遮挡
-    val stickyPositionBottom = WindowInsets.statusBars.getTop(density) + 188.cdp.toPx
+    CollapsingToolbarScaffold(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(if (dragToggleState.offset > 0) Color.Transparent else AppColorsProvider.current.background),
+        state = toolbarScaffoldState,
+        scrollStrategy = ScrollStrategy.ExitUntilCollapsed,
+        toolbar = {
+            ScrollHeader(bodyAlphaValue, toolbarMaxHeight, openUserPageCallback)
+        }
+    ) {
+        PlayList(bodyAlphaValue, lazyListState, toolbarScaffoldState.toolbarState)
+    }
+}
 
+@Composable
+private fun CollapsingToolbarScope.ScrollHeader(
+    bodyAlphaValue: Float,
+    toolbarMaxHeight: Dp,
+    openUserPageCallback: () -> Unit,
+) {
     val viewModel: MineViewModel = hiltViewModel()
 
-    Box {
-        Column(
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .height(toolbarMaxHeight)
+            .parallax(1f)
+            .verticalScroll(rememberScrollState())
+    ) {
+        // 用户信息
+        UserInfoComponent(
             modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(scrollState) // 绑定滚动状态
+                .statusBarsPadding()
+                .padding(top = 88.cdp)
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },//记录交互状态
+                    indication = null,//取消涟漪效果
+                    onClick = openUserPageCallback
+                )
+        )
+
+        // 音乐应用
+        Box(
+            modifier = Modifier
+                .graphicsLayer { alpha = bodyAlphaValue }
+                .mineCommonCard()
+                .height(300.cdp),
+            contentAlignment = Alignment.Center
         ) {
+            MusicApplicationComponent()
+        }
 
-            // 用户信息
-            UserInfoComponent(
-                modifier = Modifier
-                    .statusBarsPadding()
-                    .padding(top = 88.cdp)
-                    .clickable(
-                        interactionSource = remember { MutableInteractionSource() },//记录交互状态
-                        indication = null,//取消涟漪效果
-                        onClick = openUserPageCallback
-                    )
-            )
+        // 喜欢的歌单
+        Box(
+            modifier = Modifier
+                .graphicsLayer { alpha = bodyAlphaValue }
+                .mineCommonCard(),
+            contentAlignment = Alignment.Center
+        ) {
+            UserPlaylistItem(viewModel.favoritePlayList)
+        }
+    }
 
-            // 音乐应用
-            Box(
-                modifier = Modifier
-                    .graphicsLayer { alpha = bodyAlphaValue }
-                    .mineCommonCard()
-                    .height(300.cdp),
-                contentAlignment = Alignment.Center
-            ) {
-                MusicApplicationComponent()
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(WindowInsets.statusBars.getTop(LocalDensity.current).transformDp + 88.cdp)
+    )
+}
+
+@Composable
+private fun PlayList(
+    bodyAlphaValue: Float,
+    lazyListState: LazyListState,
+    toolbarState: CollapsingToolbarState,
+) {
+    val coroutineScope = rememberCoroutineScope()
+    val viewModel: MineViewModel = hiltViewModel()
+
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .graphicsLayer { alpha = bodyAlphaValue },
+        state = lazyListState
+    ) {
+        // 原生 Tab 栏（stickyHeader 吸顶）
+        stickyHeader {
+            StickyTabLayout(lazyListState, coroutineScope, bodyAlphaValue, toolbarState)
+        }
+
+        // 创建歌单
+        item {
+            PlaylistHeader(title = "创建歌单(${viewModel.selfCreatePlayList?.size ?: 0}个)")
+        }
+
+        //显示前 N-1 个歌单
+        items((viewModel.selfCreatePlayList?.size ?: 0).coerceAtLeast(1) - 1) {
+            UserPlaylistItem(viewModel.selfCreatePlayList!![it])
+        }
+
+        // 创建歌单 footer
+        if (!viewModel.selfCreatePlayList.isNullOrEmpty()) {
+            item {
+                PlaylistFooter(viewModel.selfCreatePlayList!!.last())
             }
+        }
 
-            // 喜欢的歌单
-            Box(
-                modifier = Modifier
-                    .graphicsLayer { alpha = bodyAlphaValue }
-                    .mineCommonCard(),
-                contentAlignment = Alignment.Center
-            ) {
-                UserPlaylistItem(viewModel.favoritePlayList)
+        // 收藏歌单 header
+        item {
+            PlaylistHeader(title = "收藏歌单(${viewModel.collectPlayList?.size ?: 0}个)")
+        }
+
+        //显示前 N-1 个歌单
+        items((viewModel.collectPlayList?.size ?: 0).coerceAtLeast(1) - 1) {
+            UserPlaylistItem(viewModel.collectPlayList!![it])
+        }
+
+        // 收藏歌单 footer
+        if (!viewModel.collectPlayList.isNullOrEmpty()) {
+            item {
+                PlaylistFooter(viewModel.collectPlayList!!.last())
             }
+        }
 
-            //  原生 Tab 栏（随内容滚动，会滚出屏幕）
-            CommonTabLayout(
-                tabTexts = tabs,
-                backgroundColor = AppColorsProvider.current.card,
-                style = CommonTabLayoutStyle(isScrollable = false,   // 不分页滑动，平分宽度
-                    indicatorPaddingBottom = 18.cdp,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(100.cdp)
-                        .mineCommonCard()
-                        // 监听 Tab 栏的位置变化
-                        .onGloballyPositioned {
-                            //记录 Tab 栏自身的 Y 坐标（用于滚动联动）
-                            if (itemPositionMap[KEY_TAB_LAYOUT] == null && itemPositionMap[KEY_TAB_LAYOUT] == 0f) {
-                                //boundsInParent().top 是 Tab 相对于父容器顶部的距离，记录一次就够了
-                                itemPositionMap[KEY_TAB_LAYOUT] = it.boundsInParent().top
-                            }
-                            //  判断原生 Tab 是否滚出屏幕
-                            // positionInRoot().y 是 Tab 相对于屏幕顶部的距离
-                            // 当这个距离 <= stickyPositionTop 时，说明 Tab 已经滚到顶部附近
-                            viewModel.showStickyTabLayout = it.positionInRoot().y <= stickyPositionTop
-                        }
-                        .graphicsLayer { alpha = bodyAlphaValue },
-                    //绘制tab之间的分割线
-                    tabItemDrawBehindBlock = { position ->
-                        // 不是最后一个 Tab 才绘制分割线
-                        if (position != tabs.size - 1) {
-                            drawLine(
-                                Color.LightGray,                                        // 颜色：浅灰色
-                                Offset(size.width, size.height * 0.3f),  // 起点：tab右上角（向下30%位置）
-                                Offset(size.width, size.height * 0.7f),    // 终点：tab右下角（向下70%位置）
-                                strokeWidth = 2.cdp.toPx()                              // 线宽：2dp
-                            )
-                        }
-                    }
-                ),
-                selectedIndex = viewModel.selectedTabIndex
-            ) {
-                //点击回调
-                viewModel.selectedTabIndex= it // 更新选中的 Tab
-                // 滚动到目标位置
-                itemPositionMap[it]?.let { position ->
-                    animateScrolling = true
-                    coroutineScope.launch {
-                        // 减去 stickyPositionBottom 让内容停在 Tab 栏下方
-                        scrollState.animateScrollTo((position - stickyPositionBottom).toInt(), tween(500))
-                        animateScrolling = false
-                    }
-                }
-            }
-
-            // 创建歌单
-            UserPlaylistComponent(
-                modifier = Modifier
-                    .graphicsLayer {
-                        alpha = bodyAlphaValue
-                    }
-                    //boundsInParent().top 是 Tab 相对于父容器顶部的距离，记录一次就够了
-                    .onGloballyPositioned {
-                        if (itemPositionMap[KEY_CREATE_PLAY_LIST] == null || itemPositionMap[KEY_CREATE_PLAY_LIST] == 0f) {
-                            itemPositionMap[KEY_CREATE_PLAY_LIST] = it.boundsInParent().top
-                        }
-                    },
-                list = viewModel.selfCreatePlayList,
-                title = "创建歌单"
-            )
-
-            // 收藏歌单
-            UserPlaylistComponent(
-                modifier = Modifier
-                    .graphicsLayer { alpha = bodyAlphaValue }
-                    .onGloballyPositioned {
-                        //boundsInParent().top 是 Tab 相对于父容器顶部的距离，记录一次就够了
-                        if (itemPositionMap[KEY_COLLECT_PLAY_LIST] == null || itemPositionMap[KEY_COLLECT_PLAY_LIST] == 0f) {
-                            itemPositionMap[KEY_COLLECT_PLAY_LIST] = it.boundsInParent().top
-                        }
-                    },
-                list = viewModel.collectPlayList,
-                title = "收藏歌单"
-            )
-
-            // 歌单助手
+        // 歌单助手
+        item {
             Box(
                 modifier = Modifier
                     .padding(bottom = 30.cdp)
-                    .mineCommonCard()
-                    .onGloballyPositioned {
-                        //boundsInParent().top 是 Tab 相对于父容器顶部的距离，记录一次就够了
-                        if (itemPositionMap[KEY_PLAY_LIST_HELP] == null || itemPositionMap[KEY_PLAY_LIST_HELP] == 0f) {
-                            itemPositionMap[KEY_PLAY_LIST_HELP] = it.boundsInParent().top
-                        }
-                    },
+                    .mineCommonCard(),
                 contentAlignment = Alignment.Center
             ) {
                 SongPlayListHelper()
             }
         }
-
-        //粘性 Tab 栏 ，在column外面，位于上层
-        // 当原生 Tab 滚出屏幕后，这个 Tab 会固定在顶部显示
-        if (viewModel.showStickyTabLayout) {
-            CommonTabLayout(
-                tabTexts = tabs,
-                backgroundColor = AppColorsProvider.current.pure,
-                style = CommonTabLayoutStyle(
-                    isScrollable = false,
-                    indicatorPaddingBottom = 18.cdp,
-                    modifier = Modifier
-                        .statusBarsPadding()           // 避开状态栏
-                        .padding(top = 88.cdp)         // 避开顶部导航栏
-                        .fillMaxWidth()
-                        .height(100.cdp)
-                        .background(AppColorsProvider.current.pure)
-                        .padding(top = 12.cdp),
-                    //绘制tab之间的分割线
-                    tabItemDrawBehindBlock = { position ->
-                        if (position != tabs.size - 1) {
-                            drawLine(
-                                Color.LightGray,
-                                Offset(size.width, size.height * 0.3f),
-                                Offset(size.width, size.height * 0.7f),
-                                strokeWidth = 2.cdp.toPx()
-                            )
-                        }
-                    }
-                ),
-                selectedIndex = viewModel.selectedTabIndex
-            ) {
-                // 点击逻辑与原生 Tab 完全相同
-                viewModel.selectedTabIndex = it
-                itemPositionMap[it]?.let { position ->
-                    animateScrolling = true
-                    coroutineScope.launch {
-                        scrollState.animateScrollTo((position - stickyPositionBottom).toInt(), tween(500))
-                        animateScrolling = false
-                    }
-                }
-            }
-        }
     }
 }
 
-// 歌单列表组件
 @Composable
-private fun UserPlaylistComponent(
-    modifier: Modifier = Modifier,
-    list: List<Playlist>?,
-    title: String
-) {
-    list?.let {
+private fun PlaylistHeader(title: String) {
+    Box(
+        Modifier
+            .fillMaxWidth()
+            .padding(start = 32.cdp, end = 32.cdp, top = 20.cdp)
+            .background(
+                AppColorsProvider.current.card,
+                RoundedCornerShape(topStart = 24.cdp, topEnd = 24.cdp)
+            )
+            .padding(top = 24.cdp)
+    ) {
+        // 标题行
+        Text(
+            text = title,
+            color = AppColorsProvider.current.secondText,
+            fontSize = 28.csp,
+            modifier = Modifier.padding(bottom = 12.dp, top = 20.cdp, start = 32.cdp)
+        )
+    }
+}
+
+@Composable
+private fun PlaylistFooter(playlist: Playlist) {
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .wrapContentHeight()
+            .clip(RoundedCornerShape(bottomStart = 24.cdp, bottomEnd = 24.cdp))
+    ) {
+        UserPlaylistItem(playlist)
         Box(
-            modifier = modifier.mineCommonCard()
-        ) {
-            Column {
-                // 标题行
-                Text(
-                    text = "${title}(${list.size}个)",
-                    color = AppColorsProvider.current.secondText,
-                    fontSize = 28.csp,
-                    modifier = Modifier.padding(bottom = 12.dp, top = 20.cdp, start = 32.cdp)
+            Modifier
+                .padding(start = 32.cdp, end = 32.cdp)
+                .fillMaxWidth()
+                .height(24.cdp)
+                .background(
+                    AppColorsProvider.current.pure,
+                    RoundedCornerShape(bottomStart = 24.cdp, bottomEnd = 24.cdp)
                 )
-                // 歌单列表
-                it.forEach {
-                    UserPlaylistItem(it)
+        )
+    }
+}
+
+@Composable
+private fun StickyTabLayout(
+    lazyListState: LazyListState,
+    coroutineScope: CoroutineScope,
+    bodyAlphaValue: Float,
+    state: CollapsingToolbarState,
+) {
+    val viewModel: MineViewModel = hiltViewModel()
+
+    Surface(color = Color.Transparent) {
+        // 折叠进度 > 0 时使用背景色，否则使用卡片色
+        val backgroundColor = if (state.progress > 0.01)
+            AppColorsProvider.current.background else AppColorsProvider.current.pure
+
+        CommonTabLayout(
+            tabTexts = tabs,
+            backgroundColor = backgroundColor,
+            style = CommonTabLayoutStyle(
+                isScrollable = false,           // 不分页滑动，三个 Tab 平分宽度
+                indicatorPaddingBottom = 18.cdp, // 指示器底部内边距
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(100.cdp)
+                    .background(backgroundColor)
+                    .padding(top = 12.cdp)
+                    .graphicsLayer { alpha = bodyAlphaValue },
+                //绘制tab之间的分割线
+                tabItemDrawBehindBlock = { position ->
+                    // 不是最后一个 Tab 才绘制分割线
+                    if (position != tabs.size - 1) {
+                        drawLine(
+                            Color.LightGray,                                        // 颜色：浅灰色
+                            Offset(size.width, size.height * 0.3f),  // 起点：tab右上角（向下30%位置）
+                            Offset(size.width, size.height * 0.7f),    // 终点：tab右下角（向下70%位置）
+                            strokeWidth = 2.cdp.toPx()                              // 线宽：2dp
+                        )
+                    }
                 }
+            ),
+            selectedIndex = viewModel.selectedTabIndex
+        ) {
+            //点击回调
+            viewModel.selectedTabIndex = it // 更新选中的 Tab
+
+            animateScrolling = true // 标记为 Tab 触发的滚动（禁用滚动自动切换）
+            coroutineScope.launch {
+                when (it) {
+                    // 滚动到创建歌单区域
+                    0 -> lazyListState.animateScrollToItem(viewModel.selfCreatePlayListHeaderIndex)
+                    // 滚动到收藏歌单区域
+                    1 -> lazyListState.animateScrollToItem(
+                        viewModel.collectPlayListHeaderIndex,
+                        -100.cdp.toPx.toInt() // 偏移量 -100dp，让内容不完全贴顶
+                    )
+                    else -> lazyListState.animateScrollToItem(viewModel.songHelperIndex) // 滚动到歌单助手
+                }
+                // 滚动完成，恢复自动切换
+                animateScrolling = false
             }
         }
     }
@@ -430,7 +479,8 @@ private fun TopBar(alphaValue: Float) {
         visibleState = remember { MutableTransitionState(false) }
             .apply {
                 // 当 alphaValue == 1f（完全滚动到顶部）时，目标状态变为 true
-                targetState = alphaValue == 1f },
+                targetState = alphaValue == 1f
+            },
         // 入场动画：淡入 + 从上往下滑入
         enter = fadeIn() + slideInVertically(initialOffsetY = { fullHeight -> -fullHeight }),
         /*// 出场动画：淡出 + 从下往上滑出
