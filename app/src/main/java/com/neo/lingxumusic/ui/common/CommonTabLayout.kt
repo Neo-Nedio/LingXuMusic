@@ -72,6 +72,7 @@ fun CommonTabLayout(
                     HorizontalDivider(
                         modifier = Modifier
                             .width(style.indicatorWidth)
+                            .padding(bottom = style.indicatorPaddingBottom)
                             .background(
                                 brush = indicatorColor, // 渐变色画笔
                                 shape = RoundedCornerShape(50)  // 圆角胶囊形状
@@ -143,8 +144,8 @@ fun CommonTabLayout(
                 ) {
                     HorizontalDivider(
                         modifier = Modifier
-                            .padding(bottom = 20.cdp)
                             .width(style.indicatorWidth)
+                            .padding(bottom = style.indicatorPaddingBottom)
                             .background(
                                 brush = indicatorColor,
                                 shape = RoundedCornerShape(50)
@@ -211,6 +212,7 @@ data class CommonTabLayoutStyle(
     val unselectedTextBold: Boolean = false, // 未选中tab字体加粗
     val indicatorWidth: Dp = 140.cdp,  // 指示器宽度
     val indicatorHeight: Dp = 12.cdp,  // 指示器高度
+    val indicatorPaddingBottom: Dp = 0.cdp,  // 指示器底部边距
     val isScrollable: Boolean = true,  // 是否可滑动
     val tabItemDrawBehindBlock: (DrawScope.(position: Int) -> Unit)? = null, //为每个tab在 Box 背后绘制自定义内容（如背景、边框等）
     val customIndicator: @Composable ((selectedPosition: Int) -> Unit)? = null  // 自定义指示器

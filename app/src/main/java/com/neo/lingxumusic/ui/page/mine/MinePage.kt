@@ -246,6 +246,7 @@ private fun Body(
                 tabTexts = tabs,
                 backgroundColor = AppColorsProvider.current.card,
                 style = CommonTabLayoutStyle(isScrollable = false,   // 不分页滑动，平分宽度
+                    indicatorPaddingBottom = 18.cdp,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(100.cdp)
@@ -347,6 +348,7 @@ private fun Body(
                 backgroundColor = AppColorsProvider.current.pure,
                 style = CommonTabLayoutStyle(
                     isScrollable = false,
+                    indicatorPaddingBottom = 18.cdp,
                     modifier = Modifier
                         .statusBarsPadding()           // 避开状态栏
                         .padding(top = 88.cdp)         // 避开顶部导航栏
