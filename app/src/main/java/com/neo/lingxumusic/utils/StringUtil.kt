@@ -74,13 +74,17 @@ fun String.replaceSize(size: Int = 480): String {
  * @return Triple(用户回复内容, 被引用用户名, 被引用内容)
  */
 fun String.parseReply(): Triple<String, String?, String?> {
-    val pattern = Regex("^(.*?)//@(.*?):([\\s\\S]*)$", setOf(RegexOption.DOT_MATCHES_ALL))
-    val match = pattern.find(this)
+    val index = this.indexOf("//@")
+    if (index == -1) return Triple(this, null, null)
 
-    return if (match != null) {
-        val (reply, userName, quotedContent) = match.destructured
-        Triple(reply.trim(), userName.trim(), quotedContent.trim())
-    } else {
-        Triple(this, null, null)
-    }
+    val reply = this.substring(0, index).trim()
+    val after = this.substring(index + 3) // 跳过 "//@"
+
+    val colonIndex = after.indexOf(":")
+    if (colonIndex == -1) return Triple(this, null, null)
+
+    val userName = after.substring(0, colonIndex).trim()
+    val quotedContent = after.substring(colonIndex + 1).trim()
+
+    return Triple(reply, userName, quotedContent)
 }
