@@ -1,5 +1,6 @@
 package com.neo.lingxumusic.ui.page.mine.component
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -35,7 +36,10 @@ import com.neo.lingxumusic.utils.csp
 fun UserPlaylistItem(platListItem: Playlist?) {
     Row(
         Modifier
+            .padding(start = 32.cdp, end = 32.cdp)
+            .background(AppColorsProvider.current.card)
             .fillMaxWidth()
+            .height(126.cdp)
             .wrapContentHeight()
             .clickable {
                 platListItem?.let {
