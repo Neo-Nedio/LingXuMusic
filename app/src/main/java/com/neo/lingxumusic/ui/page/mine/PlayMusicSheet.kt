@@ -427,20 +427,16 @@ private fun MiddleActionLayout() {
 
     Row(
         modifier = Modifier
-            .padding(start = 44.cdp, end = 44.cdp, bottom = 32.cdp)
+            .padding(start = 60.cdp, end = 60.cdp, bottom = 32.cdp)
             .fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceAround
     ) { // 水平均匀分布
-        MiddleActionIcon(R.drawable.ic_like_no)      // 点赞（未点赞状态）
-        MiddleActionIcon(R.drawable.ic_download)     // 下载
-        MiddleActionIcon(R.drawable.ic_action_sing)  // K歌/唱歌
-        Box(modifier = Modifier.width(100.cdp)) { //评论
+        MiddleActionIcon(R.drawable.ic_like_no, modifier = Modifier.padding(end = 60.cdp))      // 点赞（未点赞状态）
+        MiddleActionIcon(R.drawable.ic_download, modifier = Modifier.padding(end = 60.cdp))     // 下载
+        MiddleActionIcon(R.drawable.ic_action_sing, modifier = Modifier.padding(end = 60.cdp))  // K歌/唱歌
+        Box(modifier = Modifier.width(138.cdp)) { //评论
             MiddleActionIcon(
                 R.drawable.ic_comment_count,
-                modifier = Modifier.align(
-                    if (viewModel.songCommentResult == null) Alignment.Center else Alignment.CenterStart
-                )
             ) {
                 //设置参数
                 NavController.instance.currentBackStackEntry
@@ -460,10 +456,7 @@ private fun MiddleActionLayout() {
                     color = Color.White,
                     fontSize = 18.csp,
                     modifier = Modifier
-                        .padding(
-                            top = 6.cdp,
-                            start = if (commentText.length >= 4) 50.cdp else 60.cdp
-                        )
+                        .padding(top = 10.cdp, start = 52.cdp)
                         .align(Alignment.TopStart)
                 )
             }

@@ -25,9 +25,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.neo.lingxumusic.core.viewState.ViewStateListPagingComponent
+import com.neo.lingxumusic.ui.common.CommonTopAppBar
 import com.neo.lingxumusic.ui.page.mine.component.CommentItem
 import com.neo.lingxumusic.ui.theme.AppColorsProvider
 import com.neo.lingxumusic.utils.cdp
@@ -94,10 +96,10 @@ private fun FloorCommentList() {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .fillMaxHeight(0.75f) // 高度为屏幕的75%
+            .fillMaxHeight(0.8f) // 高度为屏幕的80%
             .clip(RoundedCornerShape(topStart = 40.cdp, topEnd = 40.cdp))  // 顶部圆角
             .background(AppColorsProvider.current.pure)
-            .padding(top = 48.cdp)
+            .padding(top = 16.cdp)
     ) {
         // 标题栏
         Row(

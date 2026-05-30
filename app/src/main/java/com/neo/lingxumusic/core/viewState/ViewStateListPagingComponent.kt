@@ -40,7 +40,7 @@ import com.neo.lingxumusic.utils.csp
 // 通用列表组件，支持页面状态切换、下拉刷新、上拉加载更多
 @Composable
 fun <T : Any> ViewStateListPagingComponent(
-    modifier: Modifier,
+    modifier: Modifier = Modifier,
     enableRefresh: Boolean = true,  // 是否允许下拉刷新
     showNoMoreDataFooter: Boolean = true,  // 没有更多数据时，是否显示footer
     collectAsLazyPagingItems: LazyPagingItems<T>,  // 分页数据
