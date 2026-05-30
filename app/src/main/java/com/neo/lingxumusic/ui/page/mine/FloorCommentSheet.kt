@@ -98,7 +98,7 @@ private fun FloorCommentList() {
             .fillMaxWidth()
             .fillMaxHeight(0.8f) // 高度为屏幕的80%
             .clip(RoundedCornerShape(topStart = 40.cdp, topEnd = 40.cdp))  // 顶部圆角
-            .background(AppColorsProvider.current.pure)
+            .background(AppColorsProvider.current.background)
             .padding(top = 16.cdp)
     ) {
         // 标题栏

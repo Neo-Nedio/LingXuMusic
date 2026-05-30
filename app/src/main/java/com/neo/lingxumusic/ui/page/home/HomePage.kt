@@ -7,6 +7,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.neo.lingxumusic.R
 import com.neo.lingxumusic.core.MusicPlayController
@@ -28,7 +31,7 @@ private val bottomNavigationItems = listOf(
     BottomNavigationItem("云村", R.drawable.ic_cloud_country),
 )
 
-private const val DEFAULT_SELECTED_INDEX = 2
+var selectedHomeTabIndex by mutableStateOf(2)
 
 @Composable
 fun HomePage(onFinish: () -> Unit = { }) {
@@ -43,7 +46,7 @@ fun HomePage(onFinish: () -> Unit = { }) {
 
     Column(modifier = Modifier.fillMaxSize()) {
         val pagerState = rememberPagerState(
-            initialPage = DEFAULT_SELECTED_INDEX,
+            initialPage = selectedHomeTabIndex,
             pageCount = { bottomNavigationItems.size }
         )
 
@@ -56,6 +59,8 @@ fun HomePage(onFinish: () -> Unit = { }) {
                 .weight(1f) // 占满剩余空间
                 .background(AppColorsProvider.current.background)
         ) { pagePosition ->
+            selectedHomeTabIndex = pagerState.currentPage
+
             when (pagePosition) {
                 0 -> DiscoveryPage()    // 发现页
                 1 -> PodcastPage()      // 播客页
@@ -67,7 +72,10 @@ fun HomePage(onFinish: () -> Unit = { }) {
 
         BottomNavigationBar(
             bottomNavigationItems,
-            pagerState
-        )
+            pagerState,
+            selectedHomeTabIndex
+        ) {
+            selectedHomeTabIndex = it
+        }
     }
 }
