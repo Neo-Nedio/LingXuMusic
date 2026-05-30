@@ -24,11 +24,11 @@ import com.neo.lingxumusic.utils.showToast
  */
 //在页面正常显示内容的上面，根据状态自动弹出一个加载对话框
 @Composable
-fun ViewStateLoadingDialogComponent(
+fun <T : BaseResult> ViewStateLoadingDialogComponent(
     modifier: Modifier = Modifier,
-    viewStateLiveData: ViewStateMutableLiveData,
+    viewStateLiveData: ViewStateMutableLiveData<T>,
     lifeCycleListener: ComposeLifeCycleListener? = null,
-    successBlock: ((result: BaseResult) -> Unit)? = null,
+    successBlock: ((result: T) -> Unit)? = null,
     failBlock: ((data: JsonElement?) -> Unit)? = null,
     contentView: @Composable BoxScope.() -> Unit
 ) {
@@ -89,7 +89,7 @@ fun ViewStateLoadingDialogComponent(
             }
             is ViewState.Success -> {
                 showLoadingDialog = false
-                val result = (viewState as ViewState.Success).result
+                val result = (viewState as ViewState.Success<T>).result
                 successBlock?.invoke(result)
             }
             is ViewState.Empty -> {

@@ -44,6 +44,7 @@ import com.neo.lingxumusic.core.AppGlobalData
 import com.neo.lingxumusic.core.viewState.ViewStateLoadingDialogComponent
 import com.neo.lingxumusic.core.viewState.BaseViewStateViewModel
 import com.neo.lingxumusic.core.viewState.ViewStateMutableLiveData
+import com.neo.lingxumusic.model.BaseResult
 import com.neo.lingxumusic.model.LoginData
 import com.neo.lingxumusic.model.MultiUser
 import com.neo.lingxumusic.model.dataAs
@@ -197,7 +198,7 @@ class LoginViewModel @Inject constructor(
     private val api: LoginApi
 ) : BaseViewStateViewModel() {
 
-    val loginResult = ViewStateMutableLiveData()
+    val loginResult = ViewStateMutableLiveData<BaseResult>()
 
     fun sendCode(phone: String): Boolean {
         if (!phone.isValidPhone()) {

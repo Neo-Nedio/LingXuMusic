@@ -30,25 +30,27 @@ import java.net.UnknownHostException
  * @param specialRetryBlock：特殊的重试请求代码块,没设置时重试逻辑将直接调用loadDataBlock
  * @param viewStateComponentModifier: 状态页面修饰
  * @param viewStateContentAlignment：状态页面居中方式
+ * @param customLoadingComponent:自定义加载布局，没设置时使用默认加载布局
  * @param customEmptyComponent：自定义空布局,没设置则使用默认空布局
  * @param customFailComponent：自定义失败布局,没设置则使用默认失败布局
  * @param customErrorComponent：自定义错误布局,没设置则使用默认错误布局
  * @param contentView：正常页面内容
  */
 @Composable
-fun ViewStateComponent(
+fun <T : BaseResult> ViewStateComponent(
     modifier: Modifier = Modifier,
-    viewStateLiveData: ViewStateLiveData?,
+    viewStateLiveData: ViewStateLiveData<T>?,
     refreshFlag: Int = 0,
     lifeCycleListener: ComposeLifeCycleListener? = null,
     loadDataBlock: (() -> Unit)? = null,
     specialRetryBlock: (() -> Unit)? = null,
     viewStateComponentModifier: Modifier = Modifier.fillMaxSize(),
     viewStateContentAlignment: Alignment = Alignment.Center,
+    customLoadingComponent: @Composable (() -> Unit)? = null,
     customEmptyComponent: @Composable (() -> Unit)? = null,
     customFailComponent: @Composable ((data: JsonElement?) -> Unit)? = null,
     customErrorComponent: @Composable ((errorMessage: Pair<String, Int>) -> Unit)? = null,
-    contentView: @Composable BoxScope.(result: BaseResult) -> Unit
+    contentView: @Composable BoxScope.(result: T) -> Unit
 ) {
 
     //生命周期监听
@@ -102,7 +104,7 @@ fun ViewStateComponent(
 
     //缓存成功结果
     val successResult = remember {
-        mutableStateOf<BaseResult?>(null)
+        mutableStateOf<T?>(null)
     }
 
 
@@ -119,13 +121,17 @@ fun ViewStateComponent(
                 // 根据当前状态，显示不同的界面
                 when (viewState) {
                     is ViewState.Loading -> {
-                        LoadingComponent(
-                            modifier = viewStateComponentModifier,
-                            contentAlignment = viewStateContentAlignment
-                        )
+                        if(customLoadingComponent != null) {
+                            customLoadingComponent.invoke()
+                        }else {
+                            LoadingComponent(
+                                modifier = viewStateComponentModifier,
+                                contentAlignment = viewStateContentAlignment
+                            )
+                        }
                     }
                     is ViewState.Success -> {
-                        successResult.value = (viewState as ViewState.Success).result
+                        successResult.value = (viewState as ViewState.Success<T>).result
                         contentView(successResult.value!!)
                     }
                     is ViewState.Empty -> {
@@ -176,8 +182,9 @@ fun ViewStateComponent(
             }
 
             // 更新缓存数据
-            if (viewState is ViewState.Success) {
-                successResult.value = (viewState as ViewState.Success).result
+            if (viewState is ViewState.Success<*>) {
+                @Suppress("UNCHECKED_CAST")
+                successResult.value = (viewState as ViewState.Success<T>).result
             }
 
             // 直接显示缓存的结果

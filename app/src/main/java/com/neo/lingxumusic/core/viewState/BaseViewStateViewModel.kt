@@ -10,16 +10,16 @@ import kotlinx.coroutines.launch
 import retrofit2.HttpException
 
 //类型别名
-typealias ViewStateMutableLiveData = MutableLiveData<ViewState>
-typealias ViewStateLiveData = LiveData<ViewState>
+typealias ViewStateMutableLiveData<T> = MutableLiveData<ViewState<T>>
+typealias ViewStateLiveData<T> = LiveData<ViewState<T>>
 
 open class BaseViewStateViewModel : ViewModel() {
 
-    protected fun launch(
-        liveData: ViewStateMutableLiveData ? = null,          // 要更新的 LiveData
-        handleResult: ((BaseResult) -> Unit)? = null,// 成功后的额外处理（可选）
-        judgeEmpty: ((BaseResult) -> Boolean)? = null,// 判断是否为空数据（可选）
-        call: suspend () -> BaseResult               // 实际的网络请求
+    protected fun <T : BaseResult> launch(
+        liveData: ViewStateMutableLiveData<T>? = null,          // 要更新的 LiveData
+        handleResult: ((T) -> Unit)? = null,// 成功后的额外处理（可选）
+        judgeEmpty: ((T) -> Boolean)? = null,// 判断是否为空数据（可选）
+        call: suspend () -> T               // 实际的网络请求
     ) {
         viewModelScope.launch {
             runCatching { // 捕获异常，不会崩溃
@@ -52,7 +52,7 @@ open class BaseViewStateViewModel : ViewModel() {
         }
     }
 
-    private fun Throwable.toViewState(): ViewState {
+    private fun Throwable.toViewState(): ViewState<Nothing> {
         if (this !is HttpException) {
             return ViewState.Error(this)
         }

@@ -9,6 +9,7 @@ import com.neo.lingxumusic.core.viewState.BaseViewStateViewModel
 import com.neo.lingxumusic.model.Playlist
 import com.neo.lingxumusic.model.PlaylistData
 import com.neo.lingxumusic.core.viewState.ViewStateMutableLiveData
+import com.neo.lingxumusic.model.BaseResult
 import com.neo.lingxumusic.model.dataAs
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -24,7 +25,7 @@ class MineViewModel @Inject constructor(private val api: UserApi) : BaseViewStat
     var collectPlayList: List<Playlist>? by mutableStateOf(null)      // 收藏的歌单
 
     // 请求状态
-    val userPlaylistResult = ViewStateMutableLiveData()
+    val userPlaylistResult = ViewStateMutableLiveData<BaseResult>()
 
     // 当前选中的 Tab 索引（0=创建歌单，1=收藏歌单，2=歌单助手）
     var selectedTabIndex by mutableStateOf(0)

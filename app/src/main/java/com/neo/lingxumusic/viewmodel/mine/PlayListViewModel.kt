@@ -4,6 +4,7 @@ package com.neo.lingxumusic.viewmodel.mine
 import com.neo.lingxumusic.http.api.UserApi
 import com.neo.lingxumusic.core.viewState.BaseViewStateViewModel
 import com.neo.lingxumusic.core.viewState.ViewStateMutableLiveData
+import com.neo.lingxumusic.model.BaseResult
 import com.neo.lingxumusic.model.PlaylistBrief
 import com.neo.lingxumusic.model.PlaylistDetailData
 import com.neo.lingxumusic.model.Song
@@ -18,7 +19,7 @@ class PlayListViewModel @Inject constructor(private val userApi : UserApi)
 
     lateinit var playlist: PlaylistBrief
 
-    val songDetailResult = ViewStateMutableLiveData()
+    val songDetailResult = ViewStateMutableLiveData<BaseResult>()
 
     val songList = mutableListOf<Song>()
 
