@@ -196,9 +196,6 @@ private fun Body(
     // 用于点击 Tab 时，计算滚动目标位置，让内容正好停在 Tab 栏下方，不被遮挡
     val stickyPositionBottom = WindowInsets.statusBars.getTop(density) + 188.cdp.toPx
 
-    // 是否显示粘性 Tab（原生 Tab 滚出屏幕时为 true）
-    var showStickyTabLayout by remember { mutableStateOf(false) }
-
     val viewModel: MineViewModel = hiltViewModel()
 
     Box {
@@ -261,7 +258,7 @@ private fun Body(
                             //  判断原生 Tab 是否滚出屏幕
                             // positionInRoot().y 是 Tab 相对于屏幕顶部的距离
                             // 当这个距离 <= stickyPositionTop 时，说明 Tab 已经滚到顶部附近
-                            showStickyTabLayout = it.positionInRoot().y <= stickyPositionTop
+                            viewModel.showStickyTabLayout = it.positionInRoot().y <= stickyPositionTop
                         }
                         .graphicsLayer { alpha = bodyAlphaValue },
                     //绘制tab之间的分割线
@@ -341,7 +338,7 @@ private fun Body(
 
         //粘性 Tab 栏 ，在column外面，位于上层
         // 当原生 Tab 滚出屏幕后，这个 Tab 会固定在顶部显示
-        if (showStickyTabLayout) {
+        if (viewModel.showStickyTabLayout) {
             CommonTabLayout(
                 tabTexts = tabs,
                 backgroundColor = AppColorsProvider.current.pure,

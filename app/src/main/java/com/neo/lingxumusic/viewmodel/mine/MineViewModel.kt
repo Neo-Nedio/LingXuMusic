@@ -31,6 +31,9 @@ class MineViewModel @Inject constructor(private val api: UserApi) : BaseViewStat
     // 当前选中的 Tab 索引（0=创建歌单，1=收藏歌单，2=歌单助手）
     var selectedTabIndex by mutableStateOf(0)
 
+    // 是否显示粘性 Tab（原生 Tab 滚出屏幕时为 true）
+    var showStickyTabLayout by mutableStateOf(false)
+
     // 获取歌单
     fun getUserPlayList() {
         launch(userPlaylistResult, handleResult = {
