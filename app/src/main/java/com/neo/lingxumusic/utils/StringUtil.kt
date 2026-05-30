@@ -74,17 +74,22 @@ fun String.replaceSize(size: Int = 480): String {
  * @return Triple(用户回复内容, 被引用用户名, 被引用内容)
  */
 fun String.parseReply(): Triple<String, String?, String?> {
-    val index = this.indexOf("//@")
-    if (index == -1) return Triple(this, null, null)
+    val startIndex = this.indexOf("//@")
+    if (startIndex == -1) return Triple(this, null, null)
 
-    val reply = this.substring(0, index).trim()
-    val after = this.substring(index + 3) // 跳过 "//@"
+    // 用户回复内容 = //@ 之前的部分
+    val replyText = this.substring(0, startIndex).trim()
 
-    val colonIndex = after.indexOf(":")
+    // 从 //@ 之后开始找第一个 : 或 ：
+    val afterAt = this.substring(startIndex + 3)
+    val colonIndex = afterAt.indexOfFirst { it == ':' || it == '：' }
     if (colonIndex == -1) return Triple(this, null, null)
 
-    val userName = after.substring(0, colonIndex).trim()
-    val quotedContent = after.substring(colonIndex + 1).trim()
+    // 用户名 = //@ 和 冒号 之间的部分
+    val userName = afterAt.substring(0, colonIndex).trim()
 
-    return Triple(reply, userName, quotedContent)
+    // 被引用的内容 = 冒号之后的部分
+    val quotedContent = afterAt.substring(colonIndex + 1).trim()
+
+    return Triple(replyText, userName, quotedContent)
 }
