@@ -485,18 +485,28 @@ private fun ProgressLayout() {
         verticalAlignment = Alignment.CenterVertically
     ) {
         //左侧已播放时间
-        Text(text = MusicPlayController.curPositionStr, fontSize = 26.csp, color = Color.White)
+       Text(
+            text = MusicPlayController.curPositionStr,
+            fontSize = 26.csp,
+            color = Color.White,
+            modifier = Modifier.width(110.cdp)
+        )
         //进度条
         SeekBar(
             progress = MusicPlayController.progress,
             seeking = { MusicPlayController.seeking(it) },
             seekTo = { MusicPlayController.seekTo(it) },
-            modifier = Modifier
-                .padding(horizontal = 20.cdp)
-                .weight(1f)
+            modifier = Modifier.weight(1f)
         )
         //右侧总时间
-        Text(text = MusicPlayController.totalDuringStr, fontSize = 26.csp, color = Color.White)
+        Text(
+            text = MusicPlayController.totalDuringStr,
+            fontSize = 26.csp,
+            color = Color.White,
+            modifier = Modifier.width(110.cdp),
+            textAlign = TextAlign.End
+        )
+
     }
 
 }
