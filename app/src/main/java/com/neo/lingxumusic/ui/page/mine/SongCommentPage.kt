@@ -244,8 +244,10 @@ private fun StickyHeader(pagerState: PagerState) {
             tabTexts = viewModel.commentSortTabs.map { it.title },
             backgroundColor = Color.Transparent,
             style = CommonTabLayoutStyle(
-                isScrollable = false, //不可滚动
-                modifier = Modifier.width(300.cdp),
+                isScrollable = true, //可滚动
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(start = 80.cdp),
                 selectedTextSize = 28.csp,
                 unselectedTextSize = 28.csp,
                 //画分割线

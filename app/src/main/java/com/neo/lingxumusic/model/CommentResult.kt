@@ -14,7 +14,8 @@ data class SongCommentResult(
     val msg: String? = null,                // 消息
     val count: Int = 0,                     // 评论总数
     val list: List<SongCommentItem>? = null,    // 评论列表
-    val current_page: Int = 1               // 当前页码
+    val current_page: Int = 1  ,             // 当前页码
+    val hot_word_list: List<HotWordItem>? = null  //  新增：热词列表
 ) : Parcelable
 
 /**
@@ -97,3 +98,13 @@ data class CommentImage(
     val width: Int = 0,                     // 图片宽度（可选）
     val height: Int = 0                     // 图片高度（可选）
 ) : Parcelable
+
+/**
+ * 热词项
+ */
+@Parcelize
+data class HotWordItem(
+    val content: String = "",               // 热词内容
+    val count: Int = 0                      // 出现次数
+) : Parcelable
+

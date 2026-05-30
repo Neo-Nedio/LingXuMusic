@@ -1,6 +1,7 @@
 package com.neo.lingxumusic.viewmodel.mine
 
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -28,16 +29,11 @@ class SongCommentViewModel @Inject constructor(
     // key = 评论类型（1=推荐，2=最热，3=最新），value = 对应的 PagingData 流
     var commentBeanListFlows = mutableStateMapOf<Int, Flow<PagingData<SongCommentItem>>>()
 
-    // 评论排序选项列表
-    //todo 酷狗没有这些分类，根据热词修改，使用可移动tab
-    val commentSortTabs = listOf(
-        CommentSortTab("推荐", 1),
-        CommentSortTab("最热", 2),
-        CommentSortTab("最新", 3)
-    )
+    // 评论排序选项列表（首屏加载后根据热词动态填充）
+    var commentSortTabs by mutableStateOf(listOf(CommentSortTab("全部", 1)))
 
-    // 当前选中的评论类型（默认 1 = 推荐）
-    var curSelectedTabType by mutableStateOf(1)
+    // 当前选中的评论类型（默认 1 = 全部）
+    var curSelectedTabType by mutableIntStateOf(1)
 
     // 是否显示楼中楼弹窗
     var showFloorCommentSheet by mutableStateOf(false)
@@ -55,7 +51,7 @@ class SongCommentViewModel @Inject constructor(
     /**
      * 构建评论列表的分页数据流
      * @param song 当前歌曲
-     * @param type 评论类型（1=推荐，2=最热，3=最新）
+     * @param type 评论类型（1=全部）
      */
     fun buildNewCommentListPager(song: Song, type: Int) {
         // 分页配置
@@ -69,17 +65,37 @@ class SongCommentViewModel @Inject constructor(
             // 第一页用 initialLoadSize，后续页用 pageSize
             val pageSize = if (currentPage == 1) config.initialLoadSize else config.pageSize
 
-            // 调用 API 获取评论数据
-            val result = songApi.getSongComment(
-                mixsongid = song.mixsongid.toString(),
-                page = currentPage.toString(),
-                pagesize = pageSize.toString()
-            )
+            // 调用 API 获取评论数据（type=1 全部，type>=2 热词搜索）
+            val result = if (type == 1) {
+                songApi.getSongComment(
+                    mixsongid = song.mixsongid.toString(),
+                    page = currentPage.toString(),
+                    pagesize = pageSize.toString()
+                )
+            } else {
+                val hotWord = commentSortTabs.firstOrNull { it.type == type }?.title.orEmpty()
+                songApi.getSongCommentByHotWord(
+                    mixsongid = song.mixsongid.toString(),
+                    page = currentPage.toString(),
+                    pagesize = pageSize.toString(),
+                    hot_word = hotWord
+                )
+            }
 
             // 请求成功
             if (result.status == 1) {
                 // 提取评论列表
                 val responseList = result.list.orEmpty()
+
+                // 首屏「全部」Tab 加载时，按频率提取热词生成 Tab
+                if (currentPage == 1 && type == 1) {
+                    val hotWordTabs = result.hot_word_list.orEmpty()
+                        .sortedByDescending { it.count }
+                        .mapIndexed { index, item ->
+                            CommentSortTab(item.content, index + 2)
+                        }
+                    commentSortTabs = listOf(CommentSortTab("全部", 1)) + hotWordTabs
+                }
 
                 val everyPageSize = config.pageSize
                 val initPageSize = config.initialLoadSize

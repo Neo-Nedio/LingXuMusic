@@ -14,7 +14,16 @@ interface SongApi {
     suspend fun getSongComment(
         @Query("mixsongid") mixsongid: String,
         @Query("page") page: String = "1",
-        @Query("pagesize") pagesize: String = "30"
+        @Query("pagesize") pagesize: String = "30",
+        @Query("show_hotword_list") show_hotword_list : String = "1"
+    ): SongCommentResult
+
+    @GET("/comment/music/hotword")
+    suspend fun getSongCommentByHotWord(
+        @Query("mixsongid") mixsongid: String,
+        @Query("page") page: String = "1",
+        @Query("pagesize") pagesize: String = "30",
+        @Query("hot_word") hot_word : String
     ): SongCommentResult
 
     @GET("/comment/floor")
