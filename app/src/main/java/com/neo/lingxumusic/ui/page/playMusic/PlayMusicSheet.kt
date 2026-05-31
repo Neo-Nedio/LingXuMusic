@@ -24,7 +24,8 @@ import com.neo.lingxumusic.ui.common.CommonNetworkImage
 import com.neo.lingxumusic.ui.common.CommonTopAppBar
 import com.neo.lingxumusic.ui.common.MarqueeText
 import com.neo.lingxumusic.ui.page.playMusic.component.DiskPagers
-import com.neo.lingxumusic.ui.page.playMusic.component.Lyric
+import com.neo.lingxumusic.ui.page.playMusic.component.LyricAll
+import com.neo.lingxumusic.ui.page.playMusic.component.LyricPart
 import com.neo.lingxumusic.ui.page.playMusic.component.PlayMusicActionLayout
 import com.neo.lingxumusic.utils.StringUtil
 import com.neo.lingxumusic.utils.cdp
@@ -154,7 +155,8 @@ fun PlayMusicContent(scope: CoroutineScope) {
                         .weight(1f),
                 ) {
                     DiskPagers()
-                    Lyric()
+                    LyricAll()
+                    LyricPart()
                 }
 
                 //底部区域
