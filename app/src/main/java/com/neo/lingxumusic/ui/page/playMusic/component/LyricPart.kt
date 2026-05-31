@@ -13,13 +13,16 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -38,6 +41,9 @@ import com.neo.lingxumusic.utils.cdp
 import com.neo.lingxumusic.utils.csp
 import com.neo.lingxumusic.viewmodel.playMusic.LyricModel
 import com.neo.lingxumusic.viewmodel.playMusic.PlayMusicViewModel
+import dev.omkartenkale.explodable.Explodable
+import dev.omkartenkale.explodable.ExplosionAnimationSpec
+import dev.omkartenkale.explodable.rememberExplosionController
 import kotlin.math.abs
 import kotlin.math.min
 
@@ -112,6 +118,7 @@ private fun LyricPartList() {
     // 主句索引：静止时等于 curIndex；切句动画期间保持旧值，动画结束再对齐
     var displayedIndex by remember { mutableIntStateOf(-1) }  // 当前显示的歌词索引
     val animState = remember { Animatable(0f) }               // 动画进度 0→1
+    val explosionController = rememberExplosionController()
 
     //如果暂停再播放，垂直索引和动画
     LaunchedEffect(MusicPlayController.isPlaying()) {
@@ -119,7 +126,19 @@ private fun LyricPartList() {
             animState.stop()
             displayedIndex = curIndex
             animState.snapTo(0f)
+            explosionController.reset()
         }
+    }
+
+    // 歌词切换动画开始播放时触发爆炸
+    LaunchedEffect(animState.value > 0f) {
+        explosionController.reset() //重置爆炸控制器
+        //等待两个帧的时间，库内部需要先截取要爆炸的内容（截屏）
+        withFrameNanos { }
+        withFrameNanos { }
+        //触发真正的爆炸动画
+        explosionController.explode()
+
     }
 
     //主要在歌词索引变化时执行动画，行内歌词颜色变化时不会引起动画
@@ -168,6 +187,7 @@ private fun LyricPartList() {
 
         displayedIndex = curIndex   // 动画完成后更新显示索引
         animState.snapTo(0f)        // 重置动画状态
+        explosionController.reset()
     }
 
     Column(
@@ -199,24 +219,24 @@ private fun LyricPartList() {
                 )
             } //动画播放中
             else if (displayedIndex in lyricList.indices) {
-                // 当前句向上淡出
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .graphicsLayer {
-                            alpha = 1f - animState.value
-                            scaleX = 1f - animState.value * 0.15f
-                            scaleY = 1f - animState.value * 0.15f
-                            translationY = -112.cdp.toPx() * animState.value
-                        },
-                    contentAlignment = Alignment.Center,
-                ) {
-                    LyricPartItem(
-                        index = displayedIndex,
-                        lyricModel = lyricList[displayedIndex],
-                        viewModel = viewModel,
-                        isMain = true,
-                    )
+                // 当前句爆炸散开
+                key(displayedIndex) { //当 displayedIndex 变化时，强制销毁旧的 Explodable 组件并创建一个全新的组件
+                    Explodable(
+                        modifier = Modifier.wrapContentSize(),
+                        controller = explosionController,
+                        animationSpec = ExplosionAnimationSpec(
+                            shakeDurationMs = 0,
+                            explosionDurationMs = 300,
+                            explosionPower = 5f,
+                        ),
+                    ) {
+                        LyricPartItem(
+                            index = displayedIndex,
+                            lyricModel = lyricList[displayedIndex],
+                            viewModel = viewModel,
+                            isMain = true,
+                        )
+                    }
                 }
             }
         }
