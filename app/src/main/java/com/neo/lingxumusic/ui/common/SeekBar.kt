@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
@@ -53,6 +54,7 @@ val circlePaint = Paint().apply {
 @Composable
 fun SeekBar(
     progress: Int = 0,
+    enabled: Boolean = true,
     seeking: (Int) -> Unit = {},
     seekTo: (Int) -> Unit = {},
     modifier: Modifier = Modifier
@@ -80,7 +82,10 @@ fun SeekBar(
     Canvas(modifier = modifier
         .fillMaxWidth()
         .height(80.cdp)
-        .pointerInput(Unit) {
+        .alpha(if (enabled) 1f else 0.4f)
+        .then(
+            //根据能否滑动判断是否可以监听点击事件
+            if (enabled) Modifier.pointerInput(Unit) {
             awaitEachGesture { //等待每一次，而不是之前awaitPointerEventScope只处理一次
                 while (true) {
                         val event: PointerEvent = awaitPointerEvent(PointerEventPass.Final)
@@ -118,7 +123,8 @@ fun SeekBar(
                     }
                 }
             }
-        }) {
+        } else Modifier)
+        ) {
         //更新了全局 width/height
         width = drawContext.size.width
         height = drawContext.size.height

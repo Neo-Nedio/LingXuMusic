@@ -241,6 +241,7 @@ private fun LyricItem(index: Int, lyricModel: LyricModel, viewModel: PlayMusicVi
             Box(
                 modifier = Modifier
                     .clickable(
+                        enabled = MusicPlayController.isSeekable,
                         interactionSource = remember { MutableInteractionSource() },
                         indication = null
                     ) {

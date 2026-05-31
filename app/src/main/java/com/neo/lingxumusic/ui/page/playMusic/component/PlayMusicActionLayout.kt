@@ -131,6 +131,7 @@ private fun ProgressLayout() {
         //进度条
         SeekBar(
             progress = MusicPlayController.progress,
+            enabled = MusicPlayController.isSeekable,
             seeking = { MusicPlayController.seeking(it) },
             seekTo = { MusicPlayController.seekTo(it) },
             modifier = Modifier.weight(1f)
