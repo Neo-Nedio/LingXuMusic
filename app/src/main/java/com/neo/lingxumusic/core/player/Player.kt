@@ -1,7 +1,6 @@
 package com.neo.lingxumusic.core.player
 
 import android.media.MediaPlayer
-import com.neo.lingxumusic.core.MusicPlayController
 import com.neo.lingxumusic.core.player.event.PauseSongEvent
 import com.neo.lingxumusic.core.player.event.PlaySongEvent
 import com.neo.lingxumusic.hilt.entrypoint.EntryPointFinder
@@ -61,7 +60,7 @@ object Player : IPlayer,
     }
 
     //监听器管理
-    fun addListener(listener: MusicPlayController) {
+    fun addListener(listener: IPlayerListener) {
         mListeners.add(listener)
     }
     fun removeListener(listener: IPlayerListener) {

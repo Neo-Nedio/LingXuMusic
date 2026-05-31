@@ -51,8 +51,10 @@ private fun MiddleActionLayout() {
         viewModel.songCommentResult = null //先把原评论置为空，防止新评论没加载出来之前受原数据影响
         viewModel.getSongComment(MusicPlayController.songList[MusicPlayController.curIndex])
         //先把原歌词为空，防止新歌词没加载出来之前受原数据影响
-        viewModel.lyricResult = null;
+        viewModel.lyricResult.value = null
         viewModel.lyricModelList.clear()
+        viewModel.curLyricIndex = -1
+        viewModel.curPlayPosition = 0
         viewModel.getLyric(MusicPlayController.songList[MusicPlayController.curIndex])
     }
 

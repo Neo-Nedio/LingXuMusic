@@ -37,9 +37,9 @@ object RetrofitClientModule {
         }
 
         val builder = OkHttpClient.Builder().apply {
-            writeTimeout(30, TimeUnit.SECONDS)   // 写入超时 30秒
-            readTimeout(30, TimeUnit.SECONDS)    // 读取超时 30秒
-            connectTimeout(30, TimeUnit.SECONDS) // 连接超时 30秒
+            writeTimeout(10, TimeUnit.SECONDS)   // 写入超时 10秒
+            readTimeout(10, TimeUnit.SECONDS)    // 读取超时 10秒
+            connectTimeout(10, TimeUnit.SECONDS) // 连接超时 10秒
             addInterceptor(AuthInterceptor())
             addInterceptor(loggingInterceptor)   // 添加日志拦截器
         }

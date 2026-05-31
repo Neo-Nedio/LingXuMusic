@@ -1,10 +1,14 @@
 package com.neo.lingxumusic.ui.page.playMusic.component
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -56,9 +60,22 @@ import kotlin.math.abs
 
 @Composable
 fun DiskPagers() {
-    DiskRoundBackground()  // 底层：半透明圆形背景
-    DiskPager()  // 中层：唱片轮播
-    DiskNeedle()           // 顶层：唱针
+    val viewModel: PlayMusicViewModel = hiltViewModel()
+    AnimatedVisibility(
+        visibleState = remember { MutableTransitionState(true) }
+            .apply { targetState = !viewModel.showLyric },
+        enter = fadeIn(),
+        exit = fadeOut()
+    ) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.TopCenter
+        ) {
+            DiskRoundBackground()  // 底层：半透明圆形背景
+            DiskPager()  // 中层：唱片轮播
+            DiskNeedle()           // 顶层：唱针
+        }
+    }
 }
 
 // 半透明圆形背景

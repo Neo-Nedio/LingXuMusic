@@ -152,13 +152,9 @@ fun PlayMusicContent(scope: CoroutineScope) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .weight(1f),
-                    contentAlignment = Alignment.TopCenter
                 ) {
-                    if (viewModel.showLyric) {
-                        DiskPagers()
-                    } else {
-                        Lyric()
-                    }
+                    DiskPagers()
+                    Lyric()
                 }
 
                 //底部区域
