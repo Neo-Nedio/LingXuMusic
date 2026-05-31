@@ -144,6 +144,15 @@ private fun LyricList( lyricHeight: Int) {
         }
     }
 
+    // 打开歌词页时，立即滚动到当前句
+    LaunchedEffect(viewModel.showLyric) {
+        if (!viewModel.showLyric) return@LaunchedEffect
+        val index = viewModel.curLyricIndex
+        if (index >= 0) {
+            lazyListState.animateScrollToItem(index)
+        }
+    }
+
     //歌词索引变化，自动滚动
     LaunchedEffect(viewModel.curLyricIndex) {
         val index = viewModel.curLyricIndex
