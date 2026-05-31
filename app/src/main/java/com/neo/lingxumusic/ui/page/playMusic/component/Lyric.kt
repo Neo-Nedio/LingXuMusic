@@ -183,6 +183,16 @@ private fun LyricItem(index: Int, lyricModel: LyricModel, viewModel: PlayMusicVi
     Column(
         modifier = Modifier
             .fillMaxWidth()
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null
+            ) {
+                MusicPlayController
+                    .seekToPosition(
+                        lyricModel.words?.firstOrNull()?.startTime?.toInt()
+                            ?: lyricModel.time.toInt()
+                    )
+            }
             .padding(16.cdp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally

@@ -115,6 +115,15 @@ object MusicPlayController  : IPlayerListener {
         seeking = false                          // 释放锁
     }
 
+    //跳转到指定播放位置（毫秒），用于歌词点击等场景
+    fun seekToPosition(positionMs: Int) {
+        if (totalDuring > 0) {
+            seekTo((positionMs * 100L / totalDuring).toInt().coerceIn(0, 100))
+        } else {
+            Player.seekTo(positionMs.coerceAtLeast(0))
+        }
+    }
+
     //判断某个歌曲是否正在播放
     fun isPlaying(song: Song) = songList.getOrNull(curIndex)?.hash == song.hash
 
