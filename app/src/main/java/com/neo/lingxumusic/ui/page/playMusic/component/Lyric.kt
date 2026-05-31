@@ -24,8 +24,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import kotlin.math.abs
 import androidx.compose.ui.Modifier
@@ -131,11 +133,28 @@ private fun LyricList( lyricHeight: Int) {
 
     //滚动阈值
     val scrollThresholdPx = 150.cdp.toPx
+    var seekReleased by remember { mutableStateOf(false) }
+
+    // 监听 isSeeking true→false，下次索引变化时强制滚动
+    LaunchedEffect(Unit) {
+        var wasSeeking = MusicPlayController.isSeeking
+        snapshotFlow { MusicPlayController.isSeeking }.collect { seeking ->
+            if (wasSeeking && !seeking) seekReleased = true
+            wasSeeking = seeking
+        }
+    }
 
     //歌词索引变化，自动滚动
     LaunchedEffect(viewModel.curLyricIndex) {
         val index = viewModel.curLyricIndex
         if (index < 0) return@LaunchedEffect
+
+        //进度条移动时，不管屏幕所在位置位置，强制移动到歌词的位置
+        if (seekReleased) {
+            lazyListState.animateScrollToItem(index)
+            seekReleased = false
+            return@LaunchedEffect
+        }
 
         //计算lazyColumn区域中心点
         val layoutInfo = lazyListState.layoutInfo

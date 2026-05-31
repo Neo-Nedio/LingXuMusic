@@ -28,7 +28,7 @@ object MusicPlayController  : IPlayerListener {
     var totalDuringStr by mutableStateOf("00:00") // 总时长
 
     private var totalDuring = 0                   // 总时长（毫秒）
-    private var seeking = false                   // 是否正在拖动进度条
+    var isSeeking by mutableStateOf(false)        // 是否正在拖动进度条（Compose 可观察）
     private var playing by mutableStateOf(false)  // 是否正在播放，onStatusChanged()维护
 
     var playMode by mutableStateOf(AppGlobalData.playMode)
@@ -97,7 +97,7 @@ object MusicPlayController  : IPlayerListener {
 
     // 拖动中
     fun seeking(progress: Int) {
-        seeking = true                           // 标记正在拖动
+        isSeeking = true                           // 标记正在拖动
         this.progress = progress                 // 更新进度百分比（0-100）
         if(totalDuring != 0) {
             // 根据拖动进度计算当前时间
@@ -112,7 +112,7 @@ object MusicPlayController  : IPlayerListener {
         if (totalDuring != 0) {
             Player.seekTo(progress * totalDuring / 100)  // 移动播放器播放到的地方
         }
-        seeking = false                          // 释放锁
+        isSeeking = false                          // 释放锁
     }
 
     //跳转到指定播放位置（毫秒），用于歌词点击等场景
@@ -205,7 +205,7 @@ object MusicPlayController  : IPlayerListener {
 
     //进度更新回调
     override fun onProgress(totalDuring: Int, currentPosition: Int, percentage: Int) {
-        if(!seeking) { // 不在拖动状态才更新
+        if(!isSeeking) { // 不在拖动状态才更新
             this.totalDuring = totalDuring
             totalDuringStr = StringUtil.formatMilliseconds(totalDuring)
             curPositionStr = StringUtil.formatMilliseconds(currentPosition)
