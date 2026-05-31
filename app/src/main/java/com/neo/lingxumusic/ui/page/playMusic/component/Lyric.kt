@@ -1,6 +1,9 @@
 package com.neo.lingxumusic.ui.page.playMusic.component
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -33,6 +36,7 @@ import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.font.FontWeight
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -43,6 +47,7 @@ import com.neo.lingxumusic.utils.cdp
 import com.neo.lingxumusic.utils.csp
 import com.neo.lingxumusic.utils.transformDp
 import com.neo.lingxumusic.viewmodel.playMusic.LyricModel
+import com.neo.lingxumusic.viewmodel.playMusic.LyricWordModel
 import com.neo.lingxumusic.viewmodel.playMusic.PlayMusicViewModel
 
 @Composable
@@ -172,6 +177,9 @@ private fun LyricList( lyricHeight: Int) {
 //歌词
 @Composable
 private fun LyricItem(index: Int, lyricModel: LyricModel, viewModel: PlayMusicViewModel) {
+    val activeColor = AppColorsProvider.current.primary
+    val inactiveColor = Color.White
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -179,19 +187,153 @@ private fun LyricItem(index: Int, lyricModel: LyricModel, viewModel: PlayMusicVi
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        lyricModel.lyric?.let {
-            Text(
-                text = it,
+        val words = lyricModel.words //一行歌词的每个字
+        if (!words.isNullOrEmpty()) {
+            //再取出完整的一行歌词
+            val text = words.joinToString("") { it.text }
+            val textStyle = TextStyle(
                 fontSize = 32.csp,
                 fontWeight = FontWeight.Medium,
-                color = if (viewModel.curLyricIndex == index) {
-                    AppColorsProvider.current.primary
-                } else {
-                    Color.White
-                },
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Center
             )
+            Box(
+                modifier = Modifier.fillMaxWidth(),
+                contentAlignment = Alignment.Center,
+            ) {
+                when {
+                    //如果不是当前播放的歌词，显示白色
+                    index < viewModel.curLyricIndex -> {
+                        Text(text = text, color = inactiveColor, style = textStyle)
+                    }
+                    index > viewModel.curLyricIndex -> {
+                        Text(text = text, color = inactiveColor, style = textStyle)
+                    }
+                    //当前播放的歌词
+                    else -> {
+                        val endFraction = animatedBrushEndFraction(
+                            words, //拆分的一行歌词（包含参数）
+                            lyricModel.time,
+                            viewModel.curPlayPosition,
+                        )
+                        Text(
+                            text = text, //完整的一行歌词
+                            style = textStyle.merge(
+                                TextStyle(
+                                    brush = Brush.horizontalGradient(
+                                        colorStops = arrayOf(
+                                            0f to activeColor,           // 起点：高亮色
+                                            endFraction to activeColor,  // 终点前：高亮色
+                                            endFraction to inactiveColor,// 终点后：白色
+                                            1f to inactiveColor          // 结尾：白色
+                                        ),
+                                    ),
+                                ),
+                            ),
+                        )
+                    }
+                }
+            }
+        } else {
+            //如果无法得到一行的每个字，就按原来的一行行显示
+            lyricModel.lyric?.let {
+                Text(
+                    text = it,
+                    fontSize = 32.csp,
+                    fontWeight = FontWeight.Medium,
+                    color = if (viewModel.curLyricIndex == index) {
+                        activeColor
+                    } else {
+                        inactiveColor
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center
+                )
+            }
         }
     }
+}
+
+//计算渐变终点
+@Composable
+private fun animatedBrushEndFraction(
+    words: List<LyricWordModel>,
+    lineStartTime: Long,
+    playPosition: Int,
+): Float {
+    //累加每个字的长度
+    val totalChars = words.sumOf { it.text.length }.coerceAtLeast(1)
+    var fraction = 0f
+    for (word in words) {
+        // 计算每个字的权重(字的长度占总字数的比例)
+        val weight = word.text.length.toFloat() / totalChars
+        //权重 * 动画值(这样当一个字的动画值到1后，只是根据权重沾满相应的字)
+        fraction += weight * animatedWordProgress(word, lineStartTime, playPosition)
+    }
+    //限制返回值范围
+    return fraction.coerceIn(0f, 1f)
+}
+
+/**
+ * 单字：delay = startTime - 整句 startTime，duration = 该字 duration。
+ * 行切入时用当前 playPosition 校准，避免 UI 切换晚于音频导致字幕滞后。
+ */
+@Composable
+private fun animatedWordProgress(
+    word: LyricWordModel, //单个字的数据（文字、开始时间、持续时间）
+    lineStartTime: Long, //整行歌词的开始时间（毫秒）
+    playPosition: Int, //当前播放位置（毫秒）
+): Float {
+    // 动画进度值，每个字独立，当字开始时间变化时重新创建
+    val progress = remember(word.startTime) { Animatable(0f) }
+    // 锁定进入当前行时的播放位置，避免因 playPosition 持续更新而反复触发动画
+    //用户可能不是在整行开始的瞬间进入，可能是在播放过程中才打开歌词页面。entryPosition 锁定了进入时刻，以此作为动画时间轴的起点，确保动画与当前播放位置同步
+    val entryPosition = remember { mutableIntStateOf(playPosition) }
+    // 该字的结束时间 = 开始时间 + 持续时间
+    val endTime = word.startTime + word.duration
+
+    //切换到不同行、或同一行的不同字时 ， 切换到不同行时    执行
+    LaunchedEffect(word.startTime, lineStartTime) {
+        //当前播放位置
+        val anchor = entryPosition.intValue
+        when {
+            // 情况1：已经错过了这个字
+            // 条件：进入时的位置 ≥ 该字的结束时间
+            // 处理：直接跳到 100% 完成，无动画
+            anchor >= endTime -> progress.snapTo(1f)
+            // 情况2：在该字的播放区间中间进入
+            // 条件：进入时的位置在该字的时间范围内
+            // 处理：从当前进度开始，动画到 100%
+            anchor >= word.startTime -> {
+                // 计算当前进度（0f 到 1f）
+                val start = ((anchor - word.startTime).toFloat() / word.duration)
+                    .coerceIn(0f, 1f)
+                progress.snapTo(start)// 立即跳转到当前进度
+                //执行动画到对应位置
+                progress.animateTo(
+                    targetValue = 1f,
+                    animationSpec = tween(
+                        // 剩余时间
+                        durationMillis = (endTime - anchor).toInt().coerceAtLeast(1),
+                        easing = LinearEasing,
+                    ),
+                )
+            }
+            // 情况3：正常播放（还没到这个字）
+            // 条件：进入时的位置在该字开始时间之前
+            // 处理：延迟等待后，从 0% 动画到 100%
+            else -> {
+                progress.snapTo(0f) // 起始进度为 0
+                progress.animateTo(
+                    targetValue = 1f,
+                    animationSpec = tween(
+                        // 字的持续时间
+                        durationMillis = word.duration.coerceAtLeast(1),
+                        // 等待时间
+                        delayMillis = (word.startTime - anchor).toInt().coerceAtLeast(0),
+                        easing = LinearEasing,
+                    ),
+                )
+            }
+        }
+    }
+    return progress.value
 }

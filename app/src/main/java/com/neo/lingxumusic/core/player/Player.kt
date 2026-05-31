@@ -192,7 +192,7 @@ object Player : IPlayer,
                 setProgress()                     // 5. 更新进度
             }
         }.apply {
-            mTimer.schedule(this, 0, 1000)        // 6. 立即执行，然后每秒执行一次
+            mTimer.schedule(this, 0, 100)         // 6. 立即执行，然后每 100ms 更新一次
         }
     }
 
