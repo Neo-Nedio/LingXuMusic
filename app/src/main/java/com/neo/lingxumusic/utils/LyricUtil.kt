@@ -9,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import com.neo.lingxumusic.core.MusicPlayController
 import com.neo.lingxumusic.model.LyricResult
 import com.neo.lingxumusic.viewmodel.playMusic.LyricModel
 import com.neo.lingxumusic.viewmodel.playMusic.LyricWordModel
@@ -168,11 +169,27 @@ object LyricUtil {
         // 锁定进入当前行时的播放位置，避免因 playPosition 持续更新而反复触发动画
         //用户可能不是在整行开始的瞬间进入，可能是在播放过程中才打开歌词页面。entryPosition 锁定了进入时刻，以此作为动画时间轴的起点，确保动画与当前播放位置同步
         val entryPosition = remember { mutableIntStateOf(playPosition) }
+        val isPlaying = MusicPlayController.isPlaying()
         // 该字的结束时间 = 开始时间 + 持续时间
         val endTime = word.startTime + word.duration
 
-        //切换到不同行、或同一行的不同字时 ， 切换到不同行时    执行
-        LaunchedEffect(word.startTime, lineStartTime) {
+        //切换到不同行、或同一行的不同字时 ， 切换到不同行时 ，播放状态改变时  执行
+        LaunchedEffect(word.startTime, lineStartTime, isPlaying) {
+            //当不在播放时，停止文字动画，并移向对应进度（防止微小误差）
+            if (!isPlaying) {
+                progress.stop()
+                progress.snapTo(
+                    when {
+                        playPosition >= endTime -> 1f
+                        playPosition <= word.startTime -> 0f
+                        else -> ((playPosition - word.startTime).toFloat() / word.duration)
+                            .coerceIn(0f, 1f)
+                    }
+                )
+                return@LaunchedEffect
+            }
+
+            entryPosition.intValue = playPosition
             //当前播放位置
             val anchor = entryPosition.intValue
             when {

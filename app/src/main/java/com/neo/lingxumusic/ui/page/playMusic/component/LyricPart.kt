@@ -113,6 +113,15 @@ private fun LyricPartList() {
     var displayedIndex by remember { mutableIntStateOf(-1) }  // 当前显示的歌词索引
     val animState = remember { Animatable(0f) }               // 动画进度 0→1
 
+    //如果暂停再播放，垂直索引和动画
+    LaunchedEffect(MusicPlayController.isPlaying()) {
+        if (!MusicPlayController.isPlaying()) {
+            animState.stop()
+            displayedIndex = curIndex
+            animState.snapTo(0f)
+        }
+    }
+
     //主要在歌词索引变化时执行动画，行内歌词颜色变化时不会引起动画
     LaunchedEffect(curIndex, lyricList.size) {
         // 1. 无效情况：清除状态

@@ -247,7 +247,7 @@ private fun LyricItem(index: Int, lyricModel: LyricModel, viewModel: PlayMusicVi
                     ) {
                         MusicPlayController
                             .seekToPosition(
-                                lyricModel.words?.firstOrNull()?.startTime?.toInt()
+                                lyricModel.words.firstOrNull()?.startTime?.toInt()
                                     ?: lyricModel.time.toInt()
                             )
                     },
