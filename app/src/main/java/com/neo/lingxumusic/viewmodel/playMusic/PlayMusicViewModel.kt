@@ -1,6 +1,5 @@
 package com.neo.lingxumusic.viewmodel.playMusic
 
-import android.util.Log
 import androidx.compose.animation.core.Animatable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -95,10 +94,7 @@ class PlayMusicViewModel @Inject constructor(private val api: SongApi) : BaseVie
                     //处理数据
                     lyricModelList.clear()
                     lyricModelList.addAll(LyricUtil.parse(result))
-                    //计算当前播放位置的歌词索引
-                    curLyricIndex = lyricModelList.indexOfFirst { lyricModel ->
-                        curPlayPosition < lyricModel.time //找到第一个开始时间大于播放时间的位置
-                    } - 1 //得到上一个歌词的索引（当前正在唱的歌词）
+                    updateCurLyricIndex(curPlayPosition)
                 } else {
                     lyricResult.value = ViewState.Empty
                 }
@@ -119,13 +115,28 @@ class PlayMusicViewModel @Inject constructor(private val api: SongApi) : BaseVie
     ) {
         //更新当前播放位置
         curPlayPosition = currentPosition
-        //计算当前歌词索引
-        curLyricIndex = lyricModelList.indexOfFirst {
-            currentPosition < it.time //当前时间小于歌词的开始时间
-        } - 1 //得到上一个歌词的索引（当前正在唱的歌词）
-        //当播放位置超过最后一句歌词的时间时
-        if(currentPosition > (lyricModelList.lastOrNull()?.time ?: 0)) {
-            curLyricIndex = lyricModelList.size - 1
+        updateCurLyricIndex(currentPosition)
+    }
+
+    private fun updateCurLyricIndex(currentPosition: Int) {
+        //校验
+        if (lyricModelList.isEmpty() || currentPosition < lyricModelList.first().time) {
+            curLyricIndex = -1
+            return
+        }
+        //判断当前时间是否小于结束时间(播放时间+总时长)
+        // 因为结束时间与下一句开始时间要间隔，用下一句开始时间判断有延迟
+        curLyricIndex = lyricModelList.indices.indexOfFirst { i ->
+            val lyric = lyricModelList[i]
+            val endTime = if (lyric.duration > 0) {
+                lyric.time + lyric.duration
+            } else {
+                lyricModelList.getOrNull(i + 1)?.time ?: Long.MAX_VALUE
+            }
+            currentPosition < endTime
+        }
+        if (curLyricIndex < 0) {
+            curLyricIndex = lyricModelList.lastIndex
         }
     }
 
