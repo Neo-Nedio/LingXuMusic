@@ -27,6 +27,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import kotlin.math.abs
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.BlendMode
@@ -45,6 +46,7 @@ import com.neo.lingxumusic.core.viewState.ViewStateComponent
 import com.neo.lingxumusic.ui.theme.AppColorsProvider
 import com.neo.lingxumusic.utils.cdp
 import com.neo.lingxumusic.utils.csp
+import com.neo.lingxumusic.utils.toPx
 import com.neo.lingxumusic.utils.transformDp
 import com.neo.lingxumusic.viewmodel.playMusic.LyricModel
 import com.neo.lingxumusic.viewmodel.playMusic.LyricWordModel
@@ -127,12 +129,28 @@ private fun LyricList( lyricHeight: Int) {
     val viewModel: PlayMusicViewModel = hiltViewModel()
     val lazyListState = rememberLazyListState()
 
+    //滚动阈值
+    val scrollThresholdPx = 150.cdp.toPx
+
     //歌词索引变化，自动滚动
     LaunchedEffect(viewModel.curLyricIndex) {
-        if (viewModel.curLyricIndex >= 0) {
-            lazyListState.animateScrollToItem(
-                viewModel.curLyricIndex,
-            )
+        val index = viewModel.curLyricIndex
+        if (index < 0) return@LaunchedEffect
+
+        //计算lazyColumn区域中心点
+        val layoutInfo = lazyListState.layoutInfo
+        //viewportStartOffset	可视区域顶部相对于列表内容的位置（像素）
+        //viewportEndOffset	可视区域底部相对于列表内容的位置（像素）
+        //viewportCenter	可视区域的中心点位置
+        val viewportCenter = (layoutInfo.viewportStartOffset + layoutInfo.viewportEndOffset) / 2f
+
+        // 当前句或上一句仍在中心 ±150cdp 内时才跟随，避免用户手动滑动后被拉回
+        val shouldScroll = layoutInfo.visibleItemsInfo.any { item ->
+            item.index in maxOf(0, index - 1)..index &&
+                abs(item.offset + item.size / 2f - viewportCenter) <= scrollThresholdPx
+        }
+        if (shouldScroll) {
+            lazyListState.animateScrollToItem(index)
         }
     }
 
