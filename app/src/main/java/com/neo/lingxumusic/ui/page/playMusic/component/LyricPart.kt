@@ -39,6 +39,7 @@ import com.neo.lingxumusic.utils.csp
 import com.neo.lingxumusic.viewmodel.playMusic.LyricModel
 import com.neo.lingxumusic.viewmodel.playMusic.PlayMusicViewModel
 import kotlin.math.abs
+import kotlin.math.min
 
 @Composable
 fun LyricPart() {
@@ -136,13 +137,23 @@ private fun LyricPartList() {
         }
 
         // 5. 逐句前进（正常播放）：播放切换动画
+        val prevLyric = lyricList[displayedIndex]
+        val nextLyric = lyricList[curIndex]
+        val prevEndTime = if (prevLyric.duration > 0) {
+            prevLyric.time + prevLyric.duration
+        } else {
+            lyricList.getOrNull(displayedIndex + 1)?.time ?: nextLyric.time
+        }
+
+        var animDuration = (nextLyric.time - prevEndTime).toInt().coerceAtLeast(1)
+        animDuration = min(animDuration,500)
         animState.snapTo(0f)
         animState.animateTo(
             targetValue = 1f,
             animationSpec = keyframes {
-                durationMillis = 800
+                durationMillis = animDuration
                 0f at 0
-                1f at 800
+                1f at animDuration
             },
         )
 
