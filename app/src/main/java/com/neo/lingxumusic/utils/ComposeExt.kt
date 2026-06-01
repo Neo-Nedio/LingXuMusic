@@ -4,6 +4,7 @@ import android.content.res.Resources
 import android.util.TypedValue
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.sp
+import com.neo.lingxumusic.core.AppConfig.APP_DESIGN_WIDTH
 
 // 缓存屏幕信息，避免重复获取
 private val screenWidthDp by lazy {
@@ -11,8 +12,6 @@ private val screenWidthDp by lazy {
     Resources.getSystem().displayMetrics.widthPixels / Resources.getSystem().displayMetrics.density
 }
 
-//设计稿宽度
-private const val designWidth = 750f
 
 /**
  * compose屏幕适配单位
@@ -20,7 +19,7 @@ private const val designWidth = 750f
 val Number.cdp
     get() = Dp(
         toFloat() * //toFloat是Number本身，有上下文
-                screenWidthDp / designWidth
+                screenWidthDp / APP_DESIGN_WIDTH
     )
 
 val Dp.toPx
@@ -34,7 +33,7 @@ val Dp.toPx
  * compose屏幕适配单位（字体专用）
  */
 val Number.csp
-    get() = (toFloat() * screenWidthDp / designWidth).sp
+    get() = (toFloat() * screenWidthDp / APP_DESIGN_WIDTH).sp
 
 
 /**
