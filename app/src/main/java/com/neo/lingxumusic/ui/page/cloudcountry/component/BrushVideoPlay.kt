@@ -22,6 +22,7 @@ import androidx.compose.ui.composed
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.neo.lingxumusic.R
 import com.neo.lingxumusic.core.VideoPlayController
 import com.neo.lingxumusic.core.VideoPlayerState
@@ -33,6 +34,8 @@ import com.neo.lingxumusic.ui.common.CommonNetworkImage
 import com.neo.lingxumusic.ui.common.SeekBar
 import com.neo.lingxumusic.utils.ScreenUtil
 import com.neo.lingxumusic.utils.cdp
+import com.neo.lingxumusic.utils.showToast
+import com.neo.lingxumusic.viewmodel.cloudcountry.CloudCountryViewModel
 import kotlinx.coroutines.launch
 
 //视频播放页面（单个视频播放器，支持上下滑动切换视频）
@@ -70,6 +73,7 @@ private fun Modifier.videoDragDetect(
     itemCount: Int,                      // 总数量
     onSwitchVideo: (Int) -> Unit,        // 切换视频回调
 ) = composed {
+    val viewModel: CloudCountryViewModel = hiltViewModel()
     val scope = rememberCoroutineScope()
     var totalDragAmount = remember { 0f }                        // 累计拖拽距离
     val threshold = remember { ScreenUtil.getScreenHeight() / 8f }  // 切换阈值（屏幕高度 / 8）
@@ -83,17 +87,31 @@ private fun Modifier.videoDragDetect(
                 // 拖拽结束，判断是否需要切换视频
                 var newIndex = curIndex
                 if (totalDragAmount < 0) {
-                    // 向上滑（负值）
+                    // 向上滑（负值）→ 下一个
                     if (totalDragAmount < -threshold) {
-                        newIndex = (curIndex + 1).coerceAtMost(itemCount - 1) // 切换到下一个
-                        if (newIndex != curIndex) {
+                        if (curIndex >= itemCount - 1) {
+                            viewModel.loadMoreBrushVideo(
+                                onSameData = {
+                                    showToast("暂时没有更多视频了，请稍后再试")
+                                },
+                                onAdded = { startIndex ->
+                                    onSwitchVideo(startIndex)
+                                    scope.launch {
+                                        lazyListState.animateScrollToItem(startIndex)
+                                    }
+                                },
+                            )
+                        } else {
+                            newIndex = curIndex + 1
                             onSwitchVideo(newIndex)
                         }
                     }
                 } else if (totalDragAmount > threshold) {
-                    // 向下滑（正值）
-                    newIndex = 0.coerceAtLeast(curIndex - 1)  // 切换到上一个
-                    if (newIndex != curIndex) {
+                    // 向下滑（正值）→ 上一个
+                    if (curIndex == 0) {
+                        showToast("已经是第一个视频了")
+                    } else {
+                        newIndex = curIndex - 1
                         onSwitchVideo(newIndex)
                     }
                 }
