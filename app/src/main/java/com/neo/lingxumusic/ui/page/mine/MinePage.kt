@@ -270,7 +270,6 @@ private fun CollapsingToolbarScope.ScrollHeader(
             modifier = Modifier
                 .graphicsLayer { alpha = bodyAlphaValue }
                 .padding(bottom = 12.cdp)
-                .height(174.cdp)
                 .mineCommonCard(),
             contentAlignment = Alignment.Center
         ) {
