@@ -1,4 +1,4 @@
-package com.neo.lingxumusic.ui.page.cloudcountry.component
+package com.neo.lingxumusic.ui.page.brush.component
 
 import android.graphics.SurfaceTexture
 import android.view.Surface

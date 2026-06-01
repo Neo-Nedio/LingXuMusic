@@ -1,4 +1,4 @@
-package com.neo.lingxumusic.ui.page.cloudcountry
+package com.neo.lingxumusic.ui.page.brush
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -21,7 +21,7 @@ import com.neo.lingxumusic.core.viewState.ViewStateComponent
 import com.neo.lingxumusic.core.viewState.listener.ComposeLifeCycleListener
 import com.neo.lingxumusic.model.displayPlayUrl
 import com.neo.lingxumusic.ui.common.CommonTopAppBar
-import com.neo.lingxumusic.ui.page.cloudcountry.component.BrushVideoPlay
+import com.neo.lingxumusic.ui.page.brush.component.BrushVideoPlay
 import com.neo.lingxumusic.viewmodel.cloudcountry.CloudCountryViewModel
 
 @Composable
@@ -69,7 +69,7 @@ fun CloudCountryPage(onToggleDrawer: () -> Unit) {
             modifier = Modifier
                 .fillMaxWidth()
                 .statusBarsPadding(),
-            title = "云村",
+            title = "刷刷",
             leftIconResId = R.drawable.ic_drawer_toggle,
             leftClick = onToggleDrawer,
             backgroundColor = Color.Transparent,

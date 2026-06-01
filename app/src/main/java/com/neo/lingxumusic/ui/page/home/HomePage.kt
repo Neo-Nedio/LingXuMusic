@@ -18,7 +18,7 @@ import com.neo.lingxumusic.R
 import com.neo.lingxumusic.core.MusicPlayController
 import com.neo.lingxumusic.ui.common.BottomNavigationBar
 import com.neo.lingxumusic.ui.common.BottomNavigationItem
-import com.neo.lingxumusic.ui.page.cloudcountry.CloudCountryPage
+import com.neo.lingxumusic.ui.page.brush.CloudCountryPage
 import com.neo.lingxumusic.ui.page.discovery.DiscoveryPage
 import com.neo.lingxumusic.ui.page.mine.MinePage
 import com.neo.lingxumusic.ui.page.permission.Permission
@@ -33,7 +33,7 @@ private val bottomNavigationItems = listOf(
     BottomNavigationItem("播客", R.drawable.ic_podcast),
     BottomNavigationItem("我的", R.drawable.ic_mine),
     BottomNavigationItem("k歌", R.drawable.ic_sing),
-    BottomNavigationItem("云村", R.drawable.ic_cloud_country),
+    BottomNavigationItem("刷刷", R.drawable.ic_cloud_country),
 )
 
 var selectedHomeTabIndex by mutableIntStateOf(2)
@@ -94,7 +94,7 @@ private fun Body(onToggleDrawer: () -> Unit) {
                 1 -> PodcastPage(onToggleDrawer)      // 播客页
                 2 -> MinePage(onToggleDrawer)         // 我的页
                 3 -> SingPage(onToggleDrawer)         // K歌页
-                4 -> CloudCountryPage(onToggleDrawer) // 云村页
+                4 -> CloudCountryPage(onToggleDrawer) // 刷刷页
             }
         }
 
