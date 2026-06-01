@@ -1,5 +1,6 @@
 package com.neo.lingxumusic.ui.page.home
 
+import android.Manifest
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
@@ -20,6 +21,7 @@ import com.neo.lingxumusic.ui.common.BottomNavigationItem
 import com.neo.lingxumusic.ui.page.cloudcountry.CloudCountryPage
 import com.neo.lingxumusic.ui.page.discovery.DiscoveryPage
 import com.neo.lingxumusic.ui.page.mine.MinePage
+import com.neo.lingxumusic.ui.page.permission.Permission
 import com.neo.lingxumusic.ui.page.podcast.PodcastPage
 import com.neo.lingxumusic.ui.page.sing.SingPage
 import com.neo.lingxumusic.ui.theme.AppColorsProvider
@@ -103,5 +105,8 @@ private fun Body(onToggleDrawer: () -> Unit) {
         ) {
             selectedHomeTabIndex = it
         }
+
+        //申请权限
+        Permission(Manifest.permission.POST_NOTIFICATIONS,"通知")
     }
 }

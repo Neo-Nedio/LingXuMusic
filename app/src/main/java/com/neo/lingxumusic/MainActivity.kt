@@ -17,7 +17,6 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.compose.rememberNavController
 import com.neo.lingxumusic.core.navigation.LingXuNavGraph
 import com.neo.lingxumusic.ui.page.home.component.HomeDrawer
-import com.neo.lingxumusic.utils.RequestNotificationPermission
 import com.neo.lingxumusic.ui.page.playMusic.PlayListSheet
 import com.neo.lingxumusic.ui.page.playMusic.PlayMusicPage
 import com.neo.lingxumusic.ui.page.playMusic.BottomMusicPlay
@@ -38,8 +37,6 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             AppTheme(themeTypeState.value) {
-                //申请权限，用于前台service
-                RequestNotificationPermission()
                 val navController = rememberNavController()
                 val drawerState = rememberDrawerState(DrawerValue.Closed)
                 ModalNavigationDrawer(
