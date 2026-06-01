@@ -22,6 +22,10 @@ import com.neo.lingxumusic.ui.theme.color.AppColors
 import com.neo.lingxumusic.ui.theme.color.palette.dark.DarkColorPalette
 import com.neo.lingxumusic.ui.theme.color.palette.light.BlueColorPalette
 import com.neo.lingxumusic.ui.theme.color.palette.light.DefaultColorPalette
+import com.neo.lingxumusic.ui.theme.color.palette.light.GreenColorPalette
+import com.neo.lingxumusic.ui.theme.color.palette.light.OriginColorPalette
+import com.neo.lingxumusic.ui.theme.color.palette.light.PurpleColorPalette
+import com.neo.lingxumusic.ui.theme.color.palette.light.YellowColorPalette
 
 // 夜间模式
 const val THEME_NIGHT = -1
@@ -31,6 +35,15 @@ const val THEME_DEFAULT = 0
 
 // 蓝色主题
 const val THEME_BLUE = 1
+
+// 绿色主题
+const val THEME_GREEN = 2
+// 橙色主题
+const val THEME_ORIGIN = 3
+// 紫色主题
+const val THEME_PURPLE = 4
+// 黄色主题
+const val THEME_YELLOW = 5
 
 /**
  * 主题状态
@@ -50,21 +63,27 @@ const val TWEEN_DURATION = 600
 @ReadOnlyComposable //标记这是一个只读的 Composable 函数，不产生任何副作用
 //判断当前是否处于深色模式，支持系统设置和用户手动选择两种方式
 fun isInDarkTheme(): Boolean {
-    return themeTypeState.value != THEME_BLUE && //用户主动选择蓝色主题就是蓝色主题
-            //没有选择则根据用户是否是暗色主题或者自己选择
-            (isSystemInDarkTheme() || themeTypeState.value == THEME_NIGHT)
+    return when (themeTypeState.value) {
+        THEME_NIGHT -> true                    // 强制深色
+        THEME_DEFAULT -> isSystemInDarkTheme() // 跟随系统
+        else -> false         // 默认以外全为白色主题
+    }
 }
 
 @Composable
 fun AppTheme(
     themeType: Int,           // 主题类型（0=默认，1=蓝色）
-    isDark: Boolean = isInDarkTheme(),  // 是否深色模式，默认跟随系统
     content: @Composable () -> Unit
 ) {
+    val isDark = isInDarkTheme()
 
     val targetColors = if (isDark) DarkColorPalette else {
         when (themeType) {
             THEME_BLUE -> BlueColorPalette    // 蓝色主题（浅色模式）
+            THEME_GREEN -> GreenColorPalette
+            THEME_ORIGIN -> OriginColorPalette
+            THEME_PURPLE -> PurpleColorPalette
+            THEME_YELLOW -> YellowColorPalette
             else -> DefaultColorPalette       // 默认主题（浅色模式）
         }
     }
