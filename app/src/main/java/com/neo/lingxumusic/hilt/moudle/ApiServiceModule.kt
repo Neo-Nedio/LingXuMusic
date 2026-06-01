@@ -6,6 +6,7 @@ import com.neo.lingxumusic.http.api.UserApi
 import com.neo.lingxumusic.http.api.VideoApi
 import com.neo.lingxumusic.core.AppConfig
 import com.neo.lingxumusic.hilt.RetrofitClient
+import com.neo.lingxumusic.http.api.RecommendApi
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -46,5 +47,13 @@ object ApiServiceModule {
         @RetrofitClientModule.KuGouRetrofitClient retrofit: RetrofitClient
     ): VideoApi {
         return retrofit.setBaseUrl(AppConfig.BASE_URL).create(VideoApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideRecommendApi(
+        @RetrofitClientModule.KuGouRetrofitClient retrofit: RetrofitClient
+    ): RecommendApi {
+        return retrofit.setBaseUrl(AppConfig.BASE_URL).create(RecommendApi::class.java)
     }
 }
