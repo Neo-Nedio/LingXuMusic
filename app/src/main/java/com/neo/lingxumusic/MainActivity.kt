@@ -44,6 +44,7 @@ class MainActivity : ComponentActivity() {
                 val drawerState = rememberDrawerState(DrawerValue.Closed)
                 ModalNavigationDrawer(
                     drawerState = drawerState,
+                    gesturesEnabled = false,
                     drawerContent = {
                         ModalDrawerSheet(
                             //占用90%屏幕
