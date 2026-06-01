@@ -67,6 +67,7 @@ import com.neo.lingxumusic.ui.common.DragToggleState
 import com.neo.lingxumusic.ui.common.FixHeadBackgroundDraggableBodyLayout
 import com.neo.lingxumusic.ui.common.rememberDragToggleState
 import com.neo.lingxumusic.ui.page.mine.component.MusicApplicationComponent
+import com.neo.lingxumusic.ui.page.mine.component.PlayListPlaceHolder
 import com.neo.lingxumusic.ui.page.mine.component.SongPlayListHelper
 import com.neo.lingxumusic.ui.page.mine.component.UserInfoComponent
 import com.neo.lingxumusic.ui.page.mine.component.UserPlaylistItem
@@ -84,6 +85,7 @@ import me.onebone.toolbar.CollapsingToolbarState
 import me.onebone.toolbar.CollapsingToolbarScaffold
 import me.onebone.toolbar.ScrollStrategy
 import me.onebone.toolbar.rememberCollapsingToolbarScaffoldState
+import kotlin.collections.get
 
 //todo 歌单和歌单内的歌曲默认一次加载30，要监听滚动加入数据
 
@@ -186,7 +188,6 @@ fun MinePage(onToggleDrawer: () -> Unit) {
     }
 }
 
-private var animateScrolling = false //是否正在执行 Tab 触发的自动滚动
 
 @Composable
 private fun Body(
@@ -198,11 +199,11 @@ private fun Body(
 ) {
     val density = LocalDensity.current
     val statusBarsTopPx = WindowInsets.statusBars.getTop(density)
-    // 粘性区域顶部位置 = 状态栏高度 + 100dp（用于判断 Tab 是否到达顶部）
-    val stickyPositionTop = statusBarsTopPx + 100.cdp.toPx
-    val toolbarMaxHeight = statusBarsTopPx.transformDp + 88.cdp + 300.cdp +  // 状态栏高度+标题栏高度+用户信息高度
+    // 粘性区域顶部位置 = 状态栏高度 + 顶部栏高度（用于判断 Tab 是否到达顶部）
+    val stickyPositionTop = statusBarsTopPx + STICKY_TAB_LAYOUT_HEIGHT.toPx
+    val toolbarMaxHeight = statusBarsTopPx.transformDp + STICKY_TAB_LAYOUT_HEIGHT + 300.cdp +  // 状态栏高度+标题栏高度+用户信息高度
             368.cdp +  // 音乐应用高度
-            194.cdp // 喜欢的歌单高度
+            186.cdp // 喜欢的歌单高度
     val toolbarMaxHeightPx = toolbarMaxHeight.toPx
 
     val toolbarScaffoldState = rememberCollapsingToolbarScaffoldState()
@@ -268,10 +269,20 @@ private fun CollapsingToolbarScope.ScrollHeader(
         Box(
             modifier = Modifier
                 .graphicsLayer { alpha = bodyAlphaValue }
+                .padding(bottom = 12.cdp)
+                .height(174.cdp)
                 .mineCommonCard(),
             contentAlignment = Alignment.Center
         ) {
-            UserPlaylistItem(viewModel.favoritePlayList,0.cdp)
+            if (viewModel.favoritePlayList != null) {
+                UserPlaylistItem(viewModel.favoritePlayList,0.cdp)
+            } else {
+                androidx.compose.material.Text(
+                    text = "暂时没有喜欢的歌单",
+                    color = AppColorsProvider.current.secondText,
+                    fontSize = 28.csp
+                )
+            }
         }
     }
 
@@ -304,35 +315,43 @@ private fun PlayList(
 
         // 创建歌单
         item {
-            PlaylistHeader(title = "创建歌单(${viewModel.selfCreatePlayList?.size ?: 0}个)")
+            PlaylistHeader(title = "创建歌单(${viewModel.selfCreatePlayList?.size})")
         }
 
-        //显示前 N-1 个歌单
-        items((viewModel.selfCreatePlayList?.size ?: 0).coerceAtLeast(1) - 1) {
-            UserPlaylistItem(viewModel.selfCreatePlayList!![it])
-        }
+        if ((viewModel.selfCreatePlayList?.size ?: 0) > 0) {
+            //显示前 N-1 个歌单
+            items(viewModel.selfCreatePlayList!!.size - 1) {
+                UserPlaylistItem(viewModel.selfCreatePlayList!![it])
+            }
 
-        // 创建歌单 footer
-        if (!viewModel.selfCreatePlayList.isNullOrEmpty()) {
+            // 创建歌单 footer
             item {
                 PlaylistFooter(viewModel.selfCreatePlayList!!.last())
+            }
+        } else {
+            item {
+                PlayListPlaceHolder(tip = "暂时没有创建的歌单")
             }
         }
 
         // 收藏歌单 header
         item {
-            PlaylistHeader(title = "收藏歌单(${viewModel.collectPlayList?.size ?: 0}个)")
+            PlaylistHeader(title = "收藏歌单(${viewModel.collectPlayList?.size ?: 0})")
         }
 
-        //显示前 N-1 个歌单
-        items((viewModel.collectPlayList?.size ?: 0).coerceAtLeast(1) - 1) {
-            UserPlaylistItem(viewModel.collectPlayList!![it])
-        }
+        if ((viewModel.collectPlayList?.size ?: 0) > 0) {
+            //显示前 N-1 个歌单
+            items(viewModel.collectPlayList!!.size - 1) {
+                UserPlaylistItem(viewModel.collectPlayList!![it])
+            }
 
-        // 收藏歌单 footer
-        if (!viewModel.collectPlayList.isNullOrEmpty()) {
+            // 收藏歌单 footer
             item {
                 PlaylistFooter(viewModel.collectPlayList!!.last())
+            }
+        } else {
+            item {
+                PlayListPlaceHolder(tip = "暂时没有收藏的歌单")
             }
         }
 
@@ -405,7 +424,7 @@ private fun StickyTabLayout(
 
     Surface(color = Color.Transparent) {
         // 折叠进度 > 0 时使用背景色，否则使用卡片色
-        val backgroundColor = if (state.progress > 0.01)
+        val backgroundColor = if (state.progress > 0.001)
             AppColorsProvider.current.background else AppColorsProvider.current.pure
 
         CommonTabLayout(
@@ -416,9 +435,8 @@ private fun StickyTabLayout(
                 indicatorPaddingBottom = 18.cdp, // 指示器底部内边距
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(100.cdp)
+                    .height(STICKY_TAB_LAYOUT_HEIGHT)
                     .background(backgroundColor)
-                    .padding(top = 12.cdp)
                     .graphicsLayer { alpha = bodyAlphaValue },
                 //绘制tab之间的分割线
                 tabItemDrawBehindBlock = { position ->
@@ -446,7 +464,7 @@ private fun StickyTabLayout(
                     // 滚动到收藏歌单区域
                     1 -> lazyListState.animateScrollToItem(
                         viewModel.collectPlayListHeaderIndex,
-                        -100.cdp.toPx.toInt() // 偏移量 -100dp，让内容不完全贴顶
+                        -STICKY_TAB_LAYOUT_HEIGHT.toPx.toInt() // 偏移量 -标题栏高度，让内容不完全贴顶
                     )
                     else -> lazyListState.animateScrollToItem(viewModel.songHelperIndex) // 滚动到歌单助手
                 }
@@ -543,4 +561,6 @@ fun Modifier.mineCommonCard() = composed {
 }
 
 
+private var animateScrolling = false //是否正在执行 Tab 触发的自动滚动
+private val STICKY_TAB_LAYOUT_HEIGHT = 88.cdp
 private val tabs = listOf("创建歌单", "收藏歌单", "歌单助手")
