@@ -57,16 +57,17 @@ fun SeekBar(
     enabled: Boolean = true,
     seeking: (Int) -> Unit = {},
     seekTo: (Int) -> Unit = {},
+    // 圆点半径
+    smallRadius: Float = 10f,
+    largeRadius: Float = 20f,
+    progressHeight: Float = 4f, //进度条高度
+    progressColor: Color = Color.LightGray,
+    circleColor: Color = Color.White,
     modifier: Modifier = Modifier
 ) {
     //画布尺寸
     var width by remember { mutableFloatStateOf(0f) }
     var height by remember { mutableFloatStateOf(0f) }
-    // 圆点半径
-    val smallRadius = 10f   // 未按下时半径 10px
-    val largeRadius = 20f   // 按下时半径 20px（变大突出反馈）
-    //进度条高度
-    val progressHeight = 4f
 
 
     //圆点是否被按下
@@ -79,16 +80,19 @@ fun SeekBar(
         mutableFloatStateOf(0f)
     }
 
+    progressPaint.color = progressColor
+    circlePaint.color = circleColor
+
     Canvas(modifier = modifier
         .fillMaxWidth()
-        .height(80.cdp)
         .alpha(if (enabled) 1f else 0.4f)
         .then(
             //根据能否滑动判断是否可以监听点击事件
             if (enabled) Modifier.pointerInput(Unit) {
             awaitEachGesture { //等待每一次，而不是之前awaitPointerEventScope只处理一次
                 while (true) {
-                        val event: PointerEvent = awaitPointerEvent(PointerEventPass.Final)
+                        //收集主要事件
+                        val event: PointerEvent = awaitPointerEvent(PointerEventPass.Main)
                         if (event.changes.size == 1) {  // 只处理单指
                             // 1.单指操作
                             val pointer = event.changes[0]
@@ -120,6 +124,7 @@ fun SeekBar(
                                     isPressed = true
                                 }
                             }
+                            pointer.consume() // 标记事件已被消费，不再传递给其他组件
                     }
                 }
             }

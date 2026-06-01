@@ -134,7 +134,9 @@ private fun ProgressLayout() {
             enabled = MusicPlayController.isSeekable,
             seeking = { MusicPlayController.seeking(it) },
             seekTo = { MusicPlayController.seekTo(it) },
-            modifier = Modifier.weight(1f)
+            modifier = Modifier
+                .weight(1f)
+                .height(80.cdp)
         )
         //右侧总时间
         Text(
