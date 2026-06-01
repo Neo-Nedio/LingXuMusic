@@ -31,8 +31,8 @@ fun CommonNetworkImage(
                 .data(url)
                 .allowHardware(allowHardware)
                 .build(),
-            placeholder = painterResource(placeholder),
-            error = painterResource(error)
+            placeholder = if (placeholder != -1) painterResource(placeholder) else null,
+            error = if (error != -1) painterResource(error) else null
         ),
         contentDescription = "头像",
         contentScale = ContentScale.Crop,

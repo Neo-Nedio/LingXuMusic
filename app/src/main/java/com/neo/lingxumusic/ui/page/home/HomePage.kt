@@ -79,7 +79,7 @@ private fun Body(onToggleDrawer: () -> Unit) {
 
         HorizontalPager(
             state = pagerState,
-            userScrollEnabled = true, // 允许用户水平滑动切换页面
+            userScrollEnabled = false, // 不允许用户水平滑动切换页面
             beyondViewportPageCount = bottomNavigationItems.size - 1, // 预加载页面数量
             modifier = Modifier
                 .weight(1f) // 占满剩余空间

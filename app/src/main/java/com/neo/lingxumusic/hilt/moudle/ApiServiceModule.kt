@@ -3,6 +3,7 @@ package com.neo.lingxumusic.hilt.moudle
 import com.neo.lingxumusic.http.api.LoginApi
 import com.neo.lingxumusic.http.api.SongApi
 import com.neo.lingxumusic.http.api.UserApi
+import com.neo.lingxumusic.http.api.VideoApi
 import com.neo.lingxumusic.core.AppConfig
 import com.neo.lingxumusic.hilt.RetrofitClient
 import dagger.Module
@@ -37,5 +38,13 @@ object ApiServiceModule {
         @RetrofitClientModule.KuGouRetrofitClient retrofit: RetrofitClient
     ): SongApi {
         return retrofit.setBaseUrl(AppConfig.BASE_URL).create(SongApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideVideoApi(
+        @RetrofitClientModule.KuGouRetrofitClient retrofit: RetrofitClient
+    ): VideoApi {
+        return retrofit.setBaseUrl(AppConfig.BASE_URL).create(VideoApi::class.java)
     }
 }

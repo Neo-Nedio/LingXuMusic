@@ -18,6 +18,7 @@ import java.util.*
 fun <R : BaseResult, I : Any> ViewModel.buildPager(
     config: AppPagingConfig = AppPagingConfig(),           // 分页配置
     transformListBlock: (r: R?) -> List<I>?,               // 从响应中提取列表
+    hasMoreBlock: ((R) -> Boolean)? = null,                // 自定义是否还有下一页（如 has_next 字段）
     callBlock: suspend (page: Int, config: Int) -> R      // 实际网络请求
 ): Flow<PagingData<I>> {
 
@@ -47,7 +48,9 @@ fun <R : BaseResult, I : Any> ViewModel.buildPager(
             }
 
             // 如果返回数据不足一页 或 禁用了加载更多，则没有下一页
-            if (responseList.size < everyPageSize || !config.enableLoadMore) {
+            val hasMore = hasMoreBlock?.invoke(result)
+                ?: (responseList.size >= everyPageSize && config.enableLoadMore)
+            if (!hasMore) {
                 nextKey = null
             }
 
