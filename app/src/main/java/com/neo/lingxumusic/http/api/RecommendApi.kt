@@ -1,6 +1,7 @@
 package com.neo.lingxumusic.http.api
 
 import com.neo.lingxumusic.model.BaseResult
+import com.neo.lingxumusic.model.LongAudioDailyResult
 import retrofit2.http.GET
 import retrofit2.http.Query
 
@@ -21,4 +22,11 @@ interface RecommendApi {
     @GET("/personal/fm")
     //猜你喜欢 对应PersonalFmData
     suspend fun guessYourLike(): BaseResult
+
+    @GET("/top/song")
+    //BaseResult就是RecommendSong
+    suspend fun getNewSong(): BaseResult
+
+    @GET("/longaudio/daily/recommend")
+    suspend fun getAudioRecommend(): LongAudioDailyResult
 }
