@@ -6,7 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.material.ScaffoldState
+import androidx.compose.material3.DrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -37,10 +37,9 @@ private val bottomNavigationItems = listOf(
 var selectedHomeTabIndex by mutableIntStateOf(2)
 
 @Composable
-fun HomePage(scaffoldState: ScaffoldState, onFinish: () -> Unit = { }) {
+fun HomePage(drawerState: DrawerState, onFinish: () -> Unit = { }) {
     val scope = rememberCoroutineScope()
 
-    val drawerState = scaffoldState.drawerState
     val onToggleDrawer: () -> Unit = {
         scope.launch {
             if (drawerState.isOpen) {

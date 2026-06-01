@@ -5,7 +5,7 @@ import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material.ScaffoldState
+import androidx.compose.material3.DrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
@@ -29,7 +29,7 @@ object NavController {
 
 @Composable
 fun LingXuNavGraph(
-    scaffoldState: ScaffoldState,
+    drawerState: DrawerState,
     navController: NavHostController,
     startDestination: String = Routes.SPLASH,
     onFinish: () -> Unit = { }
@@ -52,7 +52,7 @@ fun LingXuNavGraph(
             LoginPage()
         }
         composable(Routes.HOME) {
-            HomePage(scaffoldState){ onFinish() }
+            HomePage(drawerState){ onFinish() }
         }
         composable(Routes.PROFILE,
             enterTransition = { EnterTransition.None }) { // 进入动画：无

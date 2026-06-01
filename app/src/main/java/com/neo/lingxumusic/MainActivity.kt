@@ -6,10 +6,12 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material.Scaffold
-import androidx.compose.material.rememberScaffoldState
+import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.ModalDrawerSheet
+import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.rememberDrawerState
 import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.compose.rememberNavController
@@ -39,22 +41,26 @@ class MainActivity : ComponentActivity() {
                 //申请权限，用于前台service
                 RequestNotificationPermission()
                 val navController = rememberNavController()
-                val scaffoldState = rememberScaffoldState()
-                Scaffold(
-                    modifier = Modifier.fillMaxSize(),
-                    scaffoldState = scaffoldState,
+                val drawerState = rememberDrawerState(DrawerValue.Closed)
+                ModalNavigationDrawer(
+                    drawerState = drawerState,
                     drawerContent = {
-                        HomeDrawer(scaffoldState.drawerState)
-                    }
-                ) { paddingValues ->
+                        ModalDrawerSheet(
+                            //占用90%屏幕
+                            modifier = Modifier.fillMaxWidth(0.9f),
+                            drawerContainerColor = AppColorsProvider.current.background,
+                        ) {
+                            HomeDrawer(drawerState)
+                        }
+                    },
+                ) {
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(paddingValues)
                             .background(AppColorsProvider.current.background)
                             .navigationBarsPadding()
                     ) {
-                        LingXuNavGraph(scaffoldState, navController) {
+                        LingXuNavGraph(drawerState, navController) {
                             finish()
                         }
                         // 底部播放器组件
