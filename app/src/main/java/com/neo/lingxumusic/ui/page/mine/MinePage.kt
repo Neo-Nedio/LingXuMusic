@@ -28,13 +28,12 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.DrawerState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -90,12 +89,12 @@ import me.onebone.toolbar.rememberCollapsingToolbarScaffoldState
 
 // 主页面
 @Composable
-fun MinePage(drawerState: DrawerState) {
+fun MinePage(onToggleDrawer: () -> Unit) {
     val viewModel: MineViewModel = hiltViewModel()
     // 背景图片的透明度（拖拽时逐渐变为 1）
-    var bodyAlphaValue by remember { mutableStateOf(0f) }
+    var bodyAlphaValue by remember { mutableFloatStateOf(0f) }
     // 顶部栏的透明度（滚动时渐变，滚动的距离越大越不透明）
-    val topBarAlphaValue = remember { mutableStateOf(0f) }
+    val topBarAlphaValue = remember { mutableFloatStateOf(0f) }
     // LazyColumn 滚动状态
     val lazyListState = rememberLazyListState()
     //获取当前可见的第一项索引
@@ -183,7 +182,7 @@ fun MinePage(drawerState: DrawerState) {
         }
 
         // 2. 顶部导航栏（覆盖在上面，始终显示）
-        TopBar(topBarAlphaValue.value, drawerState)
+        TopBar(topBarAlphaValue.value, onToggleDrawer)
     }
 }
 
@@ -460,8 +459,7 @@ private fun StickyTabLayout(
 
 //顶部区域
 @Composable
-private fun TopBar(alphaValue: Float, drawerState: DrawerState) {
-    val scope = rememberCoroutineScope()
+private fun TopBar(alphaValue: Float, onToggleDrawer: () -> Unit) {
     //主导航栏  始终显示，背景透明度随滚动变化
     CommonTopAppBar(
         modifier = Modifier
@@ -469,15 +467,7 @@ private fun TopBar(alphaValue: Float, drawerState: DrawerState) {
             .statusBarsPadding(),
         backgroundColor = Color.Transparent,
         leftIconResId = R.drawable.ic_drawer_toggle,
-        leftClick = {
-            scope.launch {
-                if (drawerState.isOpen) {
-                    drawerState.close()
-                } else {
-                    drawerState.open()
-                }
-            }
-        },
+        leftClick = onToggleDrawer,
         rightIconResId = R.drawable.ic_search
     )
 

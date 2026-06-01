@@ -6,12 +6,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.material.DrawerState
 import androidx.compose.material.ScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -42,26 +40,37 @@ var selectedHomeTabIndex by mutableIntStateOf(2)
 fun HomePage(scaffoldState: ScaffoldState, onFinish: () -> Unit = { }) {
     val scope = rememberCoroutineScope()
 
-    BackHandler {
-        if(scaffoldState.drawerState.isOpen) {
-            scope.launch {
-                scaffoldState.drawerState.close()
+    val drawerState = scaffoldState.drawerState
+    val onToggleDrawer: () -> Unit = {
+        scope.launch {
+            if (drawerState.isOpen) {
+                drawerState.close()
+            } else {
+                drawerState.open()
             }
-        }else {
-            if(MusicPlayController.showPlayMusicSheet) {
+        }
+    }
+
+    BackHandler {
+        if (drawerState.isOpen) {
+            scope.launch {
+                drawerState.close()
+            }
+        } else {
+            if (MusicPlayController.showPlayMusicSheet) {
                 MusicPlayController.showPlayMusicSheet = false //关闭播放页
                 MusicPlayController.showBottomMusicPlay = true //打开底部播放器
-            }else { //退出应用
+            } else { //退出应用
                 TwoBackFinish().execute(onFinish)
             }
         }
     }
 
-    Body(scaffoldState.drawerState)
+    Body(onToggleDrawer)
 }
 
 @Composable
-private fun Body(drawerState: DrawerState) {
+private fun Body(onToggleDrawer: () -> Unit) {
     Column(modifier = Modifier.fillMaxSize()) {
         val pagerState = rememberPagerState(
             initialPage = selectedHomeTabIndex,
@@ -80,11 +89,11 @@ private fun Body(drawerState: DrawerState) {
             selectedHomeTabIndex = pagerState.currentPage
 
             when (pagePosition) {
-                0 -> DiscoveryPage(drawerState)    // 发现页
-                1 -> PodcastPage(drawerState)      // 播客页
-                2 -> MinePage(drawerState)         // 我的页
-                3 -> SingPage(drawerState)         // K歌页
-                4 -> CloudCountryPage(drawerState) // 云村页
+                0 -> DiscoveryPage(onToggleDrawer)    // 发现页
+                1 -> PodcastPage(onToggleDrawer)      // 播客页
+                2 -> MinePage(onToggleDrawer)         // 我的页
+                3 -> SingPage(onToggleDrawer)         // K歌页
+                4 -> CloudCountryPage(onToggleDrawer) // 云村页
             }
         }
 
