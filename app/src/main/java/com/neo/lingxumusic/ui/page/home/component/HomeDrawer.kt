@@ -51,49 +51,53 @@ fun HomeDrawer(drawerState: DrawerState) {
 @Composable
 private fun UserInfoComponent(drawerState: DrawerState) {
     val scope = rememberCoroutineScope()
-    Row(
-        modifier = Modifier
-            .statusBarsPadding()  // 适配状态栏高度
-            .padding(top = 24.cdp)
-            .fillMaxWidth()
-            .height(100.cdp)
-            .clickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication = null, // 无涟漪效果
-            ) {
-                scope.launch {
-                    drawerState.close()              // 先关闭抽屉
-                    NavController.instance.navigate(Routes.PROFILE)  // 再跳转个人主页
+
+    val loginData = AppGlobalData.sLoginData
+    if(loginData != null) {
+        Row(
+            modifier = Modifier
+                .statusBarsPadding()  // 适配状态栏高度
+                .padding(top = 24.cdp)
+                .fillMaxWidth()
+                .height(100.cdp)
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null, // 无涟漪效果
+                ) {
+                    scope.launch {
+                        drawerState.close()              // 先关闭抽屉
+                        NavController.instance.navigate(Routes.PROFILE)  // 再跳转个人主页
+                    }
                 }
-            }
-            .padding(horizontal = 32.cdp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        // 左侧：用户头像
-        CommonNetworkImage(
-            url = AppGlobalData.sLoginData?.pic,
-            placeholder = R.drawable.ic_default_avator,
-            error = R.drawable.ic_default_avator,
-            modifier = Modifier
-                .size(60.cdp)
-                .clip(
-                    RoundedCornerShape(60)// 圆形裁剪
-                )
-        )
-        // 中间：用户昵称
-        Text(
-            text = AppGlobalData.sLoginData?.nickname.orEmpty(),
-            fontSize = 36.csp,
-            color = AppColorsProvider.current.firstText,
-            modifier = Modifier.padding(start = 20.cdp)
-        )
-        // 右侧：右箭头图标（表示可点击）
-        CommonIcon(
-            resId = R.drawable.ic_arrow_right,
-            modifier = Modifier
-                .padding(8.cdp)
-                .size(30.cdp)
-        )
+                .padding(horizontal = 32.cdp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            // 左侧：用户头像
+            CommonNetworkImage(
+                url = AppGlobalData.sLoginData?.pic,
+                placeholder = R.drawable.ic_default_avator,
+                error = R.drawable.ic_default_avator,
+                modifier = Modifier
+                    .size(60.cdp)
+                    .clip(
+                        RoundedCornerShape(60)// 圆形裁剪
+                    )
+            )
+            // 中间：用户昵称
+            Text(
+                text = AppGlobalData.sLoginData?.nickname.orEmpty(),
+                fontSize = 36.csp,
+                color = AppColorsProvider.current.firstText,
+                modifier = Modifier.padding(start = 20.cdp)
+            )
+            // 右侧：右箭头图标（表示可点击）
+            CommonIcon(
+                resId = R.drawable.ic_arrow_right,
+                modifier = Modifier
+                    .padding(8.cdp)
+                    .size(30.cdp)
+            )
+        }
     }
 }
 

@@ -89,7 +89,7 @@ private fun showPermissionDenyDialog(
                 ),
                 elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
                 modifier = Modifier
-                    .width(540.cdp)
+                    .width(590.cdp)
                     .wrapContentHeight()
                     .clip(RoundedCornerShape(24.cdp)),
             ) {
