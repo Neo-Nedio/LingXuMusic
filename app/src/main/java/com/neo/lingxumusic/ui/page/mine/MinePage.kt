@@ -28,6 +28,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.DrawerState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -89,7 +90,7 @@ import me.onebone.toolbar.rememberCollapsingToolbarScaffoldState
 
 // 主页面
 @Composable
-fun MinePage() {
+fun MinePage(drawerState: DrawerState) {
     val viewModel: MineViewModel = hiltViewModel()
     // 背景图片的透明度（拖拽时逐渐变为 1）
     var bodyAlphaValue by remember { mutableStateOf(0f) }
@@ -182,7 +183,7 @@ fun MinePage() {
         }
 
         // 2. 顶部导航栏（覆盖在上面，始终显示）
-        TopBar(topBarAlphaValue.value)
+        TopBar(topBarAlphaValue.value, drawerState)
     }
 }
 
@@ -459,7 +460,8 @@ private fun StickyTabLayout(
 
 //顶部区域
 @Composable
-private fun TopBar(alphaValue: Float) {
+private fun TopBar(alphaValue: Float, drawerState: DrawerState) {
+    val scope = rememberCoroutineScope()
     //主导航栏  始终显示，背景透明度随滚动变化
     CommonTopAppBar(
         modifier = Modifier
@@ -467,7 +469,15 @@ private fun TopBar(alphaValue: Float) {
             .statusBarsPadding(),
         backgroundColor = Color.Transparent,
         leftIconResId = R.drawable.ic_drawer_toggle,
-        leftClick = { },
+        leftClick = {
+            scope.launch {
+                if (drawerState.isOpen) {
+                    drawerState.close()
+                } else {
+                    drawerState.open()
+                }
+            }
+        },
         rightIconResId = R.drawable.ic_search
     )
 

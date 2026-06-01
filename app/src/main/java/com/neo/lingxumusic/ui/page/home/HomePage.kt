@@ -6,9 +6,13 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.material.DrawerState
+import androidx.compose.material.ScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.neo.lingxumusic.R
@@ -22,6 +26,7 @@ import com.neo.lingxumusic.ui.page.podcast.PodcastPage
 import com.neo.lingxumusic.ui.page.sing.SingPage
 import com.neo.lingxumusic.ui.theme.AppColorsProvider
 import com.neo.lingxumusic.utils.TwoBackFinish
+import kotlinx.coroutines.launch
 
 private val bottomNavigationItems = listOf(
     BottomNavigationItem("发现", R.drawable.ic_discovery),
@@ -31,19 +36,32 @@ private val bottomNavigationItems = listOf(
     BottomNavigationItem("云村", R.drawable.ic_cloud_country),
 )
 
-var selectedHomeTabIndex by mutableStateOf(2)
+var selectedHomeTabIndex by mutableIntStateOf(2)
 
 @Composable
-fun HomePage(onFinish: () -> Unit = { }) {
+fun HomePage(scaffoldState: ScaffoldState, onFinish: () -> Unit = { }) {
+    val scope = rememberCoroutineScope()
+
     BackHandler {
-        if(MusicPlayController.showPlayMusicSheet) {
-            MusicPlayController.showPlayMusicSheet = false //关闭播放页
-            MusicPlayController.showBottomMusicPlay = true //打开底部播放器
-        }else { //退出应用
-            TwoBackFinish().execute(onFinish)
+        if(scaffoldState.drawerState.isOpen) {
+            scope.launch {
+                scaffoldState.drawerState.close()
+            }
+        }else {
+            if(MusicPlayController.showPlayMusicSheet) {
+                MusicPlayController.showPlayMusicSheet = false //关闭播放页
+                MusicPlayController.showBottomMusicPlay = true //打开底部播放器
+            }else { //退出应用
+                TwoBackFinish().execute(onFinish)
+            }
         }
     }
 
+    Body(scaffoldState.drawerState)
+}
+
+@Composable
+private fun Body(drawerState: DrawerState) {
     Column(modifier = Modifier.fillMaxSize()) {
         val pagerState = rememberPagerState(
             initialPage = selectedHomeTabIndex,
@@ -62,11 +80,11 @@ fun HomePage(onFinish: () -> Unit = { }) {
             selectedHomeTabIndex = pagerState.currentPage
 
             when (pagePosition) {
-                0 -> DiscoveryPage()    // 发现页
-                1 -> PodcastPage()      // 播客页
-                2 -> MinePage()         // 我的页
-                3 -> SingPage()         // K歌页
-                4 -> CloudCountryPage() // 云村页
+                0 -> DiscoveryPage(drawerState)    // 发现页
+                1 -> PodcastPage(drawerState)      // 播客页
+                2 -> MinePage(drawerState)         // 我的页
+                3 -> SingPage(drawerState)         // K歌页
+                4 -> CloudCountryPage(drawerState) // 云村页
             }
         }
 

@@ -7,10 +7,14 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.Scaffold
+import androidx.compose.material.rememberScaffoldState
 import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.compose.rememberNavController
 import com.neo.lingxumusic.core.navigation.LingXuNavGraph
+import com.neo.lingxumusic.ui.page.home.component.HomeDrawer
 import com.neo.lingxumusic.utils.RequestNotificationPermission
 import com.neo.lingxumusic.ui.page.playMusic.PlayListSheet
 import com.neo.lingxumusic.ui.page.playMusic.PlayMusicPage
@@ -35,21 +39,31 @@ class MainActivity : ComponentActivity() {
                 //申请权限，用于前台service
                 RequestNotificationPermission()
                 val navController = rememberNavController()
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(AppColorsProvider.current.background)
-                        .navigationBarsPadding()
-                ) {
-                    LingXuNavGraph(navController) {
-                        finish()
+                val scaffoldState = rememberScaffoldState()
+                Scaffold(
+                    modifier = Modifier.fillMaxSize(),
+                    scaffoldState = scaffoldState,
+                    drawerContent = {
+                        HomeDrawer(scaffoldState.drawerState)
                     }
-                    // 底部播放器组件
-                    BottomMusicPlay()
-                    // 音乐播放Sheet
-                    PlayMusicPage()
-                    // 播放列表Sheet
-                    PlayListSheet()
+                ) { paddingValues ->
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(paddingValues)
+                            .background(AppColorsProvider.current.background)
+                            .navigationBarsPadding()
+                    ) {
+                        LingXuNavGraph(scaffoldState, navController) {
+                            finish()
+                        }
+                        // 底部播放器组件
+                        BottomMusicPlay()
+                        // 音乐播放Sheet
+                        PlayMusicPage()
+                        // 播放列表Sheet
+                        PlayListSheet()
+                    }
                 }
                 }
             }
