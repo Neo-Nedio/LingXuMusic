@@ -25,6 +25,7 @@ import com.neo.lingxumusic.utils.cdp
 import com.neo.lingxumusic.utils.csp
 
 val cpnBottomPadding = 32.cdp
+val seekBarTouchHeight = 80.cdp
 
 //刷刷视频信息
 @Composable
@@ -32,7 +33,7 @@ fun BoxScope.BrushVideoInfo(video: BrushVideo) {
     Column(
         modifier = Modifier
             .padding(horizontal = 32.cdp)
-            .padding(bottom = cpnBottomPadding)
+            .padding(bottom = cpnBottomPadding + seekBarTouchHeight)
             .fillMaxWidth()
             .align(Alignment.BottomCenter)
     ) {

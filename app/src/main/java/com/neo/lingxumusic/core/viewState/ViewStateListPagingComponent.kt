@@ -49,6 +49,7 @@ fun <T : Any> ViewStateListPagingComponent(
     lifeCycleListener: ComposeLifeCycleListener? = null,  // 生命周期监听
     lazyListContentPadding: PaddingValues = PaddingValues(0.dp),
     lazyListState: LazyListState = rememberLazyListState(),
+    userScrollEnabled: Boolean = true,
     viewStateComponentModifier: Modifier = Modifier.fillMaxSize(),
     viewStateContentAlignment: Alignment = Alignment.Center,
     customEmptyComponent: @Composable (() -> Unit)? = null,  // 自定义空布局
@@ -157,7 +158,8 @@ fun <T : Any> ViewStateListPagingComponent(
             LazyColumn(
                 modifier = modifier,
                 contentPadding = lazyListContentPadding,
-                state = lazyListState
+                state = lazyListState,
+                userScrollEnabled = userScrollEnabled,
             ) {
 
                 listContent()

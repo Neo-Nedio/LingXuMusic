@@ -10,7 +10,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.runtime.Composable
@@ -45,16 +45,12 @@ fun BrushVideoPlay(
     onSwitchVideo: (Int) -> Unit,        // 切换视频回调
     modifier: Modifier = Modifier,
 ) {
-    Box(
-        modifier = modifier
-            .videoDragDetect(index, lazyListState, itemCount, onSwitchVideo) // 添加上下滑动手势
-    ) {
-        // 视频播放区域
+    Box(modifier = modifier) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .fillMaxSize(),
-            contentAlignment = Alignment.Center
+                .fillMaxSize()
+                .videoDragDetect(index, lazyListState, itemCount, onSwitchVideo) // 添加上下滑动手势
         ) {
             VideoSurface(index, video) // 视频 Surface 渲染组件
         }
@@ -202,8 +198,8 @@ private fun BoxScope.VideoSeekBar() {
         progressColor = Color.White.copy(0.3f),                 // 进度条颜色（半透明白色）
         circleColor = Color.LightGray,                          // 拖拽圆点颜色（浅灰色）
         modifier = Modifier
-            .padding(bottom = cpnBottomPadding)                 // 底部内边距
-            .fillMaxWidth()                                     // 宽度填满
-            .align(Alignment.BottomCenter)                      // 底部居中
+            .fillMaxWidth()
+            .height(seekBarTouchHeight)
+            .align(Alignment.BottomCenter)
     )
 }
