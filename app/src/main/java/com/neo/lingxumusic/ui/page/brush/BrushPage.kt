@@ -22,11 +22,11 @@ import com.neo.lingxumusic.core.viewState.listener.ComposeLifeCycleListener
 import com.neo.lingxumusic.model.displayPlayUrl
 import com.neo.lingxumusic.ui.common.CommonTopAppBar
 import com.neo.lingxumusic.ui.page.brush.component.BrushVideoPlay
-import com.neo.lingxumusic.viewmodel.cloudcountry.CloudCountryViewModel
+import com.neo.lingxumusic.viewmodel.brush.BrushViewModel
 
 @Composable
-fun CloudCountryPage(onToggleDrawer: () -> Unit) {
-    val viewModel: CloudCountryViewModel = hiltViewModel()
+fun BrushPage(onToggleDrawer: () -> Unit) {
+    val viewModel: BrushViewModel = hiltViewModel()
     val context = LocalContext.current
 
     // 页面进入时初始化视频播放器，退出时释放资源
@@ -80,7 +80,7 @@ fun CloudCountryPage(onToggleDrawer: () -> Unit) {
 
 @Composable
 private fun BrushVideoList() {
-    val viewModel: CloudCountryViewModel = hiltViewModel()
+    val viewModel: BrushViewModel = hiltViewModel()
     val videoList = viewModel.videoList          // 视频列表数据
     val itemCount = videoList.size               // 视频总数
     val lazyListState = rememberLazyListState()  // 列表滚动状态

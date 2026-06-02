@@ -35,7 +35,7 @@ import com.neo.lingxumusic.ui.common.SeekBar
 import com.neo.lingxumusic.utils.ScreenUtil
 import com.neo.lingxumusic.utils.cdp
 import com.neo.lingxumusic.utils.showToast
-import com.neo.lingxumusic.viewmodel.cloudcountry.CloudCountryViewModel
+import com.neo.lingxumusic.viewmodel.brush.BrushViewModel
 import kotlinx.coroutines.launch
 
 //视频播放页面（单个视频播放器，支持上下滑动切换视频）
@@ -73,7 +73,7 @@ private fun Modifier.videoDragDetect(
     itemCount: Int,                      // 总数量
     onSwitchVideo: (Int) -> Unit,        // 切换视频回调
 ) = composed {
-    val viewModel: CloudCountryViewModel = hiltViewModel()
+    val viewModel: BrushViewModel = hiltViewModel()
     val scope = rememberCoroutineScope()
     var totalDragAmount = remember { 0f }                        // 累计拖拽距离
     val threshold = remember { ScreenUtil.getScreenHeight() / 8f }  // 切换阈值（屏幕高度 / 8）
