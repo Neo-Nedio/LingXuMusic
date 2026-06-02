@@ -13,7 +13,9 @@ data class PlaylistDetailData(
 @Parcelize
 data class Song(
     val hash: String? = null,
+    val songname: String? = null,
     val name: String? = null,
+    val album_id: String? = null,
     val cover: String? = null,
     val mixsongid: Long = 0,
 ) : Parcelable

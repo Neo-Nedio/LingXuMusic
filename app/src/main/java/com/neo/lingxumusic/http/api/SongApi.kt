@@ -1,5 +1,6 @@
 package com.neo.lingxumusic.http.api
 
+import com.neo.lingxumusic.model.BaseResult
 import com.neo.lingxumusic.model.FloorCommentResult
 import com.neo.lingxumusic.model.LyricResult
 import com.neo.lingxumusic.model.LyricSearchResult
@@ -51,4 +52,12 @@ interface SongApi {
         @Query("fmt") fmt: String = "krc",
         @Query("decode") page: Boolean = true,
     ): LyricResult
+
+    // 对歌单添加歌曲
+    @GET("/playlist/tracks/add")
+    suspend fun addSongToPlaylist(
+        @Query("listid") listid: Int,
+        @Query("data") data: String
+    ): BaseResult
+
 }

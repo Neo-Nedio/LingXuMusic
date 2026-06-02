@@ -22,6 +22,7 @@ data class RecommendSong(
     val songname: String? = null,               // 歌名
     val author_name: String? = null,            // 歌手名
     val album_name: String? = null,             // 专辑名
+    val album_id: String? = null,               //专辑id
     val sizable_cover: String? = null,          // 封面图
     val album_sizable_cover: String? = null,    // 封面图（部分接口直接返回）
     val hash: String? = null,                   // 音频哈希（获取播放URL）
@@ -48,7 +49,7 @@ fun RecommendSong.displayTitle(): String {
     val name = songname.orEmpty()
     val author = author_name.orEmpty()
     return when {
-        name.isNotBlank() && author.isNotBlank() -> "$name-$author"
+        name.isNotBlank() && author.isNotBlank() -> "$name - $author"
         name.isNotBlank() -> name
         else -> author
     }
@@ -67,9 +68,11 @@ fun RecommendSong.coverUrl(): String? {
 fun RecommendSong.toSong(): Song {
     return Song(
         hash = hash,
+        songname = songname,
         name = displayTitle().ifBlank { songname },
+        album_id = album_id,
         cover = coverUrl(),
-        mixsongid = mixsongid?.toLongOrNull() ?: 0,
+        mixsongid = mixsongid?.toLongOrNull() ?: album_audio_id?.toLongOrNull() ?: 0,
     )
 }
 
