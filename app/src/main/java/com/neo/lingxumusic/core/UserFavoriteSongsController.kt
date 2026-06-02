@@ -21,15 +21,17 @@ object UserFavoriteSongsController {
     private val controllerScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private var loadFavoriteSongJob: Job? = null
 
-    private const val FAVORITE_PLAYLIST_ID = "collection_3_1764149159_2_0"
-
     // 加载我喜欢的歌曲（在进入应用时就调用）
     fun loadFavoriteSongs() {
+        val playlistId = AppGlobalData.favoritePlaylistGlobalCollectionId
+        if (playlistId.isBlank()) {
+            return
+        }
         loadFavoriteSongJob?.cancel()
         loadFavoriteSongJob = controllerScope.launch {
             try {
                 val songs = withContext(Dispatchers.IO) {
-                    userApi.getPlaylistSong(FAVORITE_PLAYLIST_ID)
+                    userApi.getPlaylistSong(playlistId)
                         .dataAs<PlaylistDetailData>()
                         ?.songs
                         .orEmpty()

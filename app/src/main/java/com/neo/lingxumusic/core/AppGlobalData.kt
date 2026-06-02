@@ -26,4 +26,8 @@ object AppGlobalData {
             playModeName = value.name
         }
 
+    // 喜欢的音乐歌单的两个id
+    var favoritePlaylistGlobalCollectionId by kvCache("")
+    var favoritePlaylistListId by kvCache(0)
+
 }

@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.neo.lingxumusic.http.api.UserApi
 import com.neo.lingxumusic.core.AppGlobalData
+import com.neo.lingxumusic.core.UserFavoriteSongsController
 import com.neo.lingxumusic.core.viewState.BaseViewStateViewModel
 import com.neo.lingxumusic.model.Playlist
 import com.neo.lingxumusic.model.PlaylistData
@@ -52,6 +53,14 @@ class MineViewModel @Inject constructor(private val api: UserApi) : BaseViewStat
                 if (playlist.list_create_userid == userId) {  // 是自己创建的
                     if (playlist.name?.contains("喜欢") ?: false) { // 是"喜欢的音乐"歌单
                         favoritePlayList = playlist  // → 单独存储
+                        //把喜欢歌单的两个id存入全局变量
+                        AppGlobalData.favoritePlaylistGlobalCollectionId =
+                            playlist.global_collection_id.orEmpty()
+                        AppGlobalData.favoritePlaylistListId = playlist.listid
+                        //判断是否为空，为空则加载（防止应用第一次启动时没有喜欢歌单的id，加载失败，这里就重新加载）
+                        if(UserFavoriteSongsController.favoriteSongList.isEmpty()){
+                            UserFavoriteSongsController.loadFavoriteSongs()
+                        }
                     } else {
                         selfCreateList.add(playlist) // → 创建的歌单
                     }
