@@ -17,8 +17,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -40,14 +39,15 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.paging.compose.LazyPagingItems
+import androidx.paging.compose.collectAsLazyPagingItems
 import com.neo.lingxumusic.R
 import com.neo.lingxumusic.core.AppGlobalData
 import com.neo.lingxumusic.core.MusicPlayController
 import com.neo.lingxumusic.core.UserFavoriteSongsController
-import com.neo.lingxumusic.core.viewState.ViewStateComponent
+import com.neo.lingxumusic.core.viewState.ViewStateListPagingComponent
 import com.neo.lingxumusic.model.PlaylistBrief
-import com.neo.lingxumusic.model.PlaylistDetailData
-import com.neo.lingxumusic.model.dataAs
+import com.neo.lingxumusic.model.Song
 import com.neo.lingxumusic.ui.common.CommonHeadBackgroundShape
 import com.neo.lingxumusic.ui.common.CommonIcon
 import com.neo.lingxumusic.ui.common.CommonNetworkImage
@@ -262,7 +262,6 @@ private fun HeadCountInfoLayout(modifier: Modifier, playlist: PlaylistBrief) {
             .background(AppColorsProvider.current.card),
         verticalAlignment = Alignment.CenterVertically
     ) {
-
         HeaderCountInfoItem(
             R.drawable.ic_action_play,
             "播放(${StringUtil.friendlyNumber(playlist.playCountValue())})",
@@ -280,7 +279,6 @@ private fun HeadCountInfoLayout(modifier: Modifier, playlist: PlaylistBrief) {
         )
     }
 }
-
 
 //底部按钮栏
 @Composable
@@ -322,46 +320,52 @@ private fun RowScope.HeaderCountInfoItem(
             )
         }
     }
-
 }
-
 
 @Composable
 private fun Body() {
     val viewModel: PlayListViewModel = hiltViewModel()
 
-    ViewStateComponent(
-        viewStateLiveData = viewModel.songDetailResult,
-        loadDataBlock = {
-            viewModel.getSongDetail()
-        },
-        viewStateComponentModifier = Modifier
-            .fillMaxSize(),
-        viewStateContentAlignment = BiasAlignment(0f, -0.6f)  // 内容向上偏移
-    ) { data ->
-        val detail = data.dataAs<PlaylistDetailData>()
-        val songs = detail?.songs.orEmpty()
+    //当需要的歌单数据没有时，加载数据
+    if (viewModel.songListFlow == null) {
+        viewModel.buildSongListPager(viewModel.playlist)
+    }
+
+    viewModel.songListFlow?.let { flow ->
+        val songList = flow.collectAsLazyPagingItems()
 
         //禁用 Android 原生的过度滚动效果（边缘发光/拉伸）
         //让滚动效果更干净
         CompositionLocalProvider(LocalOverscrollFactory provides null) {
-            Column {
-                PlayListHeader(viewModel.playlist)
-                HorizontalDivider(Modifier.fillMaxWidth(), thickness = 1.cdp, color = Color.LightGray)
-                LazyColumn {
-                    itemsIndexed(songs) { index, item ->
+            ViewStateListPagingComponent(
+                modifier = Modifier.fillMaxSize(),
+                viewStateComponentModifier = Modifier.fillMaxSize(),
+                collectAsLazyPagingItems = songList,
+                viewStateContentAlignment = BiasAlignment(0f, -0.6f),  // 内容向上偏移
+                enableRefresh = false, //不允许下拉刷新
+            ) {
+                item {
+                    //歌曲列表的头部
+                    PlayListHeader(viewModel.playlist, songList)
+                    //水平分割线
+                    HorizontalDivider(Modifier.fillMaxWidth(), thickness = 1.cdp, color = Color.LightGray)
+                }
+                //歌曲
+                items(count = songList.itemCount) { index ->
+                    songList[index]?.let { item ->
                         SongItem(
                             index = index,
                             song = item,
                             onClick = {
-                                if (viewModel.songList[index].hash.isNullOrEmpty()) {
+                                val songs = songList.toSongList()
+                                if (songs.getOrNull(index)?.hash.isNullOrEmpty()) {
                                     showToast("该歌曲暂不支持播放")
                                 } else {
                                     MusicPlayController.songList.clear()
                                     //通过这个函数过滤所有无法播放的歌曲
                                     MusicPlayController.setDataSource(
-                                        viewModel.songList,
-                                        viewModel.songList[index].hash
+                                        songs,
+                                        songs[index].hash
                                     )
                                     MusicPlayController.showBottomMusicPlay = false
                                     MusicPlayController.showPlayMusicSheet = true
@@ -398,16 +402,16 @@ private fun Body() {
 
 //歌曲列表的头部，显示"播放全部"按钮和歌曲数量
 @Composable
-private fun PlayListHeader(playlist: PlaylistBrief) {
-    val viewModel: PlayListViewModel = hiltViewModel()
+private fun PlayListHeader(playlist: PlaylistBrief, songList: LazyPagingItems<Song>) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .height(100.cdp)
             .clickable {
+                val songs = songList.toSongList()
                 MusicPlayController.setDataSource(
-                    viewModel.songList,
-                    viewModel.songList.firstOrNull()?.hash
+                    songs,
+                    songs.firstOrNull()?.hash
                 )
                 MusicPlayController.showBottomMusicPlay = false
                 MusicPlayController.showPlayMusicSheet = true
@@ -439,6 +443,9 @@ private fun PlayListHeader(playlist: PlaylistBrief) {
     }
 }
 
+private fun LazyPagingItems<Song>.toSongList(): List<Song> {
+    return (0 until itemCount).mapNotNull { get(it) }
+}
 
 private fun PlaylistBrief.displayName(): String {
     return name.orEmpty()

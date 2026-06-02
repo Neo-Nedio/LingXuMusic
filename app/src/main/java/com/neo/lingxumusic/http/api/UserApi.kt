@@ -10,5 +10,9 @@ interface UserApi {
     ): BaseResult
 
     @GET("playlist/track/all")
-    suspend fun getPlaylistSong(@Query("id") id: String?): BaseResult
+    suspend fun getPlaylistSong(
+        @Query("id") id: String?,
+        @Query("page") page: Int? = null,
+        @Query("pagesize") pagesize: Int? = null,
+    ): BaseResult
 }

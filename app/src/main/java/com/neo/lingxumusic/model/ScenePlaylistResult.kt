@@ -2,6 +2,7 @@ package com.neo.lingxumusic.model
 
 import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
+import kotlinx.parcelize.RawValue
 
 
 /**
@@ -31,7 +32,7 @@ data class ScenePlaylist(
     // ========== 统计信息 ==========
     val play_count: Long = 0,                   // 播放次数
     val collectcount: Int = 0,                  // 收藏数
-    val songcount: Int = 0,                     // 歌曲数量
+    val songcount: @RawValue Any = 0,           // 歌曲数量（接口可能为数字或字符串）
 
     // ========== 创建者信息 ==========
     val nickname: String? = null,               // 创建者昵称
@@ -87,16 +88,28 @@ data class SceneSong(
 /**
  * 将场景歌单 ScenePlaylist 转换为通用 Playlist
  */
+private fun Any?.toIntValue(): Int = when (this) {
+    is Int -> this
+    is Number -> toInt()
+    is String -> toIntOrNull() ?: 0
+    else -> 0
+}
+
+fun ScenePlaylist.songCountValue(): Int {
+    return songcount.toIntValue().takeIf { it > 0 } ?: songs?.size ?: 0
+}
+
 fun ScenePlaylist.toPlaylist(): Playlist {
     return Playlist(
         name = specialname,
         intro = intro,
         pic = flexible_cover ?: imgurl,
-        count = songcount,
+        count = songCountValue(),
         list_create_username = nickname,
         list_create_userid = suid,
         create_user_pic = pic,
-        global_collection_id = global_collection_id
+        global_collection_id = global_collection_id,
+        listid = specialid,
     )
 }
 
