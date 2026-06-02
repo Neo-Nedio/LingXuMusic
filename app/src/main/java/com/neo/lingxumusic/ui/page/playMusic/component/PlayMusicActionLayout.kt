@@ -22,6 +22,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.neo.lingxumusic.R
 import com.neo.lingxumusic.core.MusicPlayController
+import com.neo.lingxumusic.core.UserFavoriteSongsController
 import com.neo.lingxumusic.core.navigation.NavController
 import com.neo.lingxumusic.core.navigation.Routes
 import com.neo.lingxumusic.core.navigation.RoutesConstant
@@ -29,6 +30,7 @@ import com.neo.lingxumusic.core.player.PlayMode
 import com.neo.lingxumusic.ui.common.CommonIcon
 import com.neo.lingxumusic.ui.common.SeekBar
 import com.neo.lingxumusic.ui.page.playMusic.showPlayListSheet
+import com.neo.lingxumusic.ui.theme.AppColorsProvider
 import com.neo.lingxumusic.utils.StringUtil
 import com.neo.lingxumusic.utils.cdp
 import com.neo.lingxumusic.utils.csp
@@ -64,7 +66,14 @@ private fun MiddleActionLayout() {
             .fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
     ) { // 水平均匀分布
-        MiddleActionIcon(R.drawable.ic_like_no, modifier = Modifier.padding(end = 60.cdp))      // 点赞（未点赞状态）
+        
+        val isFavorite = MusicPlayController.songList.getOrNull(MusicPlayController.curIndex)
+            ?.let(UserFavoriteSongsController::isFavoriteSong) == true
+        MiddleActionIcon(
+            if (isFavorite) R.drawable.ic_like_yes else R.drawable.ic_like_no,
+            modifier = Modifier.padding(end = 60.cdp),
+            tint = if (isFavorite) AppColorsProvider.current.primary else Color.White,
+        )      // 点赞（未点赞状态）
         MiddleActionIcon(R.drawable.ic_download, modifier = Modifier.padding(end = 60.cdp))     // 下载
         MiddleActionIcon(R.drawable.ic_action_sing, modifier = Modifier.padding(end = 60.cdp))  // K歌/唱歌
         Box(modifier = Modifier.width(138.cdp)) { //评论
@@ -100,10 +109,10 @@ private fun MiddleActionLayout() {
 }
 
 @Composable
-private fun MiddleActionIcon(resId: Int, modifier: Modifier = Modifier, clickable: () -> Unit = {}) {
+private fun MiddleActionIcon(resId: Int, modifier: Modifier = Modifier, tint: Color = Color.White, clickable: () -> Unit = {}) {
     CommonIcon(
         resId,
-        tint = Color.White,
+        tint = tint,
         modifier = modifier
             .size(78.cdp) // 图标容器大小 78dp（包含内边距）
             .clip(CircleShape)
