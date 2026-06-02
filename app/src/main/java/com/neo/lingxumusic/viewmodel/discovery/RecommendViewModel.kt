@@ -9,6 +9,8 @@ import com.neo.lingxumusic.http.api.RecommendApi
 import com.neo.lingxumusic.model.BaseResult
 import com.neo.lingxumusic.model.PersonalFmData
 import com.neo.lingxumusic.model.RecommendSong
+import com.neo.lingxumusic.model.ScenePlaylist
+import com.neo.lingxumusic.model.SceneRecommendData
 import com.neo.lingxumusic.model.SongRecommendData
 import com.neo.lingxumusic.model.coverUrl
 import com.neo.lingxumusic.model.dataAs
@@ -24,10 +26,12 @@ class RecommendViewModel @Inject constructor(
     val everyDayResult = ViewStateMutableLiveData<BaseResult>()
     val guessLikeResult = ViewStateMutableLiveData<BaseResult>()
     val recommendSongsResult = ViewStateMutableLiveData<BaseResult>()
+    val recommendPlayListResult = ViewStateMutableLiveData<BaseResult>()
 
     var everyDaySongList by mutableStateOf<List<RecommendSong>>(emptyList())
     var guessLikeSongList by mutableStateOf<List<RecommendSong>>(emptyList())
     var recommendSongList by mutableStateOf<List<RecommendSong>>(emptyList())
+    var recommendPlayList by mutableStateOf<List<ScenePlaylist>>(emptyList())
     var everyDayCover by mutableStateOf<String?>(null)
     var guessLikeCover by mutableStateOf<String?>(null)
 
@@ -63,6 +67,14 @@ class RecommendViewModel @Inject constructor(
             recommendSongList = result.dataAs<SongRecommendData>()?.song_list.orEmpty()
         }) {
             api.getSongRecommend(cardId)
+        }
+    }
+
+    fun loadRecommendPlaylists() {
+        launch(recommendPlayListResult, handleResult = { result ->
+            recommendPlayList = result.dataAs<SceneRecommendData>()?.special_list.orEmpty()
+        }) {
+            api.getPlaylistRecommend()
         }
     }
 }

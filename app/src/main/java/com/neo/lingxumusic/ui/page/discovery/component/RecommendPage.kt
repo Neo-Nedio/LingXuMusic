@@ -13,7 +13,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -31,9 +33,14 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.neo.lingxumusic.R
 import com.neo.lingxumusic.core.MusicPlayController
 import com.neo.lingxumusic.core.UserFavoriteSongsController
+import com.neo.lingxumusic.core.navigation.NavController
+import com.neo.lingxumusic.core.navigation.Routes
+import com.neo.lingxumusic.core.navigation.RoutesConstant
 import com.neo.lingxumusic.core.viewState.ViewStateComponent
 import com.neo.lingxumusic.model.Song
 import com.neo.lingxumusic.model.displayTitle
+import com.neo.lingxumusic.model.toBrief
+import com.neo.lingxumusic.model.toPlaylist
 import com.neo.lingxumusic.model.toSongList
 import com.neo.lingxumusic.ui.common.CommonIcon
 import com.neo.lingxumusic.ui.common.CommonNetworkImage
@@ -41,6 +48,7 @@ import com.neo.lingxumusic.ui.common.CommonTabLayout
 import com.neo.lingxumusic.ui.common.CommonTabLayoutStyle
 import com.neo.lingxumusic.ui.common.MarqueeText
 import com.neo.lingxumusic.ui.page.mine.component.SongItem
+import com.neo.lingxumusic.ui.page.playList.component.RecommendPlayListItem
 import com.neo.lingxumusic.ui.theme.AppColorsProvider
 import com.neo.lingxumusic.ui.theme.isInDarkTheme
 import com.neo.lingxumusic.utils.cdp
@@ -56,10 +64,12 @@ fun RecommendPage() {
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .verticalScroll(rememberScrollState())
             .padding(horizontal = 32.cdp, vertical = 24.cdp),
     ) {
         EveryDayAndGuessLikeRow(viewModel)
         RecommendSongs(modifier = Modifier.padding(top = 24.cdp))
+        RecommendPlayLists(modifier = Modifier.padding(top = 24.cdp))
     }
 }
 
@@ -279,6 +289,58 @@ private fun RecommendSongs(
                                                 }
                                             }
                                     )
+                                },
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+//获取歌单推荐
+@Composable
+private fun RecommendPlayLists(
+    modifier: Modifier = Modifier,
+    viewModel: RecommendViewModel = hiltViewModel(),
+) {
+    Column(modifier = modifier.fillMaxWidth()) {
+        Text(
+            text = "歌单推荐",
+            color = AppColorsProvider.current.firstText,
+            fontSize = 32.csp,
+            fontWeight = FontWeight.Bold,
+        )
+        ViewStateComponent(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 16.cdp),
+            viewStateLiveData = viewModel.recommendPlayListResult,
+            loadDataBlock = { viewModel.loadRecommendPlaylists() },
+            specialRetryBlock = { viewModel.loadRecommendPlaylists() },
+            viewStateComponentModifier = Modifier.fillMaxWidth(),
+            viewStateContentAlignment = Alignment.TopCenter,
+        ) {
+            LazyRow(modifier = Modifier.fillMaxWidth()) {
+                itemsIndexed(viewModel.recommendPlayList.chunked(5)) { columnIndex, columnPlaylists ->
+                    Column(
+                        modifier = Modifier
+                            .fillParentMaxWidth(0.9f)
+                            .padding(end = 26.cdp),
+                    ) {
+                        columnPlaylists.forEach { playlist ->
+                            RecommendPlayListItem(
+                                playlist = playlist,
+                                onClick = {
+                                    NavController.instance.currentBackStackEntry
+                                        ?.savedStateHandle
+                                        ?.set(
+                                            RoutesConstant.KEY_PLAY_LIST_BRIEF,
+                                            playlist.toPlaylist().toBrief(),
+                                        )
+                                    NavController.instance.navigate(Routes.PLAY_LIST)
                                 },
                             )
                         }
