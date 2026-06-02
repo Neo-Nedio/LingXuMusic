@@ -2,6 +2,7 @@ package com.neo.lingxumusic.core
 
 import androidx.compose.runtime.mutableStateListOf
 import com.neo.lingxumusic.hilt.entrypoint.EntryPointFinder
+import com.neo.lingxumusic.http.api.SongApi
 import com.neo.lingxumusic.http.api.UserApi
 import com.neo.lingxumusic.model.PlaylistDetailData
 import com.neo.lingxumusic.model.Song
@@ -18,13 +19,14 @@ object UserFavoriteSongsController {
     var favoriteSongList = mutableStateListOf<Song>() // 我喜欢的歌曲
 
     private val userApi: UserApi = EntryPointFinder.getUserApi()
+    private val songApi: SongApi = EntryPointFinder.getSongApi()
     private val controllerScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private var loadFavoriteSongJob: Job? = null
 
     // 加载我喜欢的歌曲（在进入应用时就调用）
     fun loadFavoriteSongs() {
         val playlistId = AppGlobalData.favoritePlaylistGlobalCollectionId
-        if (playlistId.isBlank()) {
+        if (playlistId.isNullOrBlank()) {
             return
         }
         loadFavoriteSongJob?.cancel()
@@ -50,5 +52,45 @@ object UserFavoriteSongsController {
             return favoriteSongList.any { it.hash == hash }
         }
         return song.mixsongid > 0 && favoriteSongList.any { it.mixsongid == song.mixsongid }
+    }
+
+    // 添加歌曲到我喜欢的歌单
+    fun addFavoriteSong(song: Song) {
+        val listid = AppGlobalData.favoritePlaylistListId
+        val data = buildData(song)
+        if (listid <= 0 || data.isNullOrBlank()) {
+            return
+        }
+        controllerScope.launch {
+            try {
+                withContext(Dispatchers.IO) {
+                    songApi.addSongToPlaylist(listid, data)
+                }
+                if (!isFavoriteSong(song)) {
+                    favoriteSongList.add(0, song)
+                }
+            } catch (_: Exception) {
+            }
+        }
+    }
+
+    //构建添加歌单需要的data
+    private fun buildData(song: Song): String? {
+        val songname = song.songname?.takeIf { it.isNotBlank() }
+            ?: song.name?.substringAfter(" - ", missingDelimiterValue = song.name.orEmpty())
+                ?.takeIf { it.isNotBlank() }
+            ?: song.name?.takeIf { it.isNotBlank() }
+        val hash = song.hash?.takeIf { it.isNotBlank() } ?: return null
+        if (songname.isNullOrBlank()) {
+            return null
+        }
+        val base = "$songname|$hash"
+        val albumId = song.album_id?.takeIf { it.isNotBlank() }
+        val mixsongid = song.mixsongid.takeIf { it > 0 }
+        return when {
+            albumId != null && mixsongid != null -> "$base|$albumId|$mixsongid"
+            albumId != null -> "$base|$albumId"
+            else -> base
+        }
     }
 }

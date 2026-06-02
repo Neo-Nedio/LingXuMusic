@@ -66,14 +66,19 @@ private fun MiddleActionLayout() {
             .fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
     ) { // 水平均匀分布
-        
-        val isFavorite = MusicPlayController.songList.getOrNull(MusicPlayController.curIndex)
-            ?.let(UserFavoriteSongsController::isFavoriteSong) == true
+        //当前歌曲
+        val curSong = MusicPlayController.songList.getOrNull(MusicPlayController.curIndex)
+        //是否是喜欢的歌曲
+        val isFavorite = curSong?.let(UserFavoriteSongsController::isFavoriteSong) == true
         MiddleActionIcon(
             if (isFavorite) R.drawable.ic_like_yes else R.drawable.ic_like_no,
             modifier = Modifier.padding(end = 60.cdp),
             tint = if (isFavorite) AppColorsProvider.current.primary else Color.White,
-        )      // 点赞（未点赞状态）
+        ) {
+            if (!isFavorite) {
+                curSong?.let { UserFavoriteSongsController.addFavoriteSong(it) }
+            }
+        }
         MiddleActionIcon(R.drawable.ic_download, modifier = Modifier.padding(end = 60.cdp))     // 下载
         MiddleActionIcon(R.drawable.ic_action_sing, modifier = Modifier.padding(end = 60.cdp))  // K歌/唱歌
         Box(modifier = Modifier.width(138.cdp)) { //评论

@@ -59,7 +59,7 @@ class KVCacheExt<T>(
             is Int -> mmkv.decodeInt(key)
             is Boolean -> mmkv.decodeBool(key)
             is Double -> mmkv.decodeDouble(key)
-            is String -> mmkv.decodeString(key)
+            is String -> mmkv.decodeString(key) ?: (value as String)
             is Float -> mmkv.decodeFloat(key)
             //  public <T extends Parcelable> T decodeParcelable(String key, Class<T> clazz)
             is Parcelable -> mmkv.decodeParcelable(key, valueRawType as Class<Parcelable>?)
