@@ -25,6 +25,7 @@ import com.neo.lingxumusic.R
 import com.neo.lingxumusic.ui.common.CommonTabLayout
 import com.neo.lingxumusic.ui.common.CommonTabLayoutStyle
 import com.neo.lingxumusic.ui.common.CommonTopAppBar
+import com.neo.lingxumusic.ui.page.discovery.component.RecommendPage
 import com.neo.lingxumusic.ui.theme.AppColorsProvider
 import com.neo.lingxumusic.utils.cdp
 import com.neo.lingxumusic.utils.csp
@@ -112,11 +113,6 @@ private fun Body(modifier: Modifier = Modifier) {
             }
         }
     }
-}
-
-@Composable
-private fun RecommendPage() {
-    DiscoveryPlaceholderPage(title = "推荐")
 }
 
 @Composable

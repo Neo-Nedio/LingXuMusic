@@ -23,10 +23,33 @@ data class RecommendSong(
     val author_name: String? = null,            // 歌手名
     val album_name: String? = null,             // 专辑名
     val sizable_cover: String? = null,          // 封面图
+    val album_sizable_cover: String? = null,    // 封面图（部分接口直接返回）
     val hash: String? = null,                   // 音频哈希（获取播放URL）
     val mixsongid: String? = null,              // 歌曲ID
     val album_audio_id: String? = null,         // 专辑音频ID
     val time_length: Double = 0.0,              // 时长（秒）
     val publish_date: String? = null,           // 发行日期
-    val language: String? = null                // 语言
+    val language: String? = null,               // 语言
+    val trans_param: RecommendTransParam? = null, // 猜你喜欢封面在 union_cover
+    val info: RecommendSongInfo? = null         // 猜你喜欢封面在 image
 ) : Parcelable
+
+@Parcelize
+data class RecommendTransParam(
+    val union_cover: String? = null
+) : Parcelable
+
+@Parcelize
+data class RecommendSongInfo(
+    val image: String? = null
+) : Parcelable
+
+fun RecommendSong.displayTitle(): String {
+    val name = songname.orEmpty()
+    val author = author_name.orEmpty()
+    return when {
+        name.isNotBlank() && author.isNotBlank() -> "$name-$author"
+        name.isNotBlank() -> name
+        else -> author
+    }
+}
