@@ -26,6 +26,7 @@ import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.BiasAlignment
 import androidx.compose.ui.Modifier
@@ -63,6 +64,7 @@ import com.neo.lingxumusic.utils.toPx
 import com.neo.lingxumusic.utils.replaceSize
 import com.neo.lingxumusic.utils.showToast
 import com.neo.lingxumusic.viewmodel.mine.PlayListViewModel
+import kotlinx.coroutines.launch
 import me.onebone.toolbar.CollapsingToolbarScaffold
 import me.onebone.toolbar.CollapsingToolbarScaffoldState
 import me.onebone.toolbar.CollapsingToolbarScope
@@ -326,6 +328,7 @@ private fun RowScope.HeaderCountInfoItem(
 @Composable
 private fun Body() {
     val viewModel: PlayListViewModel = hiltViewModel()
+    val scope = rememberCoroutineScope()
 
     //当需要的歌单数据没有时，加载数据
     if (viewModel.songListFlow == null) {
@@ -358,18 +361,24 @@ private fun Body() {
                             index = index,
                             song = item,
                             onClick = {
-                                val songs = songList.toSongList()
-                                if (songs.getOrNull(index)?.hash.isNullOrEmpty()) {
-                                    showToast("该歌曲暂不支持播放")
-                                } else {
-                                    MusicPlayController.songList.clear()
-                                    //通过这个函数过滤所有无法播放的歌曲
-                                    MusicPlayController.setDataSource(
-                                        songs,
-                                        songs[index].hash
-                                    )
-                                    MusicPlayController.showBottomMusicPlay = false
-                                    MusicPlayController.showPlayMusicSheet = true
+                                scope.launch {
+                                    var songs = songList.toSongList()
+                                    //判断歌曲是否全部加载完成，否则加载
+                                    if (songs.size < viewModel.songCount) {
+                                        songs = viewModel.loadAllSongs()
+                                    }
+                                    if (songs.getOrNull(index)?.hash.isNullOrEmpty()) {
+                                        showToast("该歌曲暂不支持播放")
+                                    } else {
+                                        MusicPlayController.songList.clear()
+                                        //通过这个函数过滤所有无法播放的歌曲
+                                        MusicPlayController.setDataSource(
+                                            songs,
+                                            songs[index].hash
+                                        )
+                                        MusicPlayController.showBottomMusicPlay = false
+                                        MusicPlayController.showPlayMusicSheet = true
+                                    }
                                 }
                             },
                             trailingIcon = {
@@ -405,18 +414,25 @@ private fun Body() {
 @Composable
 private fun PlayListHeader(playlist: PlaylistBrief, songList: LazyPagingItems<Song>) {
     val viewModel: PlayListViewModel = hiltViewModel()
+    val scope = rememberCoroutineScope()
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .height(100.cdp)
             .clickable {
-                val songs = songList.toSongList()
-                MusicPlayController.setDataSource(
-                    songs,
-                    songs.firstOrNull()?.hash
-                )
-                MusicPlayController.showBottomMusicPlay = false
-                MusicPlayController.showPlayMusicSheet = true
+                //判断歌曲是否全部加载完成，否则加载
+                scope.launch {
+                    var songs = songList.toSongList()
+                    if (songs.size < viewModel.songCount) {
+                        songs = viewModel.loadAllSongs()
+                    }
+                    MusicPlayController.setDataSource(
+                        songs,
+                        songs.firstOrNull()?.hash
+                    )
+                    MusicPlayController.showBottomMusicPlay = false
+                    MusicPlayController.showPlayMusicSheet = true
+                }
             },
         verticalAlignment = Alignment.CenterVertically  // 垂直居中
     ) {

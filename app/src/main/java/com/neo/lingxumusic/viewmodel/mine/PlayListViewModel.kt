@@ -15,6 +15,7 @@ import com.neo.lingxumusic.model.dataAs
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
+import kotlin.collections.orEmpty
 
 @HiltViewModel
 class PlayListViewModel @Inject constructor(private val userApi: UserApi)
@@ -50,6 +51,23 @@ class PlayListViewModel @Inject constructor(private val userApi: UserApi)
             songCount = result.data?.asJsonArray?.firstOrNull()?.asJsonObject?.get("count")?.asInt ?: 0
         }) {
             userApi.getPlaylistDetail(playlist.global_collection_id)
+        }
+    }
+
+    //通过songCount一次获取全部歌曲
+    suspend fun loadAllSongs(): List<Song> {
+        if (songCount <= 0) {
+            return emptyList()
+        }
+        val result = userApi.getPlaylistSong(
+            id = playlist.global_collection_id,
+            page = 1,
+            pagesize = songCount,
+        )
+        return if (result.status == 1 && result.error_code == 0) {
+            result.dataAs<PlaylistDetailData>()?.songs.orEmpty()
+        } else {
+            emptyList()
         }
     }
 }
