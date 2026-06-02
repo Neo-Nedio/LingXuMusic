@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -23,6 +25,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.neo.lingxumusic.R
 import com.neo.lingxumusic.core.MusicPlayController
+import com.neo.lingxumusic.core.UserFavoriteSongsController
 import com.neo.lingxumusic.core.viewState.ViewStateComponent
 import com.neo.lingxumusic.model.Song
 import com.neo.lingxumusic.model.displayTitle
@@ -30,6 +33,8 @@ import com.neo.lingxumusic.model.toSongList
 import com.neo.lingxumusic.ui.common.CommonIcon
 import com.neo.lingxumusic.ui.common.CommonNetworkImage
 import com.neo.lingxumusic.ui.common.MarqueeText
+import com.neo.lingxumusic.ui.page.mine.component.SongItem
+import com.neo.lingxumusic.ui.theme.AppColorsProvider
 import com.neo.lingxumusic.ui.theme.isInDarkTheme
 import com.neo.lingxumusic.utils.cdp
 import com.neo.lingxumusic.utils.csp
@@ -88,6 +93,67 @@ fun RecommendPage() {
                         playRecommendSongs(viewModel.guessLikeSongList.toSongList())
                     },
                 )
+            }
+        }
+        RecommendSongs(modifier = Modifier.padding(top = 24.cdp))
+    }
+}
+
+//获取歌曲推荐
+@Composable
+private fun RecommendSongs(
+    modifier: Modifier = Modifier,
+    viewModel: RecommendViewModel = hiltViewModel(),
+) {
+    ViewStateComponent(
+        modifier = modifier,
+        viewStateLiveData = viewModel.recommendSongsResult,
+        loadDataBlock = { viewModel.loadRecommendSongs() },
+        specialRetryBlock = { viewModel.loadRecommendSongs() },
+        viewStateComponentModifier = Modifier.fillMaxWidth(),
+        viewStateContentAlignment = Alignment.TopCenter,
+    ) {
+        val songs = viewModel.recommendSongList.toSongList()
+        LazyRow(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            //songs.chunked(3) 是将一个列表按每 3 个元素为一组进行分组
+            itemsIndexed(songs.chunked(3)) { columnIndex, columnSongs ->
+                Column(
+                    modifier = Modifier
+                        .fillParentMaxWidth(0.9f)  // 每个 item 占 LazyRow 可视区域宽度的 90%
+                        .padding(end = 16.cdp),    // 右侧间距（可选）
+                ) {
+                    columnSongs.forEachIndexed { rowIndex, song ->
+                        SongItem(
+                            index = columnIndex * 3 + rowIndex,
+                            song = song,
+                            onClick = { },
+                            //尾部收藏图标
+                            trailingIcon = {
+                                val isFavorite = UserFavoriteSongsController.isFavoriteSong(song)
+                                CommonIcon(
+                                    resId = if (isFavorite) R.drawable.ic_like_yes else R.drawable.ic_like_no,
+                                    tint = if (isFavorite) {
+                                        AppColorsProvider.current.primary
+                                    } else {
+                                        AppColorsProvider.current.firstIcon
+                                    },
+                                    modifier = Modifier
+                                        .size(32.cdp)
+                                        .clip(RoundedCornerShape(4.cdp))
+                                        .clickable {
+                                            if (isFavorite) {
+                                                UserFavoriteSongsController.removeFavoriteSong(song)
+                                            } else {
+                                                UserFavoriteSongsController.addFavoriteSong(song)
+                                            }
+                                        }
+                                )
+                            },
+                        )
+                    }
+                }
             }
         }
     }

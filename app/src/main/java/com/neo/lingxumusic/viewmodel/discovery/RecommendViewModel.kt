@@ -23,9 +23,11 @@ class RecommendViewModel @Inject constructor(
 
     val everyDayResult = ViewStateMutableLiveData<BaseResult>()
     val guessLikeResult = ViewStateMutableLiveData<BaseResult>()
+    val recommendSongsResult = ViewStateMutableLiveData<BaseResult>()
 
     var everyDaySongList by mutableStateOf<List<RecommendSong>>(emptyList())
     var guessLikeSongList by mutableStateOf<List<RecommendSong>>(emptyList())
+    var recommendSongList by mutableStateOf<List<RecommendSong>>(emptyList())
     var everyDayCover by mutableStateOf<String?>(null)
     var guessLikeCover by mutableStateOf<String?>(null)
 
@@ -44,6 +46,15 @@ class RecommendViewModel @Inject constructor(
             guessLikeCover = guessLikeSongList.firstOrNull()?.coverUrl()
         }) {
             api.guessYourLike()
+        }
+    }
+
+    //获取推荐歌曲
+    fun loadRecommendSongs() {
+        launch(recommendSongsResult, handleResult = { result ->
+            recommendSongList = result.dataAs<SongRecommendData>()?.song_list.orEmpty()
+        }) {
+            api.getSongRecommend("1")
         }
     }
 }

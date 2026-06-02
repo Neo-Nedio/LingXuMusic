@@ -66,10 +66,16 @@ fun RecommendSong.coverUrl(): String? {
  * 将推荐歌曲转换为 Song
  */
 fun RecommendSong.toSong(): Song {
+    val songName = songname.orEmpty()
+    val author = author_name.orEmpty()
     return Song(
         hash = hash,
         songname = songname,
-        name = displayTitle().ifBlank { songname },
+        name = when {
+            songName.isNotBlank() && author.isNotBlank() -> "$author - $songName"
+            songName.isNotBlank() -> songName
+            else -> author
+        },
         album_id = album_id,
         cover = coverUrl(),
         mixsongid = mixsongid?.toLongOrNull() ?: album_audio_id?.toLongOrNull() ?: 0,
