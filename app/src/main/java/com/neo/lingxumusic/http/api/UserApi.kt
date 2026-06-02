@@ -15,4 +15,9 @@ interface UserApi {
         @Query("page") page: Int? = null,
         @Query("pagesize") pagesize: Int? = null,
     ): BaseResult
+
+    @GET("/playlist/detail")
+    suspend fun getPlaylistDetail(
+        @Query("ids") id: String?,
+    ): BaseResult
 }

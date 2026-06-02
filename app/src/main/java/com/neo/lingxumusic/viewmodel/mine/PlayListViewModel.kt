@@ -1,6 +1,7 @@
 package com.neo.lingxumusic.viewmodel.mine
 
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.paging.PagingData
@@ -21,11 +22,14 @@ class PlayListViewModel @Inject constructor(private val userApi: UserApi)
 
     lateinit var playlist: PlaylistBrief
 
+    var songCount by mutableIntStateOf(0)
+
     var songListFlow by mutableStateOf<Flow<PagingData<Song>>?>(null)
 
     //构建歌单歌曲分页数据流
     fun buildSongListPager(playlist: PlaylistBrief) {
         this.playlist = playlist
+        loadPlaylistCount()
         songListFlow = buildPager(
             transformListBlock = { result ->
                 result?.dataAs<PlaylistDetailData>()?.songs
@@ -38,5 +42,14 @@ class PlayListViewModel @Inject constructor(private val userApi: UserApi)
                 )
             }
         )
+    }
+
+    //获取歌单歌曲总数
+    fun loadPlaylistCount() {
+        launch(handleResult = { result ->
+            songCount = result.data?.asJsonArray?.firstOrNull()?.asJsonObject?.get("count")?.asInt ?: 0
+        }) {
+            userApi.getPlaylistDetail(playlist.global_collection_id)
+        }
     }
 }

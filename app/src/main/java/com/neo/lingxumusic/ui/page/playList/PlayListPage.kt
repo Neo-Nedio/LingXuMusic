@@ -250,6 +250,7 @@ private fun HeadPlayListInfo(modifier: Modifier, playlist: PlaylistBrief) {
 }
 
 //底部按钮栏
+//todo 拿不到数据，考虑删除
 @Composable
 private fun HeadCountInfoLayout(modifier: Modifier, playlist: PlaylistBrief) {
     Row(
@@ -264,7 +265,7 @@ private fun HeadCountInfoLayout(modifier: Modifier, playlist: PlaylistBrief) {
     ) {
         HeaderCountInfoItem(
             R.drawable.ic_action_play,
-            "播放(${StringUtil.friendlyNumber(playlist.playCountValue())})",
+            "播放(0)",
             true
         )
         HeaderCountInfoItem(
@@ -403,6 +404,7 @@ private fun Body() {
 //歌曲列表的头部，显示"播放全部"按钮和歌曲数量
 @Composable
 private fun PlayListHeader(playlist: PlaylistBrief, songList: LazyPagingItems<Song>) {
+    val viewModel: PlayListViewModel = hiltViewModel()
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -436,7 +438,7 @@ private fun PlayListHeader(playlist: PlaylistBrief, songList: LazyPagingItems<So
         )
         // 歌曲数量，如 "(24)"
         Text(
-            text = "(${playlist.count})",
+            text = "(${viewModel.songCount})",
             fontSize = 28.csp,
             color = AppColorsProvider.current.secondText,
         )
