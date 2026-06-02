@@ -5,12 +5,16 @@ import com.neo.lingxumusic.model.LyricResult
 import com.neo.lingxumusic.model.LyricSearchResult
 import com.neo.lingxumusic.model.SongCommentResult
 import com.neo.lingxumusic.model.SongPlayInfo
+import com.neo.lingxumusic.model.SongPlayInfoNew
 import retrofit2.http.GET
 import retrofit2.http.Query
 
 interface SongApi {
     @GET("song/url")
     suspend fun getSongUrl(@Query("hash") hash: String): SongPlayInfo
+
+    @GET("/song/url/new")
+    suspend fun getSongUrlNew(@Query("hash") hash: String): SongPlayInfoNew
 
     @GET("/comment/music")
     suspend fun getSongComment(
