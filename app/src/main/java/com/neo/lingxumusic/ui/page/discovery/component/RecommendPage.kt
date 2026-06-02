@@ -210,7 +210,7 @@ private fun RecommendSongs(
                         SongItem(
                             index = columnIndex * 3 + rowIndex,
                             song = song,
-                            onClick = { },
+                            onClick = { MusicPlayController.addSong(song) },
                             //尾部收藏图标
                             trailingIcon = {
                                 val isFavorite = UserFavoriteSongsController.isFavoriteSong(song)

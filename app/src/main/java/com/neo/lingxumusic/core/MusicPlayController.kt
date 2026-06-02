@@ -76,6 +76,27 @@ object MusicPlayController  : IPlayerListener {
         }
     }
 
+    // 将歌曲插入当前播放位置的下一首，并移动索引
+    fun addSong(song: Song) {
+        if (song.hash.isNullOrBlank()) {
+            return
+        }
+        //歌曲为空
+        if (songList.isEmpty()) {
+            songList.add(song)
+            //如果没有播放页面，打开页面
+            if (!showBottomMusicPlay && !showPlayMusicSheet) {
+                showBottomMusicPlay = true
+            }
+            play(0)
+            return
+        }
+        //歌曲不为空
+        val insertIndex = curIndex + 1
+        songList.add(insertIndex, song)
+        play(insertIndex)
+    }
+
     fun play(index: Int) {
         if (songList.isEmpty()) {
             showToast("歌单为空")
