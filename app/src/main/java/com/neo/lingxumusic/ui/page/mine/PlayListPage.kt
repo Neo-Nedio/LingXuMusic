@@ -43,6 +43,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.neo.lingxumusic.R
 import com.neo.lingxumusic.core.AppGlobalData
 import com.neo.lingxumusic.core.MusicPlayController
+import com.neo.lingxumusic.core.UserFavoriteSongsController
 import com.neo.lingxumusic.core.viewState.ViewStateComponent
 import com.neo.lingxumusic.model.PlaylistBrief
 import com.neo.lingxumusic.model.PlaylistDetailData
@@ -349,20 +350,45 @@ private fun Body() {
                 HorizontalDivider(Modifier.fillMaxWidth(), thickness = 1.cdp, color = Color.LightGray)
                 LazyColumn {
                     itemsIndexed(songs) { index, item ->
-                        SongItem(index, item) {
-                            if (viewModel.songList[index].hash.isNullOrEmpty()) {
-                                showToast("该歌曲暂不支持播放")
-                            } else {
-                                MusicPlayController.songList.clear()
-                                //通过这个函数过滤所有无法播放的歌曲
-                                MusicPlayController.setDataSource(
-                                    viewModel.songList,
-                                    viewModel.songList[index].hash
+                        SongItem(
+                            index = index,
+                            song = item,
+                            onClick = {
+                                if (viewModel.songList[index].hash.isNullOrEmpty()) {
+                                    showToast("该歌曲暂不支持播放")
+                                } else {
+                                    MusicPlayController.songList.clear()
+                                    //通过这个函数过滤所有无法播放的歌曲
+                                    MusicPlayController.setDataSource(
+                                        viewModel.songList,
+                                        viewModel.songList[index].hash
+                                    )
+                                    MusicPlayController.showBottomMusicPlay = false
+                                    MusicPlayController.showPlayMusicSheet = true
+                                }
+                            },
+                            trailingIcon = {
+                                val isFavorite = UserFavoriteSongsController.isFavoriteSong(item)
+                                CommonIcon(
+                                    resId = if (isFavorite) R.drawable.ic_like_yes else R.drawable.ic_like_no,
+                                    tint = if (isFavorite) {
+                                        AppColorsProvider.current.primary
+                                    } else {
+                                        AppColorsProvider.current.firstIcon
+                                    },
+                                    modifier = Modifier
+                                        .size(32.cdp)
+                                        .clip(RoundedCornerShape(4.cdp))
+                                        .clickable {
+                                            if (isFavorite) {
+                                                UserFavoriteSongsController.removeFavoriteSong(item)
+                                            } else {
+                                                UserFavoriteSongsController.addFavoriteSong(item)
+                                            }
+                                        }
                                 )
-                                MusicPlayController.showBottomMusicPlay = false
-                                MusicPlayController.showPlayMusicSheet = true
-                            }
-                        }
+                            },
+                        )
                     }
                 }
             }

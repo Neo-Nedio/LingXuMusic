@@ -23,7 +23,12 @@ import com.neo.lingxumusic.utils.StringUtil
 import com.neo.lingxumusic.ui.page.playMusic.component.PlayingMark
 
 @Composable
-fun SongItem(index: Int, song: Song,onClick: (index: Int) -> Unit) {
+fun SongItem(
+    index: Int,
+    song: Song,
+    onClick: (index: Int) -> Unit,
+    trailingIcon: (@Composable () -> Unit)? = null,
+) {
     Row(
         Modifier
             .fillMaxWidth()
@@ -79,8 +84,8 @@ fun SongItem(index: Int, song: Song,onClick: (index: Int) -> Unit) {
         }
 
 
-        //菜单图标
-        CommonIcon(
+        //右侧图标
+        trailingIcon?.invoke() ?: CommonIcon(
             resId = R.drawable.ic_sheet_menu,
             modifier = Modifier.size(32.cdp)
                 .clip(RoundedCornerShape(4.cdp))
