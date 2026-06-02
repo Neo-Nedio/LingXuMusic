@@ -70,7 +70,6 @@ fun RecommendSong.toSong(): Song {
         name = displayTitle().ifBlank { songname },
         cover = coverUrl(),
         mixsongid = mixsongid?.toLongOrNull() ?: 0,
-        collecttime = 0,  // 推荐歌曲默认未收藏 (在切换到歌曲时获得歌曲详情再判断是否收藏)
     )
 }
 

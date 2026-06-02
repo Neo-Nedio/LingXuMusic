@@ -21,5 +21,6 @@ class LingxuApplication : Application() {
         super.onCreate()
         instance = this
         KVCache.init(this)
+        UserFavoriteSongsController.loadFavoriteSongs() //开始时加载我喜欢的歌曲列表
     }
 }

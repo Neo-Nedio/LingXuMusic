@@ -16,5 +16,4 @@ data class Song(
     val name: String? = null,
     val cover: String? = null,
     val mixsongid: Long = 0,
-    val collecttime: Long = 0, // 收藏时间戳，>0 表示已收藏
 ) : Parcelable
