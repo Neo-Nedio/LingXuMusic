@@ -78,6 +78,9 @@ private fun MiddleActionLayout() {
             if (!isFavorite) {
                 curSong?.let { UserFavoriteSongsController.addFavoriteSong(it) }
             }
+            else{
+                curSong.let { UserFavoriteSongsController.removeFavoriteSong(it) }
+            }
         }
         MiddleActionIcon(R.drawable.ic_download, modifier = Modifier.padding(end = 60.cdp))     // 下载
         MiddleActionIcon(R.drawable.ic_action_sing, modifier = Modifier.padding(end = 60.cdp))  // K歌/唱歌

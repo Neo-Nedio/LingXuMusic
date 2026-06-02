@@ -74,6 +74,29 @@ object UserFavoriteSongsController {
         }
     }
 
+    // 从我喜欢歌单中删除歌曲
+    fun removeFavoriteSong(song: Song) {
+        val hash = song.hash?.takeIf { it.isNotBlank() } ?: return
+        val favoriteSong = favoriteSongList.find { it.hash == hash } ?: return
+        val fileid = favoriteSong.fileid
+        if (fileid <= 0) {
+            return
+        }
+        val listid = AppGlobalData.favoritePlaylistListId
+        if (listid <= 0) {
+            return
+        }
+        controllerScope.launch {
+            try {
+                withContext(Dispatchers.IO) {
+                    songApi.delSongToPlaylist(listid, fileid)
+                }
+                favoriteSongList.removeAll { it.hash == hash }
+            } catch (_: Exception) {
+            }
+        }
+    }
+
     //构建添加歌单需要的data
     private fun buildData(song: Song): String? {
         val songname = song.songname?.takeIf { it.isNotBlank() }

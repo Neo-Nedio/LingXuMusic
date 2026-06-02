@@ -60,4 +60,9 @@ interface SongApi {
         @Query("data") data: String
     ): BaseResult
 
+    @GET("/playlist/tracks/del")
+    suspend fun delSongToPlaylist(
+        @Query("listid") listid: Int,
+        @Query("fileids") fileids: Int
+    ): BaseResult
 }

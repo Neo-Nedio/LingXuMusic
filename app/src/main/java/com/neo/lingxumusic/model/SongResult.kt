@@ -18,4 +18,5 @@ data class Song(
     val album_id: String? = null,
     val cover: String? = null,
     val mixsongid: Long = 0,
+    val fileid: Int = 0,           // 用于歌单内删除歌曲删除歌曲（非歌单不用管）
 ) : Parcelable
