@@ -66,6 +66,16 @@ object MusicPlayController  : IPlayerListener {
         Player.start()
     }
 
+    fun removeSongAt(index: Int) {
+        if (index !in songList.indices || index == curIndex) {
+            return
+        }
+        songList.removeAt(index)
+        if (index < curIndex) {
+            curIndex -= 1
+        }
+    }
+
     fun play(index: Int) {
         if (songList.isEmpty()) {
             showToast("歌单为空")

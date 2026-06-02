@@ -194,6 +194,16 @@ private fun PlayListItem(index : Int, song: Song) {
             },
             modifier = Modifier.weight(1f),
         )
+        if (index != MusicPlayController.curIndex) {
+            Text(
+                text = "×",
+                fontSize = 40.csp,
+                color = AppColorsProvider.current.secondText,
+                modifier = Modifier
+                    .clickable { MusicPlayController.removeSongAt(index) }
+                    .padding(start = 16.cdp),
+            )
+        }
     }
 }
 
