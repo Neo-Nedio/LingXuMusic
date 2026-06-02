@@ -67,10 +67,10 @@ import com.neo.lingxumusic.ui.common.DragToggleState
 import com.neo.lingxumusic.ui.common.FixHeadBackgroundDraggableBodyLayout
 import com.neo.lingxumusic.ui.common.rememberDragToggleState
 import com.neo.lingxumusic.ui.page.mine.component.MusicApplicationComponent
-import com.neo.lingxumusic.ui.page.mine.component.PlayListPlaceHolder
+import com.neo.lingxumusic.ui.page.playList.component.PlayListPlaceHolder
 import com.neo.lingxumusic.ui.page.mine.component.SongPlayListHelper
 import com.neo.lingxumusic.ui.page.mine.component.UserInfoComponent
-import com.neo.lingxumusic.ui.page.mine.component.UserPlaylistItem
+import com.neo.lingxumusic.ui.page.playList.component.UserPlaylistItem
 import com.neo.lingxumusic.ui.theme.AppColorsProvider
 import com.neo.lingxumusic.utils.VibratorHelper
 import com.neo.lingxumusic.utils.cdp
@@ -85,7 +85,6 @@ import me.onebone.toolbar.CollapsingToolbarState
 import me.onebone.toolbar.CollapsingToolbarScaffold
 import me.onebone.toolbar.ScrollStrategy
 import me.onebone.toolbar.rememberCollapsingToolbarScaffoldState
-import kotlin.collections.get
 
 //todo 歌单和歌单内的歌曲默认一次加载30，要监听滚动加入数据
 

@@ -1,4 +1,4 @@
-package com.neo.lingxumusic.ui.page.mine
+package com.neo.lingxumusic.ui.page.playList
 
 import androidx.compose.foundation.LocalOverscrollFactory
 import androidx.compose.foundation.background

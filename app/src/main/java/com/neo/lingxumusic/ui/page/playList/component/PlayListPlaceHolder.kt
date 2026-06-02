@@ -1,4 +1,4 @@
-package com.neo.lingxumusic.ui.page.mine.component
+package com.neo.lingxumusic.ui.page.playList.component
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
