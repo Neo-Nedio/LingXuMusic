@@ -10,6 +10,7 @@ import com.neo.lingxumusic.model.BaseResult
 import com.neo.lingxumusic.model.PersonalFmData
 import com.neo.lingxumusic.model.RecommendSong
 import com.neo.lingxumusic.model.SongRecommendData
+import com.neo.lingxumusic.model.coverUrl
 import com.neo.lingxumusic.model.dataAs
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -47,9 +48,3 @@ class RecommendViewModel @Inject constructor(
     }
 }
 
-private fun RecommendSong.coverUrl(): String? {
-    return album_sizable_cover?.takeIf { it.isNotBlank() }
-        ?: sizable_cover?.takeIf { it.isNotBlank() }
-        ?: trans_param?.union_cover?.takeIf { it.isNotBlank() }
-        ?: info?.image?.takeIf { it.isNotBlank() }
-}

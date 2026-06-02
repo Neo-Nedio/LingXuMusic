@@ -53,3 +53,30 @@ fun RecommendSong.displayTitle(): String {
         else -> author
     }
 }
+
+fun RecommendSong.coverUrl(): String? {
+    return album_sizable_cover?.takeIf { it.isNotBlank() }
+        ?: sizable_cover?.takeIf { it.isNotBlank() }
+        ?: trans_param?.union_cover?.takeIf { it.isNotBlank() }
+        ?: info?.image?.takeIf { it.isNotBlank() }
+}
+
+/**
+ * 将推荐歌曲转换为 Song
+ */
+fun RecommendSong.toSong(): Song {
+    return Song(
+        hash = hash,
+        name = displayTitle().ifBlank { songname },
+        cover = coverUrl(),
+        mixsongid = mixsongid?.toLongOrNull() ?: 0,
+        collecttime = 0,  // 推荐歌曲默认未收藏 (在切换到歌曲时获得歌曲详情再判断是否收藏)
+    )
+}
+
+/**
+ * 批量转换
+ */
+fun List<RecommendSong>.toSongList(): List<Song> {
+    return map { it.toSong() }
+}

@@ -1,6 +1,7 @@
 package com.neo.lingxumusic.ui.page.discovery.component
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -21,8 +22,11 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.neo.lingxumusic.R
+import com.neo.lingxumusic.core.MusicPlayController
 import com.neo.lingxumusic.core.viewState.ViewStateComponent
+import com.neo.lingxumusic.model.Song
 import com.neo.lingxumusic.model.displayTitle
+import com.neo.lingxumusic.model.toSongList
 import com.neo.lingxumusic.ui.common.CommonIcon
 import com.neo.lingxumusic.ui.common.CommonNetworkImage
 import com.neo.lingxumusic.ui.common.MarqueeText
@@ -30,6 +34,7 @@ import com.neo.lingxumusic.ui.theme.isInDarkTheme
 import com.neo.lingxumusic.utils.cdp
 import com.neo.lingxumusic.utils.csp
 import com.neo.lingxumusic.utils.replaceSize
+import com.neo.lingxumusic.utils.showToast
 import com.neo.lingxumusic.viewmodel.discovery.RecommendViewModel
 
 @Composable
@@ -58,6 +63,9 @@ fun RecommendPage() {
                     label = "每日推荐",
                     songName = viewModel.everyDaySongList.firstOrNull()?.displayTitle().orEmpty(),
                     coverUrl = viewModel.everyDayCover,
+                    onClick = {
+                        playRecommendSongs(viewModel.everyDaySongList.toSongList())
+                    },
                 )
             }
             Box(modifier = Modifier.width(16.cdp))
@@ -76,6 +84,9 @@ fun RecommendPage() {
                     label = "猜你喜欢",
                     songName = viewModel.guessLikeSongList.firstOrNull()?.displayTitle().orEmpty(),
                     coverUrl = viewModel.guessLikeCover,
+                    onClick = {
+                        playRecommendSongs(viewModel.guessLikeSongList.toSongList())
+                    },
                 )
             }
         }
@@ -88,6 +99,7 @@ private fun RecommendCoverCard(
     label: String,
     songName: String,
     coverUrl: String?,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val isDark = isInDarkTheme()
@@ -112,6 +124,7 @@ private fun RecommendCoverCard(
             .aspectRatio(1f)
             .clip(RoundedCornerShape(16.cdp))
             .background(brush = backgroundBrush)
+            .clickable(onClick = onClick)
     ) {
         Column(
             modifier = Modifier
@@ -153,5 +166,18 @@ private fun RecommendCoverCard(
                 tint = Color.White,
             )
         }
+    }
+}
+
+
+private fun playRecommendSongs(songs: List<Song>) {
+    val firstHash = songs.firstOrNull()?.hash
+    if (firstHash.isNullOrEmpty()) {
+        showToast("该歌曲暂不支持播放")
+    } else {
+        MusicPlayController.songList.clear()
+        MusicPlayController.setDataSource(songs, firstHash)
+        MusicPlayController.showBottomMusicPlay = false
+        MusicPlayController.showPlayMusicSheet = true
     }
 }
