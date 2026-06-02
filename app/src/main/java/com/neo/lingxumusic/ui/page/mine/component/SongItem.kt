@@ -75,7 +75,7 @@ fun SongItem(
                 fontSize = 32.csp,
                 color = AppColorsProvider.current.firstText,
             )
-            Text(
+            MarqueeText(
                 text = singer,
                 fontSize = 24.csp,
                 color = AppColorsProvider.current.secondText,

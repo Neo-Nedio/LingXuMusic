@@ -31,6 +31,14 @@ class RecommendViewModel @Inject constructor(
     var everyDayCover by mutableStateOf<String?>(null)
     var guessLikeCover by mutableStateOf<String?>(null)
 
+    val recommendCardTabs = listOf(
+        RecommendCardTab("精选好歌随心听", "1"),
+        RecommendCardTab("经典怀旧金曲", "2"),
+        RecommendCardTab("热门好歌精选", "3"),
+        RecommendCardTab("小众宝藏佳作", "4"),
+        RecommendCardTab("VIP专属推荐", "6"),
+    )
+
     fun loadEveryDayRecommend() {
         launch(everyDayResult, handleResult = { result ->
             everyDaySongList = result.dataAs<SongRecommendData>()?.song_list.orEmpty()
@@ -50,12 +58,14 @@ class RecommendViewModel @Inject constructor(
     }
 
     //获取推荐歌曲
-    fun loadRecommendSongs() {
+    fun loadRecommendSongs(cardId: String) {
         launch(recommendSongsResult, handleResult = { result ->
             recommendSongList = result.dataAs<SongRecommendData>()?.song_list.orEmpty()
         }) {
-            api.getSongRecommend("1")
+            api.getSongRecommend(cardId)
         }
     }
 }
+
+data class RecommendCardTab(val title: String, val cardId: String)
 

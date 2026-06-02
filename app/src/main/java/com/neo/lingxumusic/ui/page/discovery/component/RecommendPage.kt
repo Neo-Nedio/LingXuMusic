@@ -16,12 +16,17 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.neo.lingxumusic.R
 import com.neo.lingxumusic.core.MusicPlayController
@@ -32,6 +37,8 @@ import com.neo.lingxumusic.model.displayTitle
 import com.neo.lingxumusic.model.toSongList
 import com.neo.lingxumusic.ui.common.CommonIcon
 import com.neo.lingxumusic.ui.common.CommonNetworkImage
+import com.neo.lingxumusic.ui.common.CommonTabLayout
+import com.neo.lingxumusic.ui.common.CommonTabLayoutStyle
 import com.neo.lingxumusic.ui.common.MarqueeText
 import com.neo.lingxumusic.ui.page.mine.component.SongItem
 import com.neo.lingxumusic.ui.theme.AppColorsProvider
@@ -187,53 +194,94 @@ private fun RecommendSongs(
     modifier: Modifier = Modifier,
     viewModel: RecommendViewModel = hiltViewModel(),
 ) {
-    ViewStateComponent(
-        modifier = modifier,
-        viewStateLiveData = viewModel.recommendSongsResult,
-        loadDataBlock = { viewModel.loadRecommendSongs() },
-        specialRetryBlock = { viewModel.loadRecommendSongs() },
-        viewStateComponentModifier = Modifier.fillMaxWidth(),
-        viewStateContentAlignment = Alignment.TopCenter,
-    ) {
-        val songs = viewModel.recommendSongList.toSongList()
-        LazyRow(
-            modifier = Modifier.fillMaxWidth()
+    var recommendSongsCardId by remember { mutableStateOf("1") }
+    val selectedIndex = viewModel.recommendCardTabs
+        .indexOfFirst { it.cardId == recommendSongsCardId }
+        .coerceAtLeast(0)
+
+    Column(modifier = modifier.fillMaxWidth()) {
+        //标题
+        Text(
+            text = "歌曲推荐",
+            color = AppColorsProvider.current.firstText,
+            fontSize = 32.csp,
+            fontWeight = FontWeight.Bold,
+        )
+        //推荐tabs
+        CommonTabLayout(
+            tabTexts = viewModel.recommendCardTabs.map { it.title },
+            backgroundColor = Color.Transparent,
+            style = CommonTabLayoutStyle(
+                isScrollable = true,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.cdp),
+                selectedTextSize = 28.csp,
+                unselectedTextSize = 28.csp,
+                tabHorizontalPadding = 16.cdp,
+                customIndicator = { },
+            ),
+            selectedIndex = selectedIndex,
         ) {
-            //songs.chunked(3) 是将一个列表按每 3 个元素为一组进行分组
-            itemsIndexed(songs.chunked(3)) { columnIndex, columnSongs ->
-                Column(
-                    modifier = Modifier
-                        .fillParentMaxWidth(0.9f)  // 每个 item 占 LazyRow 可视区域宽度的 90%
-                        .padding(end = 16.cdp),    // 右侧间距（可选）
-                ) {
-                    columnSongs.forEachIndexed { rowIndex, song ->
-                        SongItem(
-                            index = columnIndex * 3 + rowIndex,
-                            song = song,
-                            onClick = { MusicPlayController.addSong(song) },
-                            //尾部收藏图标
-                            trailingIcon = {
-                                val isFavorite = UserFavoriteSongsController.isFavoriteSong(song)
-                                CommonIcon(
-                                    resId = if (isFavorite) R.drawable.ic_like_yes else R.drawable.ic_like_no,
-                                    tint = if (isFavorite) {
-                                        AppColorsProvider.current.primary
-                                    } else {
-                                        AppColorsProvider.current.firstIcon
-                                    },
-                                    modifier = Modifier
-                                        .size(32.cdp)
-                                        .clip(RoundedCornerShape(4.cdp))
-                                        .clickable {
-                                            if (isFavorite) {
-                                                UserFavoriteSongsController.removeFavoriteSong(song)
-                                            } else {
-                                                UserFavoriteSongsController.addFavoriteSong(song)
+            val cardId = viewModel.recommendCardTabs[it].cardId
+            if (cardId == recommendSongsCardId) {
+                return@CommonTabLayout
+            }
+            recommendSongsCardId = cardId
+            viewModel.recommendSongList = emptyList()
+            viewModel.loadRecommendSongs(cardId)
+        }
+        //下部推荐栏
+        ViewStateComponent(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 16.cdp),
+            viewStateLiveData = viewModel.recommendSongsResult,
+            loadDataBlock = { viewModel.loadRecommendSongs(recommendSongsCardId) },
+            specialRetryBlock = { viewModel.loadRecommendSongs(recommendSongsCardId) },
+            viewStateComponentModifier = Modifier.fillMaxWidth(),
+            viewStateContentAlignment = Alignment.TopCenter,
+        ) {
+            val songs = viewModel.recommendSongList.toSongList()
+            LazyRow(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                //songs.chunked(3) 是将一个列表按每 3 个元素为一组进行分组
+                itemsIndexed(songs.chunked(3)) { columnIndex, columnSongs ->
+                    Column(
+                        modifier = Modifier
+                            .fillParentMaxWidth(0.9f)  // 每个 item 占 LazyRow 可视区域宽度的 90%
+                            .padding(end = 16.cdp),    // 右侧间距（可选）
+                    ) {
+                        columnSongs.forEachIndexed { rowIndex, song ->
+                            SongItem(
+                                index = columnIndex * 3 + rowIndex,
+                                song = song,
+                                onClick = { MusicPlayController.addSong(song) },
+                                //尾部收藏图标
+                                trailingIcon = {
+                                    val isFavorite = UserFavoriteSongsController.isFavoriteSong(song)
+                                    CommonIcon(
+                                        resId = if (isFavorite) R.drawable.ic_like_yes else R.drawable.ic_like_no,
+                                        tint = if (isFavorite) {
+                                            AppColorsProvider.current.primary
+                                        } else {
+                                            AppColorsProvider.current.firstIcon
+                                        },
+                                        modifier = Modifier
+                                            .size(32.cdp)
+                                            .clip(RoundedCornerShape(4.cdp))
+                                            .clickable {
+                                                if (isFavorite) {
+                                                    UserFavoriteSongsController.removeFavoriteSong(song)
+                                                } else {
+                                                    UserFavoriteSongsController.addFavoriteSong(song)
+                                                }
                                             }
-                                        }
-                                )
-                            },
-                        )
+                                    )
+                                },
+                            )
+                        }
                     }
                 }
             }

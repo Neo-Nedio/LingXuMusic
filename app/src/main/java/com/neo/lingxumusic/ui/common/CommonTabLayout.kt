@@ -104,7 +104,7 @@ fun CommonTabLayout(
                 //主体
                 Box(
                     modifier = Modifier
-                        .fillMaxSize()
+                        .padding(horizontal = style.tabHorizontalPadding)
                         .pointerInput(Unit) {  // 手势检测
                             detectTapGestures(
                                 onTap = {
@@ -175,6 +175,7 @@ fun CommonTabLayout(
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
+                        .padding(horizontal = style.tabHorizontalPadding)
                         .pointerInput(Unit) {
                             detectTapGestures(
                                 onTap = {
@@ -214,6 +215,7 @@ data class CommonTabLayoutStyle(
     val indicatorHeight: Dp = 12.cdp,  // 指示器高度
     val indicatorPaddingBottom: Dp = 0.cdp,  // 指示器底部边距
     val isScrollable: Boolean = true,  // 是否可滑动
+    val tabHorizontalPadding: Dp = 0.cdp,  // tab 水平内边距（用于 tab 间距）
     val tabItemDrawBehindBlock: (DrawScope.(position: Int) -> Unit)? = null, //为每个tab在 Box 背后绘制自定义内容（如背景、边框等）
     val customIndicator: @Composable ((selectedPosition: Int) -> Unit)? = null  // 自定义指示器
 )
