@@ -72,6 +72,89 @@ fun RankPage(viewModel: RankViewModel = hiltViewModel()) {
             ) { rankInfo ->
                 RankInfoCard(rankInfo = rankInfo)
             }
+            //曲风榜
+            if (viewModel.genreRankList.isNotEmpty()) {
+                item {
+                    Text(
+                        text = "曲风榜",
+                        color = AppColorsProvider.current.firstText,
+                        fontSize = 32.csp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(
+                            start = 32.cdp,
+                            end = 32.cdp,
+                            top = 24.cdp,
+                            bottom = 8.cdp,
+                        ),
+                    )
+                }
+                item {
+                    RankCategoryGrid(rankList = viewModel.genreRankList)
+                }
+            }
+
+            //地区榜
+            if (viewModel.regionRankList.isNotEmpty()) {
+                item {
+                    Text(
+                        text = "地区榜",
+                        color = AppColorsProvider.current.firstText,
+                        fontSize = 32.csp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(
+                            start = 32.cdp,
+                            end = 32.cdp,
+                            top = 24.cdp,
+                            bottom = 8.cdp,
+                        ),
+                    )
+                }
+                item {
+                    RankCategoryGrid(rankList = viewModel.regionRankList)
+                }
+            }
+
+            //特色榜
+            if (viewModel.featureRankList.isNotEmpty()) {
+                item {
+                    Text(
+                        text = "特色榜",
+                        color = AppColorsProvider.current.firstText,
+                        fontSize = 32.csp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(
+                            start = 32.cdp,
+                            end = 32.cdp,
+                            top = 24.cdp,
+                            bottom = 8.cdp,
+                        ),
+                    )
+                }
+                item {
+                    RankCategoryGrid(rankList = viewModel.featureRankList)
+                }
+            }
+
+            //全球榜
+            if (viewModel.globalRankList.isNotEmpty()) {
+                item {
+                    Text(
+                        text = "全球榜",
+                        color = AppColorsProvider.current.firstText,
+                        fontSize = 32.csp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(
+                            start = 32.cdp,
+                            end = 32.cdp,
+                            top = 24.cdp,
+                            bottom = 8.cdp,
+                        ),
+                    )
+                }
+                item {
+                    RankCategoryGrid(rankList = viewModel.globalRankList)
+                }
+            }
         }
     }
 }
@@ -180,7 +263,7 @@ fun RankCategoryGrid(
             ) {
                 rowItems.forEach { rankInfo ->
                     RankCover(
-                        coverUrl = rankInfo.cover,
+                        coverUrl = rankInfo.imgurl,
                         playTimes = rankInfo.play_times,
                         modifier = Modifier
                             .weight(1f)

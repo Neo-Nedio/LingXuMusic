@@ -21,24 +21,32 @@ class RankViewModel @Inject constructor(
     val rankListResult = ViewStateMutableLiveData<BaseResult>()
 
     var starRankList by mutableStateOf<List<RankInfo>>(emptyList())
+    var regionRankList by mutableStateOf<List<RankInfo>>(emptyList())
+    var featureRankList by mutableStateOf<List<RankInfo>>(emptyList())
+    var globalRankList by mutableStateOf<List<RankInfo>>(emptyList())
+    var genreRankList by mutableStateOf<List<RankInfo>>(emptyList())
 
     fun loadRankList() {
         launch(
             liveData = rankListResult,
             handleResult = { result ->
-                starRankList = parseStarRankList(result)
+                starRankList = parseRankListByClassify(result, 1)
+                regionRankList = parseRankListByClassify(result, 2)
+                featureRankList = parseRankListByClassify(result, 3)
+                globalRankList = parseRankListByClassify(result, 4)
+                genreRankList = parseRankListByClassify(result, 5)
             },
             judgeEmpty = { result ->
-                parseStarRankList(result).isEmpty()
+                parseRankListByClassify(result, 1).isEmpty()
             },
         ) {
             rankApi.getRankList()
         }
     }
 
-    private fun parseStarRankList(result: BaseResult): List<RankInfo> {
+    private fun parseRankListByClassify(result: BaseResult, classify: Int): List<RankInfo> {
         return result.dataAs<RankListData>()?.info
             .orEmpty()
-            .filter { it.classify == 1 }
+            .filter { it.classify == classify }
     }
 }
