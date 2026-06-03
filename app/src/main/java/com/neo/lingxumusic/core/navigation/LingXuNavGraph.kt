@@ -17,8 +17,10 @@ import com.neo.lingxumusic.ui.page.playList.PlaylistPage
 import com.neo.lingxumusic.ui.page.profile.ProfilePage
 import com.neo.lingxumusic.ui.page.splash.SplashPage
 import com.neo.lingxumusic.model.PlaylistBrief
+import com.neo.lingxumusic.model.RankInfo
 import com.neo.lingxumusic.model.Song
 import com.neo.lingxumusic.ui.page.commemt.SongCommentPage
+import com.neo.lingxumusic.ui.page.discovery.component.RankAudioPage
 import com.neo.lingxumusic.ui.theme.AppColorsProvider
 
 object NavController {
@@ -63,6 +65,12 @@ fun LingXuNavGraph(
                 ?.savedStateHandle
                 ?.get<PlaylistBrief>(RoutesConstant.KEY_PLAY_LIST_BRIEF)
                 ?.let { PlaylistPage(it) }
+        }
+        composable(Routes.RANK_AUDIO) {
+            navController.previousBackStackEntry
+                ?.savedStateHandle
+                ?.get<RankInfo>(RoutesConstant.KEY_RANK_INFO)
+                ?.let { RankAudioPage(it) }
         }
         composable(Routes.SONG_COMMENT) {
             val songBean = navController.previousBackStackEntry

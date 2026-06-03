@@ -27,6 +27,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.neo.lingxumusic.R
+import com.neo.lingxumusic.core.navigation.NavController
+import com.neo.lingxumusic.core.navigation.Routes
+import com.neo.lingxumusic.core.navigation.RoutesConstant
 import com.neo.lingxumusic.core.viewState.ViewStateComponent
 import com.neo.lingxumusic.model.RankInfo
 import com.neo.lingxumusic.model.RankSong
@@ -164,7 +167,6 @@ fun RankPage(viewModel: RankViewModel = hiltViewModel()) {
 fun RankInfoCard(
     rankInfo: RankInfo,
     modifier: Modifier = Modifier,
-    onClick: () -> Unit = {},
 ) {
     Column(
         modifier = modifier
@@ -172,7 +174,16 @@ fun RankInfoCard(
             .padding(horizontal = 32.cdp, vertical = 12.cdp)
             .clip(RoundedCornerShape(16.cdp))
             .background(AppColorsProvider.current.card)
-            .clickable(onClick = onClick)
+            .clickable{
+                rankInfo.let {
+                    // 将数据存入 savedStateHandle
+                    NavController.instance.currentBackStackEntry
+                        ?.savedStateHandle
+                        ?.set(RoutesConstant.KEY_RANK_INFO, it)
+                    // 跳转
+                    NavController.instance.navigate(Routes.RANK_AUDIO)
+                }
+            }
             .padding(horizontal = 20.cdp, vertical = 20.cdp),
     ) {
         //上侧
@@ -246,7 +257,6 @@ fun RankInfoCard(
 @Composable
 fun RankCategoryGrid(
     rankList: List<RankInfo>,
-    onRankClick: (RankInfo) -> Unit = {}
 ) {
     Column(
         modifier = Modifier
@@ -268,7 +278,16 @@ fun RankCategoryGrid(
                         modifier = Modifier
                             .weight(1f)
                             .aspectRatio(1f)
-                            .clickable { onRankClick(rankInfo) }
+                            .clickable {
+                                rankInfo.let {
+                                    // 将数据存入 savedStateHandle
+                                    NavController.instance.currentBackStackEntry
+                                        ?.savedStateHandle
+                                        ?.set(RoutesConstant.KEY_RANK_INFO, it)
+                                    // 跳转
+                                    NavController.instance.navigate(Routes.RANK_AUDIO)
+                                }
+                            }
                     )
                 }
                 // 补齐空位

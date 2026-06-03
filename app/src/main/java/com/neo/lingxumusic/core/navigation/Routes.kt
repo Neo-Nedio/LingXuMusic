@@ -9,5 +9,7 @@ object Routes {
 
     const val PLAY_LIST = "playList"
 
+    const val RANK_AUDIO = "rankAudio"
+
     const val SONG_COMMENT = "songComment"
 }
