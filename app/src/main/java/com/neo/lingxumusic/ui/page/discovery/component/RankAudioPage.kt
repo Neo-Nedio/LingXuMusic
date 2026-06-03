@@ -2,14 +2,18 @@ package com.neo.lingxumusic.ui.page.discovery.component
 
 import androidx.compose.foundation.LocalOverscrollFactory
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -28,11 +32,14 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
+import com.neo.lingxumusic.R
 import com.neo.lingxumusic.core.MusicPlayController
+import com.neo.lingxumusic.core.UserFavoriteSongsController
 import com.neo.lingxumusic.core.viewState.ViewStateListPagingComponent
 import com.neo.lingxumusic.model.RankInfo
 import com.neo.lingxumusic.model.Song
 import com.neo.lingxumusic.ui.common.CommonHeadBackgroundShape
+import com.neo.lingxumusic.ui.common.CommonIcon
 import com.neo.lingxumusic.ui.common.CommonNetworkImage
 import com.neo.lingxumusic.ui.common.CommonTopAppBar
 import com.neo.lingxumusic.ui.page.mine.component.SongItem
@@ -41,7 +48,6 @@ import com.neo.lingxumusic.ui.theme.AppColorsProvider
 import com.neo.lingxumusic.utils.cdp
 import com.neo.lingxumusic.utils.csp
 import com.neo.lingxumusic.utils.replaceSize
-import com.neo.lingxumusic.utils.showToast
 import com.neo.lingxumusic.utils.toPx
 import com.neo.lingxumusic.viewmodel.discovery.RankAudioViewModel
 import kotlinx.coroutines.launch
@@ -156,7 +162,6 @@ private fun CollapsingToolbarScope.ScrollHeader(
 @Composable
 private fun Body(rankInfo: RankInfo) {
     val viewModel: RankAudioViewModel = hiltViewModel()
-    val scope = rememberCoroutineScope()
 
     // 初始化分页数据流（如果未初始化）
     if (viewModel.songListFlow == null) {
@@ -176,8 +181,10 @@ private fun Body(rankInfo: RankInfo) {
                 viewStateContentAlignment = BiasAlignment(0f, -0.6f), // 内容向上偏移
                 enableRefresh = false,  // 禁用下拉刷新
             ) {
-                // 顶部分割线
                 item {
+                    //播放列表头部
+                    RankAudioHeader(songList)
+                    // 顶部分割线
                     HorizontalDivider(
                         Modifier.fillMaxWidth(),
                         thickness = 1.cdp,
@@ -190,30 +197,85 @@ private fun Body(rankInfo: RankInfo) {
                         SongItem(
                             index = index,
                             song = item,
-                            onClick = {
-                                scope.launch {
-                                    var songs = songList.toSongList()
-                                    if (songs.size < viewModel.songCount) {
-                                        songs = viewModel.loadAllSongs()
-                                    }
-                                    if (songs.getOrNull(index)?.hash.isNullOrEmpty()) {
-                                        showToast("该歌曲暂不支持播放")
+                            onClick = { MusicPlayController.addSong(item) },
+                            //尾部收藏图标
+                            trailingIcon = {
+                                val isFavorite = UserFavoriteSongsController.isFavoriteSong(item)
+                                CommonIcon(
+                                    resId = if (isFavorite) R.drawable.ic_like_yes else R.drawable.ic_like_no,
+                                    tint = if (isFavorite) {
+                                        AppColorsProvider.current.primary
                                     } else {
-                                        MusicPlayController.songList.clear()
-                                        MusicPlayController.setDataSource(
-                                            songs,
-                                            songs[index].hash
-                                        )
-                                        MusicPlayController.showBottomMusicPlay = false
-                                        MusicPlayController.showPlayMusicSheet = true
-                                    }
-                                }
+                                        AppColorsProvider.current.firstIcon
+                                    },
+                                    modifier = Modifier
+                                        .size(32.cdp)
+                                        .clip(RoundedCornerShape(4.cdp))
+                                        .clickable {
+                                            if (isFavorite) {
+                                                UserFavoriteSongsController.removeFavoriteSong(item)
+                                            } else {
+                                                UserFavoriteSongsController.addFavoriteSong(item)
+                                            }
+                                        }
+                                )
                             },
                         )
                     }
                 }
             }
         }
+    }
+}
+
+//歌曲列表的头部，显示"播放全部"按钮和歌曲数量
+@Composable
+private fun RankAudioHeader(songList: LazyPagingItems<Song>) {
+    val viewModel: RankAudioViewModel = hiltViewModel()
+    val scope = rememberCoroutineScope()
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(100.cdp)
+            .clickable {
+                //判断歌曲是否全部加载完成，否则加载
+                scope.launch {
+                    var songs = songList.toSongList()
+                    if (songs.size < viewModel.songCount) {
+                        songs = viewModel.loadAllSongs()
+                    }
+                    MusicPlayController.setDataSource(
+                        songs,
+                        songs.firstOrNull()?.hash
+                    )
+                    MusicPlayController.showBottomMusicPlay = false
+                    MusicPlayController.showPlayMusicSheet = true
+                }
+            },
+        verticalAlignment = Alignment.CenterVertically  // 垂直居中
+    ) {
+        // 左侧播放图标
+        CommonIcon(
+            R.drawable.ic_play_list_header_play,
+            tint = AppColorsProvider.current.primary,
+            modifier = Modifier
+                .padding(horizontal = 32.cdp)
+                .size(50.cdp)
+        )
+
+        // "播放全部" 文字
+        Text(
+            text = "播放全部",
+            fontSize = 32.csp,
+            fontWeight = FontWeight.Bold,
+            color = AppColorsProvider.current.firstText,
+        )
+        // 歌曲数量，如 "(24)"
+        Text(
+            text = "(${viewModel.songCount})",
+            fontSize = 28.csp,
+            color = AppColorsProvider.current.secondText,
+        )
     }
 }
 

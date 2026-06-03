@@ -33,6 +33,7 @@ class RankAudioViewModel @Inject constructor(
 
     fun buildSongListPager(rankInfo: RankInfo) {
         this.rankInfo = rankInfo
+        this.songCount = rankInfo.extra?.resp?.all_total ?: 0
         songListFlow = buildPager(
             transformListBlock = { result ->
                 result?.dataAs<RankAudioData>()?.songlist?.map { it.toSong() }
