@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -132,7 +133,7 @@ fun RankInfoCard(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             //封面图
-            RankBlurCover(
+            RankCover(
                 coverUrl = rankInfo.songCoverUrl(),
                 playTimes = rankInfo.play_times,
                 modifier = Modifier
@@ -157,9 +158,48 @@ fun RankInfoCard(
     }
 }
 
+
+//分类排行榜网格组件
+@Composable
+fun RankCategoryGrid(
+    rankList: List<RankInfo>,
+    onRankClick: (RankInfo) -> Unit = {}
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 32.cdp)
+    ) {
+        // 每行3个的网格布局
+        rankList.chunked(3).forEach { rowItems ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 20.cdp),
+                horizontalArrangement = Arrangement.spacedBy(20.cdp)
+            ) {
+                rowItems.forEach { rankInfo ->
+                    RankCover(
+                        coverUrl = rankInfo.cover,
+                        playTimes = rankInfo.play_times,
+                        modifier = Modifier
+                            .weight(1f)
+                            .aspectRatio(1f)
+                            .clickable { onRankClick(rankInfo) }
+                    )
+                }
+                // 补齐空位
+                repeat(3 - rowItems.size) {
+                    Spacer(modifier = Modifier.weight(1f))
+                }
+            }
+        }
+    }
+}
+
 //封面 + 播放量 + 播放图标
 @Composable
-fun RankBlurCover(
+fun RankCover(
     coverUrl: String?,
     playTimes: Long,
     modifier: Modifier = Modifier,
