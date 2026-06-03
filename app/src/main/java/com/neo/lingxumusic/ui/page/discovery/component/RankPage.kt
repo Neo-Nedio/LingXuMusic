@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -22,7 +24,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.neo.lingxumusic.R
+import com.neo.lingxumusic.core.viewState.ViewStateComponent
 import com.neo.lingxumusic.model.RankInfo
 import com.neo.lingxumusic.model.RankSong
 import com.neo.lingxumusic.ui.common.CommonIcon
@@ -32,9 +36,43 @@ import com.neo.lingxumusic.utils.StringUtil
 import com.neo.lingxumusic.utils.cdp
 import com.neo.lingxumusic.utils.csp
 import com.neo.lingxumusic.utils.replaceSize
+import com.neo.lingxumusic.viewmodel.discovery.RankViewModel
 
 @Composable
-fun RankPage() {
+fun RankPage(viewModel: RankViewModel = hiltViewModel()) {
+    ViewStateComponent(
+        modifier = Modifier.fillMaxSize(),
+        viewStateLiveData = viewModel.rankListResult,
+        loadDataBlock = { viewModel.loadRankList() },
+        specialRetryBlock = { viewModel.loadRankList() },
+        viewStateComponentModifier = Modifier.fillMaxSize(),
+    ) {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+        ) {
+            //星耀榜
+            item {
+                Text(
+                    text = "星耀榜",
+                    color = AppColorsProvider.current.firstText,
+                    fontSize = 32.csp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(
+                        start = 32.cdp,
+                        end = 32.cdp,
+                        top = 24.cdp,
+                        bottom = 8.cdp,
+                    ),
+                )
+            }
+            items(
+                items = viewModel.starRankList,
+                key = { it.rankid },
+            ) { rankInfo ->
+                RankInfoCard(rankInfo = rankInfo)
+            }
+        }
+    }
 }
 
 //单个排行榜卡片
@@ -95,7 +133,7 @@ fun RankInfoCard(
         ) {
             //封面图
             RankBlurCover(
-                coverUrl = rankInfo.songCover,
+                coverUrl = rankInfo.songCoverUrl(),
                 playTimes = rankInfo.play_times,
                 modifier = Modifier
                     .width(240.cdp)
@@ -119,7 +157,7 @@ fun RankInfoCard(
     }
 }
 
-//模糊封面 + 播放量 + 播放图标
+//封面 + 播放量 + 播放图标
 @Composable
 fun RankBlurCover(
     coverUrl: String?,
@@ -134,7 +172,6 @@ fun RankBlurCover(
             url = coverUrl?.replaceSize(),
             modifier = Modifier
                 .fillMaxSize()
-                .blur(6.cdp),
         )
         //左下角播放量
         Text(

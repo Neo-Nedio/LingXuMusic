@@ -31,7 +31,9 @@ data class RankInfo(
 
     // ========== 封面图 ==========
     val cover: String? = null,             // 排行榜封面图（图标）
-    val songCover: String? = null,         // 歌曲封面（榜单第一首歌的专辑封面）
+    val songCover: String? = null,         // 歌曲封面（部分代理会返回）
+    val album_img_9: String? = null,       // 歌曲封面（酷狗接口字段，榜单第一首歌专辑封面）
+    val imgurl: String? = null,            // 排行榜图标
 
     // ========== 歌曲列表 ==========
     val songinfo: List<RankSong>? = null,  // 前3首歌曲（预览）
@@ -39,6 +41,14 @@ data class RankInfo(
     // ========== 额外统计 ==========
     val extra: RankExtra? = null           // 榜单统计信息（总歌曲数、新歌数等）
 ) : Parcelable {
+
+    /**
+     * 获取榜单预览封面（优先歌曲专辑封面）
+     */
+    fun songCoverUrl(): String? {
+        return songCover?.takeIf { it.isNotBlank() }
+            ?: album_img_9?.takeIf { it.isNotBlank() }
+    }
 
     /**
      * 获取分类名称
