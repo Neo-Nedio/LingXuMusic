@@ -47,7 +47,7 @@ import com.neo.lingxumusic.ui.common.CommonNetworkImage
 import com.neo.lingxumusic.ui.common.CommonTabLayout
 import com.neo.lingxumusic.ui.common.CommonTabLayoutStyle
 import com.neo.lingxumusic.ui.common.MarqueeText
-import com.neo.lingxumusic.ui.page.mine.component.SongItem
+import com.neo.lingxumusic.ui.page.playMusic.component.SongItem
 import com.neo.lingxumusic.ui.page.playList.component.RecommendPlayListItem
 import com.neo.lingxumusic.ui.theme.AppColorsProvider
 import com.neo.lingxumusic.ui.theme.isInDarkTheme

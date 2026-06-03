@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -55,15 +54,14 @@ import com.neo.lingxumusic.ui.common.CommonNetworkImage
 import com.neo.lingxumusic.ui.common.CommonTopAppBar
 import com.neo.lingxumusic.ui.common.MarqueeText
 import com.neo.lingxumusic.ui.page.playMusic.BottomMusicPlayPadding
-import com.neo.lingxumusic.ui.page.mine.component.SongItem
+import com.neo.lingxumusic.ui.page.playMusic.component.SongItem
 import com.neo.lingxumusic.ui.theme.AppColorsProvider
-import com.neo.lingxumusic.utils.StringUtil
 import com.neo.lingxumusic.utils.cdp
 import com.neo.lingxumusic.utils.csp
 import com.neo.lingxumusic.utils.toPx
 import com.neo.lingxumusic.utils.replaceSize
 import com.neo.lingxumusic.utils.showToast
-import com.neo.lingxumusic.viewmodel.mine.PlayListViewModel
+import com.neo.lingxumusic.viewmodel.playList.PlayListViewModel
 import kotlinx.coroutines.launch
 import me.onebone.toolbar.CollapsingToolbarScaffold
 import me.onebone.toolbar.CollapsingToolbarScaffoldState

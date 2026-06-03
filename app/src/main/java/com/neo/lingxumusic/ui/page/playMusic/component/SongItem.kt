@@ -1,9 +1,8 @@
-package com.neo.lingxumusic.ui.page.mine.component
+package com.neo.lingxumusic.ui.page.playMusic.component
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -20,7 +19,6 @@ import com.neo.lingxumusic.core.MusicPlayController
 import com.neo.lingxumusic.ui.common.CommonNetworkImage
 import com.neo.lingxumusic.utils.replaceSize
 import com.neo.lingxumusic.utils.StringUtil
-import com.neo.lingxumusic.ui.page.playMusic.component.PlayingMark
 
 @Composable
 fun SongItem(

@@ -42,7 +42,7 @@ import com.neo.lingxumusic.ui.common.CommonHeadBackgroundShape
 import com.neo.lingxumusic.ui.common.CommonIcon
 import com.neo.lingxumusic.ui.common.CommonNetworkImage
 import com.neo.lingxumusic.ui.common.CommonTopAppBar
-import com.neo.lingxumusic.ui.page.mine.component.SongItem
+import com.neo.lingxumusic.ui.page.playMusic.component.SongItem
 import com.neo.lingxumusic.ui.page.playMusic.BottomMusicPlayPadding
 import com.neo.lingxumusic.ui.theme.AppColorsProvider
 import com.neo.lingxumusic.utils.cdp
