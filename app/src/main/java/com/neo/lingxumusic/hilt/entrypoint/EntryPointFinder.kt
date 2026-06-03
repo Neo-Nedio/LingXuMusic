@@ -5,6 +5,7 @@ import com.neo.lingxumusic.http.api.LoginApi
 import com.neo.lingxumusic.http.api.SongApi
 import com.neo.lingxumusic.http.api.UserApi
 import com.neo.lingxumusic.core.LingxuApplication
+import com.neo.lingxumusic.http.api.RankApi
 import com.neo.lingxumusic.http.api.RecommendApi
 import com.neo.lingxumusic.http.api.VideoApi
 import dagger.hilt.EntryPoints
@@ -31,5 +32,9 @@ object EntryPointFinder {
     fun getRecommendApi(): RecommendApi {
         return entryPoint.getRecommendApi()
     }
+    fun getRankApi(): RankApi {
+        return entryPoint.getRankApi()
+    }
+
 }
 

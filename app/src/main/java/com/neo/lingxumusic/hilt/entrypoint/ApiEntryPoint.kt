@@ -1,6 +1,7 @@
 package com.neo.lingxumusic.hilt.entrypoint
 
 import com.neo.lingxumusic.http.api.LoginApi
+import com.neo.lingxumusic.http.api.RankApi
 import com.neo.lingxumusic.http.api.RecommendApi
 import com.neo.lingxumusic.http.api.SongApi
 import com.neo.lingxumusic.http.api.UserApi
@@ -20,4 +21,5 @@ interface ApiEntryPoint {
     fun getVideoApi(): VideoApi
     fun getRecommendApi(): RecommendApi
 
+    fun getRankApi(): RankApi
 }
