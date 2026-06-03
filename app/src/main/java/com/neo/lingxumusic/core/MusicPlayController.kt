@@ -81,6 +81,9 @@ object MusicPlayController  : IPlayerListener {
         if (song.hash.isNullOrBlank()) {
             return
         }
+        if (songList.any { it.hash == song.hash }) {
+            return
+        }
         //歌曲为空
         if (songList.isEmpty()) {
             songList.add(song)
