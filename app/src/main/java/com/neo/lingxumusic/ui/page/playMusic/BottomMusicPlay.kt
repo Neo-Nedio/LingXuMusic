@@ -197,10 +197,12 @@ private fun BottomMusicPlayBar() {
                     .size(75.cdp)
                     .clip(CircleShape)
                     .clickable {
-                        if (MusicPlayController.isPlaying()) {
-                            MusicPlayController.pause()
-                        } else {
-                            MusicPlayController.resume()
+                        if(MusicPlayController.isSeekable){
+                            if (MusicPlayController.isPlaying()) {
+                                MusicPlayController.pause()
+                            } else {
+                                MusicPlayController.resume()
+                            }
                         }
                     },
                 contentAlignment = Alignment.Center

@@ -209,17 +209,19 @@ private fun BottomActionLayout() {
             if (MusicPlayController.isPlaying()) R.drawable.ic_action_pause else R.drawable.ic_action_play,
             size = 116
         ) {
-            if (MusicPlayController.isPlaying()) {
-                MusicPlayController.pause()
-                coroutineScope.launch {
-                    viewModel.sheetNeedleUp = true                      // 唱针抬起
-                    viewModel.lastSheetDiskRotateAngleForSnap = viewModel.sheetDiskRotate.value  // 记录角度
-                    viewModel.sheetDiskRotate.stop()                    // 停止旋转
+            if(MusicPlayController.isSeekable){
+                if (MusicPlayController.isPlaying()) {
+                    MusicPlayController.pause()
+                    coroutineScope.launch {
+                        viewModel.sheetNeedleUp = true                      // 唱针抬起
+                        viewModel.lastSheetDiskRotateAngleForSnap = viewModel.sheetDiskRotate.value  // 记录角度
+                        viewModel.sheetDiskRotate.stop()                    // 停止旋转
+                    }
+                } else {
+                    // 播放逻辑
+                    MusicPlayController.resume()
+                    //这里不需要控制唱片与唱针的状态，DiskPager 有监听
                 }
-            } else {
-                // 播放逻辑
-                MusicPlayController.resume()
-                //这里不需要控制唱片与唱针的状态，DiskPager 有监听
             }
         }
         // 播放下一曲
