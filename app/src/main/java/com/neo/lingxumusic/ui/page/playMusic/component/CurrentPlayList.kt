@@ -127,6 +127,24 @@ private fun PlayListHeader() {
                 tint = AppColorsProvider.current.firstText
             )
         }
+
+        // 清空按钮
+        Row(
+            modifier = Modifier
+                .clickable {
+                    MusicPlayController.clearAllSongs()
+                }
+                .padding(start = 16.cdp, end = 0.cdp, top = 8.cdp, bottom = 8.cdp)
+                .height(36.cdp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "清空列表",
+                fontSize = 28.csp,
+                color = AppColorsProvider.current.secondText,
+                modifier = Modifier.padding(end = 8.cdp)
+            )
+        }
     }
 }
 

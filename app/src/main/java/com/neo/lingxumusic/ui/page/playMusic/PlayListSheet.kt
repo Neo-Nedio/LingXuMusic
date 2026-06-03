@@ -16,6 +16,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import com.neo.lingxumusic.core.MusicPlayController
 import com.neo.lingxumusic.ui.page.playMusic.component.CurrentPlayList
 
 var showPlayListSheet by mutableStateOf(false)
@@ -23,7 +24,8 @@ var showPlayListSheet by mutableStateOf(false)
 @Composable
 fun PlayListSheet() {
     AnimatedVisibility(
-        visible = showPlayListSheet,
+        //只有一个播放组件显示时，才显示播放列表
+        visible = showPlayListSheet && (MusicPlayController.showPlayMusicSheet || MusicPlayController.showBottomMusicPlay),
         enter = slideInVertically(
             initialOffsetY = { fullHeight -> fullHeight },
             animationSpec = tween(400),

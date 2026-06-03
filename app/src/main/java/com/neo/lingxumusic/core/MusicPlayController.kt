@@ -204,6 +204,31 @@ object MusicPlayController  : IPlayerListener {
         }
     }
 
+    //清除所有歌曲
+    fun clearAllSongs() {
+        showBottomMusicPlay = false
+        showPlayMusicSheet = false
+
+        // 延迟 600ms，等待退出动画完成再清空数据
+        Handler(Looper.getMainLooper()).postDelayed({
+            if (!showPlayMusicSheet) {  // 再次确认
+                songList.clear()
+                curIndex = 0
+                progress = 0
+                curPositionStr = "00:00"
+                totalDuringStr = "00:00"
+                totalDuring = 0
+                isSeekable = false
+                isSeeking = false
+                playing = false
+                Player.stop()
+                //再次置为false，防止意外
+                showBottomMusicPlay = false
+                showPlayMusicSheet = false
+            }
+        }, 650)  // 比动画时长稍长（600ms + 50ms）
+    }
+
     fun changePlayMode(playMode: PlayMode) {
         this.playMode = playMode
         AppGlobalData.playMode = playMode
