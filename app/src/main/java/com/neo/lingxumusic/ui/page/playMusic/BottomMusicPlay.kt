@@ -39,11 +39,12 @@ val BottomMusicPlayPadding = 104.cdp
 @Composable
 fun BoxScope.BottomMusicPlay() {
     if (MusicPlayController.songList.isNotEmpty()) { // 有歌曲才显示
-        //只有在 首页（HOME） 个人主页（PROFILE） 歌单详情页（PLAY_LIST） 才显示底部播放器
+        //只有在 首页（HOME） 个人主页（PROFILE） 歌单详情页（PLAY_LIST）排行榜歌单(RANK_AUDIO) 才显示底部播放器
         val curRouteName = NavController.instance.currentBackStackEntryAsState().value?.destination?.route
         if (curRouteName == Routes.HOME
             || curRouteName == Routes.PROFILE
             || curRouteName == Routes.PLAY_LIST
+            || curRouteName == Routes.RANK_AUDIO
         ) {
             //动态计算底部内边距（首页需要避开底部导航栏）
             val paddingBottom = animateDpAsState(
