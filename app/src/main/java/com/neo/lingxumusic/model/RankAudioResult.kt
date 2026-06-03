@@ -81,6 +81,7 @@ data class DeprecatedInfo(
 fun RankAudioSong.toSong(): Song {
     return Song(
         hash = audio_info?.hash_128,
+        mixsongid = album_audio_id,
         songname = songname,
         name = "$author_name - $songname",
         album_id = album_id.toString(),
