@@ -10,6 +10,8 @@ interface PlaylistApi {
         @Query("id") id: String?,
         @Query("page") page: Int? = null,
         @Query("pagesize") pagesize: Int? = null,
+        //使用时间戳，防止okhttp缓存数据
+        @Query("_t") timestamp: Long = System.currentTimeMillis()
     ): BaseResult
 
     @GET("/playlist/detail")

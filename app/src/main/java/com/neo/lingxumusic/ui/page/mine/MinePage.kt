@@ -53,6 +53,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.neo.lingxumusic.R
 import com.neo.lingxumusic.core.AppGlobalData
+import com.neo.lingxumusic.core.UserPlaylistController
 import com.neo.lingxumusic.core.navigation.NavController
 import com.neo.lingxumusic.core.navigation.Routes
 import com.neo.lingxumusic.core.viewState.ViewStateComponent
@@ -92,6 +93,8 @@ import me.onebone.toolbar.rememberCollapsingToolbarScaffoldState
 @Composable
 fun MinePage(onToggleDrawer: () -> Unit) {
     val viewModel: MineViewModel = hiltViewModel()
+    //给controller绑定MineViewModel
+    UserPlaylistController.mineViewModel = viewModel
     // 背景图片的透明度（拖拽时逐渐变为 1）
     var bodyAlphaValue by remember { mutableFloatStateOf(0f) }
     // 顶部栏的透明度（滚动时渐变，滚动的距离越大越不透明）

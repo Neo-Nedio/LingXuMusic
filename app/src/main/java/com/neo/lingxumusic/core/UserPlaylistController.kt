@@ -3,6 +3,7 @@ package com.neo.lingxumusic.core
 import androidx.compose.runtime.mutableStateListOf
 import com.neo.lingxumusic.hilt.entrypoint.EntryPointFinder
 import com.neo.lingxumusic.http.api.PlaylistApi
+import com.neo.lingxumusic.viewmodel.mine.MineViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -12,6 +13,8 @@ import kotlinx.coroutines.withContext
 object UserPlaylistController {
 
     var userPlaylistIds = mutableStateListOf<String>() // 用户所有歌单的 global_collection_id
+
+    lateinit var mineViewModel : MineViewModel
 
     private val playlistApi: PlaylistApi = EntryPointFinder.getPlaylistApi()
     private val controllerScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
@@ -45,6 +48,7 @@ object UserPlaylistController {
                 }
                 if (result.status == 1 && !userPlaylistIds.contains(globalCollectionId)) {
                     userPlaylistIds.add(globalCollectionId)
+                    mineViewModel.getUserPlayList()
                 }
             } catch (_: Exception) {
             }
@@ -63,6 +67,7 @@ object UserPlaylistController {
                 }
                 if (result.status == 1) {
                     globalCollectionId?.let { userPlaylistIds.remove(it) }
+                    mineViewModel.getUserPlayList()
                 }
             } catch (_: Exception) {
             }
