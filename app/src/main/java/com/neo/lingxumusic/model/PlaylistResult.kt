@@ -21,6 +21,7 @@ data class Playlist(
     val count: @RawValue Any = 0,              // 歌曲数
     val list_create_username: String? = null,   // 创建者昵称
     val list_create_userid: Long = 0,           // 创建者ID
+    val list_create_listid: Int = 0,    // 歌单ID（用于收藏）
     val create_user_pic: String? = null,        // 创建者头像
     val global_collection_id: String? = null,  // 全局收藏ID
     val listid: Int = 0 //歌单id（用于请求歌曲列表）
@@ -49,6 +50,8 @@ data class PlaylistBrief(
     val list_create_username: String? = null, // 创建者昵称
     val create_user_pic: String? = null,       // 创建者头像
     val listid: Int = 0, //歌单id（用于请求歌曲列表）
+    val list_create_userid: Long = 0,   // 创建者ID（用于收藏）
+    val list_create_listid: Int = 0,    // 歌单ID（用于收藏）
 ) : Parcelable
 
 fun Playlist.toBrief(): PlaylistBrief {
@@ -60,7 +63,9 @@ fun Playlist.toBrief(): PlaylistBrief {
         pic = pic,
         count = getCount(),
         list_create_username = list_create_username,
-        create_user_pic = create_user_pic
+        create_user_pic = create_user_pic,
+        list_create_userid = list_create_userid,
+        list_create_listid = list_create_listid
     )
 }
 

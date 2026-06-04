@@ -45,6 +45,7 @@ import com.neo.lingxumusic.R
 import com.neo.lingxumusic.core.AppGlobalData
 import com.neo.lingxumusic.core.MusicPlayController
 import com.neo.lingxumusic.core.UserFavoriteSongsController
+import com.neo.lingxumusic.core.UserPlaylistController
 import com.neo.lingxumusic.core.viewState.ViewStateListPagingComponent
 import com.neo.lingxumusic.model.PlaylistBrief
 import com.neo.lingxumusic.model.Song
@@ -144,7 +145,7 @@ private fun CollapsingToolbarScope.ScrollHeader(
                 playlist
             )
         }
-        // 底部按钮栏（播放、评论、分享）
+        /*// 底部按钮栏（播放、评论、分享）
         HeadCountInfoLayout(
             modifier = Modifier
                 .align(Alignment.BottomCenter) //位于底部
@@ -156,7 +157,7 @@ private fun CollapsingToolbarScope.ScrollHeader(
                     }
                 },
             playlist
-        )
+        )*/
     }
 
     //没有parallax，不滚动
@@ -249,8 +250,7 @@ private fun HeadPlayListInfo(modifier: Modifier, playlist: PlaylistBrief) {
     }
 }
 
-//底部按钮栏
-//todo 拿不到数据，考虑删除
+/*//底部按钮栏
 @Composable
 private fun HeadCountInfoLayout(modifier: Modifier, playlist: PlaylistBrief) {
     Row(
@@ -279,7 +279,7 @@ private fun HeadCountInfoLayout(modifier: Modifier, playlist: PlaylistBrief) {
             false
         )
     }
-}
+}*/
 
 //底部按钮栏
 @Composable
@@ -413,49 +413,100 @@ private fun Body() {
 private fun PlayListHeader(playlist: PlaylistBrief, songList: LazyPagingItems<Song>) {
     val viewModel: PlayListViewModel = hiltViewModel()
     val scope = rememberCoroutineScope()
+    val isCollected = UserPlaylistController.hasPlaylist(playlist.global_collection_id.orEmpty())
+    
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(100.cdp)
-            .clickable {
-                //判断歌曲是否全部加载完成，否则加载
-                scope.launch {
-                    var songs = songList.toSongList()
-                    if (songs.size < viewModel.songCount) {
-                        songs = viewModel.loadAllSongs()
-                    }
-                    MusicPlayController.setDataSource(
-                        songs,
-                        songs.firstOrNull()?.hash
-                    )
-                    MusicPlayController.showBottomMusicPlay = false
-                    MusicPlayController.showPlayMusicSheet = true
-                }
-            },
+            .height(100.cdp),
         verticalAlignment = Alignment.CenterVertically  // 垂直居中
     ) {
-        // 左侧播放图标
-        CommonIcon(
-            R.drawable.ic_play_list_header_play,
-            tint = AppColorsProvider.current.primary,
+        // 左侧播放按钮区域
+        Row(
             modifier = Modifier
-                .padding(horizontal = 32.cdp)
-                .size(50.cdp)
-        )
+                .clickable {
+                    //判断歌曲是否全部加载完成，否则加载
+                    scope.launch {
+                        var songs = songList.toSongList()
+                        if (songs.size < viewModel.songCount) {
+                            songs = viewModel.loadAllSongs()
+                        }
+                        MusicPlayController.setDataSource(
+                            songs,
+                            songs.firstOrNull()?.hash
+                        )
+                        MusicPlayController.showBottomMusicPlay = false
+                        MusicPlayController.showPlayMusicSheet = true
+                    }
+                }
+                .weight(1f),
+            verticalAlignment = Alignment.CenterVertically  // 垂直居中
+        ) {
+            // 左侧播放图标
+            CommonIcon(
+                R.drawable.ic_play_list_header_play,
+                tint = AppColorsProvider.current.primary,
+                modifier = Modifier
+                    .padding(horizontal = 32.cdp)
+                    .size(50.cdp)
+            )
 
-        // "播放全部" 文字
-        Text(
-            text = "播放全部",
-            fontSize = 32.csp,
-            fontWeight = FontWeight.Bold,
-            color = AppColorsProvider.current.firstText,
-        )
-        // 歌曲数量，如 "(24)"
-        Text(
-            text = "(${viewModel.songCount})",
-            fontSize = 28.csp,
-            color = AppColorsProvider.current.secondText,
-        )
+            // "播放全部" 文字
+            Text(
+                text = "播放全部",
+                fontSize = 32.csp,
+                fontWeight = FontWeight.Bold,
+                color = AppColorsProvider.current.firstText,
+            )
+            // 歌曲数量，如 "(24)"
+            Text(
+                text = "(${viewModel.songCount})",
+                fontSize = 28.csp,
+                color = AppColorsProvider.current.secondText,
+            )
+        }
+
+        // 收藏按钮（"我喜欢"歌单不显示）
+        if (playlist.global_collection_id != AppGlobalData.favoritePlaylistGlobalCollectionId) {
+            Row(
+                modifier = Modifier
+                    .clickable {
+                        scope.launch {
+                            if (isCollected) {
+                                UserPlaylistController.removePlaylist(
+                                    listid = playlist.listid,
+                                    globalCollectionId = playlist.global_collection_id
+                                )
+                            } else {
+                                UserPlaylistController.addPlaylist(
+                                    name = playlist.name,
+                                    listCreateUserid = playlist.list_create_userid,
+                                    listCreateListid = playlist.list_create_listid,
+                                    globalCollectionId = playlist.global_collection_id.orEmpty()
+                                )
+                            }
+                        }
+                    }
+                    .padding(horizontal = 32.cdp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.cdp)
+            ) {
+                CommonIcon(
+                    resId = if (isCollected) R.drawable.ic_like_yes else R.drawable.ic_like_no,
+                    tint = if (isCollected) {
+                        AppColorsProvider.current.primary
+                    } else {
+                        AppColorsProvider.current.firstIcon
+                    },
+                    modifier = Modifier.size(32.cdp)
+                )
+                Text(
+                    text = "收藏",
+                    fontSize = 28.csp,
+                    color = AppColorsProvider.current.firstText
+                )
+            }
+        }
     }
 }
 
