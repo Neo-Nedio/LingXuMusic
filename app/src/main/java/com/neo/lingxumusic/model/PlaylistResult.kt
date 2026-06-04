@@ -24,7 +24,8 @@ data class Playlist(
     val list_create_listid: Int = 0,    // 歌单ID（用于收藏）
     val create_user_pic: String? = null,        // 创建者头像
     val global_collection_id: String? = null,  // 全局收藏ID
-    val listid: Int = 0 //歌单id（用于请求歌曲列表）
+    val listid: Int = 0, //歌单id（用于请求歌曲列表）
+    val list_create_gid: String? = null,  // 原歌单全局ID（用于获取原歌单的歌曲列表）
 ) : Parcelable {
 
     fun getCount(): Int = count.toIntValue()
@@ -52,6 +53,7 @@ data class PlaylistBrief(
     val listid: Int = 0, //歌单id（用于请求歌曲列表）
     val list_create_userid: Long = 0,   // 创建者ID（用于收藏）
     val list_create_listid: Int = 0,    // 歌单ID（用于收藏）
+    val list_create_gid: String? = null,  // 原歌单全局ID（用于获取原歌单的歌曲列表）
 ) : Parcelable
 
 fun Playlist.toBrief(): PlaylistBrief {
@@ -65,7 +67,8 @@ fun Playlist.toBrief(): PlaylistBrief {
         list_create_username = list_create_username,
         create_user_pic = create_user_pic,
         list_create_userid = list_create_userid,
-        list_create_listid = list_create_listid
+        list_create_listid = list_create_listid,
+        list_create_gid = list_create_gid
     )
 }
 

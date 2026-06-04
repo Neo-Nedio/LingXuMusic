@@ -36,7 +36,7 @@ class PlayListViewModel @Inject constructor(private val playlistApi: PlaylistApi
             },
             callBlock = { page, pageSize ->
                 playlistApi.getPlaylistSong(
-                    id = playlist.global_collection_id,
+                    id = playlist.list_create_gid,
                     page = page,
                     pagesize = pageSize,
                 )
@@ -49,7 +49,7 @@ class PlayListViewModel @Inject constructor(private val playlistApi: PlaylistApi
         launch(handleResult = { result ->
             songCount = result.data?.asJsonArray?.firstOrNull()?.asJsonObject?.get("count")?.asInt ?: 0
         }) {
-            playlistApi.getPlaylistDetail(playlist.global_collection_id)
+            playlistApi.getPlaylistDetail(playlist.list_create_gid)
         }
     }
 
