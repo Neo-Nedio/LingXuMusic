@@ -110,7 +110,8 @@ fun ScenePlaylist.toPlaylist(): Playlist {
         create_user_pic = pic,
         global_collection_id = global_collection_id,
         listid = specialid,
-        list_create_listid = specialid
+        list_create_listid = specialid,
+        list_create_gid = global_collection_id
     )
 }
 
