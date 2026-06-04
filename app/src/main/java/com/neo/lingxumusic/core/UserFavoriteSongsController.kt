@@ -67,10 +67,10 @@ object UserFavoriteSongsController {
         }
         controllerScope.launch {
             try {
-                withContext(Dispatchers.IO) {
+                val result = withContext(Dispatchers.IO) {
                     songApi.addSongToPlaylist(listid, data)
                 }
-                if (!isFavoriteSong(song)) {
+                if (result.status == 1 && !isFavoriteSong(song)) {
                     favoriteSongList.add(0, song)
                 }
             } catch (_: Exception) {
@@ -92,10 +92,12 @@ object UserFavoriteSongsController {
         }
         controllerScope.launch {
             try {
-                withContext(Dispatchers.IO) {
+                val result = withContext(Dispatchers.IO) {
                     songApi.delSongToPlaylist(listid, fileid)
                 }
-                favoriteSongList.removeAll { it.hash == hash }
+                if (result.status == 1) {
+                    favoriteSongList.removeAll { it.hash == hash }
+                }
             } catch (_: Exception) {
             }
         }
