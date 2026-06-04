@@ -17,6 +17,7 @@ import kotlinx.coroutines.withContext
 object UserFavoriteSongsController {
 
     var favoriteSongList = mutableStateListOf<Song>() // 我喜欢的歌曲
+    var favoriteSongCount: Int = 0 // 喜欢歌单歌曲总数
 
     private val playlistApi: PlaylistApi = EntryPointFinder.getPlaylistApi()
     private val songApi: SongApi = EntryPointFinder.getSongApi()
@@ -33,7 +34,10 @@ object UserFavoriteSongsController {
         loadFavoriteSongJob = controllerScope.launch {
             try {
                 val songs = withContext(Dispatchers.IO) {
-                    playlistApi.getPlaylistSong(playlistId)
+                    playlistApi.getPlaylistSong(
+                        id = playlistId,
+                        pagesize = favoriteSongCount,
+                    )
                         .dataAs<PlaylistDetailData>()
                         ?.songs
                         .orEmpty()

@@ -57,6 +57,8 @@ class MineViewModel @Inject constructor(private val api: UserApi) : BaseViewStat
                         AppGlobalData.favoritePlaylistGlobalCollectionId =
                             playlist.global_collection_id.orEmpty()
                         AppGlobalData.favoritePlaylistListId = playlist.listid
+                        // 存储喜欢歌单歌曲总数
+                        UserFavoriteSongsController.favoriteSongCount = playlist.getCount()
                         //判断是否为空，为空则加载（防止应用第一次启动时没有喜欢歌单的id，加载失败，这里就重新加载）
                         if(UserFavoriteSongsController.favoriteSongList.isEmpty()){
                             UserFavoriteSongsController.loadFavoriteSongs()
