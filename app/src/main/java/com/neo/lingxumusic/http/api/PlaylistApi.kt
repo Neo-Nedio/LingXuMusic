@@ -25,6 +25,7 @@ interface PlaylistApi {
         @Query("list_create_listid") listCreateListid: Int,
         @Query("type") type: Int = 1,
         @Query("is_pri") isPri: Int? = null,
+        @Query("list_create_gid") listCreateGid: String? = null,
     ): BaseResult
 
     /** 取消收藏歌单/删除歌单 */

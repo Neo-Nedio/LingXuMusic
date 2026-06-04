@@ -27,6 +27,7 @@ object UserPlaylistController {
         listCreateUserid: Long,
         listCreateListid: Int,
         globalCollectionId: String,
+        listCreateGid: String? = null,
     ) {
         if (listCreateUserid <= 0 || listCreateListid <= 0 || globalCollectionId.isBlank()) {
             return
@@ -39,6 +40,7 @@ object UserPlaylistController {
                         listCreateUserid = listCreateUserid,
                         listCreateListid = listCreateListid,
                         type = 1, // 收藏歌单
+                        listCreateGid = listCreateGid ?: globalCollectionId,
                     )
                 }
                 if (result.status == 1 && !userPlaylistIds.contains(globalCollectionId)) {
