@@ -2,8 +2,8 @@ package com.neo.lingxumusic.core
 
 import androidx.compose.runtime.mutableStateListOf
 import com.neo.lingxumusic.hilt.entrypoint.EntryPointFinder
+import com.neo.lingxumusic.http.api.PlaylistApi
 import com.neo.lingxumusic.http.api.SongApi
-import com.neo.lingxumusic.http.api.UserApi
 import com.neo.lingxumusic.model.PlaylistDetailData
 import com.neo.lingxumusic.model.Song
 import com.neo.lingxumusic.model.dataAs
@@ -18,7 +18,7 @@ object UserFavoriteSongsController {
 
     var favoriteSongList = mutableStateListOf<Song>() // 我喜欢的歌曲
 
-    private val userApi: UserApi = EntryPointFinder.getUserApi()
+    private val playlistApi: PlaylistApi = EntryPointFinder.getPlaylistApi()
     private val songApi: SongApi = EntryPointFinder.getSongApi()
     private val controllerScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private var loadFavoriteSongJob: Job? = null
@@ -33,7 +33,7 @@ object UserFavoriteSongsController {
         loadFavoriteSongJob = controllerScope.launch {
             try {
                 val songs = withContext(Dispatchers.IO) {
-                    userApi.getPlaylistSong(playlistId)
+                    playlistApi.getPlaylistSong(playlistId)
                         .dataAs<PlaylistDetailData>()
                         ?.songs
                         .orEmpty()

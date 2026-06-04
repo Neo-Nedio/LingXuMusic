@@ -6,6 +6,7 @@ import com.neo.lingxumusic.http.api.UserApi
 import com.neo.lingxumusic.http.api.VideoApi
 import com.neo.lingxumusic.core.AppConfig
 import com.neo.lingxumusic.hilt.RetrofitClient
+import com.neo.lingxumusic.http.api.PlaylistApi
 import com.neo.lingxumusic.http.api.RankApi
 import com.neo.lingxumusic.http.api.RecommendApi
 import dagger.Module
@@ -64,5 +65,13 @@ object ApiServiceModule {
         @RetrofitClientModule.KuGouRetrofitClient retrofit: RetrofitClient
     ): RankApi {
         return retrofit.setBaseUrl(AppConfig.BASE_URL).create(RankApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun providePlaylistApi(
+        @RetrofitClientModule.KuGouRetrofitClient retrofit: RetrofitClient
+    ): PlaylistApi {
+        return retrofit.setBaseUrl(AppConfig.BASE_URL).create(PlaylistApi::class.java)
     }
 }

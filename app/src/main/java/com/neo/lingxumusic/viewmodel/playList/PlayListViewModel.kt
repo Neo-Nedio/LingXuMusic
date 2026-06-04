@@ -7,7 +7,7 @@ import androidx.compose.runtime.getValue
 import androidx.paging.PagingData
 import com.neo.lingxumusic.core.viewState.BaseViewStateViewModel
 import com.neo.lingxumusic.core.viewState.paging.buildPager
-import com.neo.lingxumusic.http.api.UserApi
+import com.neo.lingxumusic.http.api.PlaylistApi
 import com.neo.lingxumusic.model.PlaylistBrief
 import com.neo.lingxumusic.model.PlaylistDetailData
 import com.neo.lingxumusic.model.Song
@@ -17,7 +17,7 @@ import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
 @HiltViewModel
-class PlayListViewModel @Inject constructor(private val userApi: UserApi)
+class PlayListViewModel @Inject constructor(private val userApi: PlaylistApi)
     : BaseViewStateViewModel() {
 
     lateinit var playlist: PlaylistBrief

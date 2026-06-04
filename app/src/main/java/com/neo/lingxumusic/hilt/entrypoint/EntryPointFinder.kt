@@ -2,6 +2,7 @@ package com.neo.lingxumusic.hilt.entrypoint
 
 
 import com.neo.lingxumusic.http.api.LoginApi
+import com.neo.lingxumusic.http.api.PlaylistApi
 import com.neo.lingxumusic.http.api.SongApi
 import com.neo.lingxumusic.http.api.UserApi
 import com.neo.lingxumusic.core.LingxuApplication
@@ -34,6 +35,9 @@ object EntryPointFinder {
     }
     fun getRankApi(): RankApi {
         return entryPoint.getRankApi()
+    }
+    fun getPlaylistApi(): PlaylistApi {
+        return entryPoint.getPlaylistApi()
     }
 
 }
