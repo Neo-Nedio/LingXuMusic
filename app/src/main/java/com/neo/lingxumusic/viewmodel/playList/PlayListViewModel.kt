@@ -17,7 +17,7 @@ import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
 @HiltViewModel
-class PlayListViewModel @Inject constructor(private val userApi: PlaylistApi)
+class PlayListViewModel @Inject constructor(private val playlistApi: PlaylistApi)
     : BaseViewStateViewModel() {
 
     lateinit var playlist: PlaylistBrief
@@ -35,7 +35,7 @@ class PlayListViewModel @Inject constructor(private val userApi: PlaylistApi)
                 result?.dataAs<PlaylistDetailData>()?.songs
             },
             callBlock = { page, pageSize ->
-                userApi.getPlaylistSong(
+                playlistApi.getPlaylistSong(
                     id = playlist.global_collection_id,
                     page = page,
                     pagesize = pageSize,
@@ -49,7 +49,7 @@ class PlayListViewModel @Inject constructor(private val userApi: PlaylistApi)
         launch(handleResult = { result ->
             songCount = result.data?.asJsonArray?.firstOrNull()?.asJsonObject?.get("count")?.asInt ?: 0
         }) {
-            userApi.getPlaylistDetail(playlist.global_collection_id)
+            playlistApi.getPlaylistDetail(playlist.global_collection_id)
         }
     }
 
@@ -58,7 +58,7 @@ class PlayListViewModel @Inject constructor(private val userApi: PlaylistApi)
         if (songCount <= 0) {
             return emptyList()
         }
-        val result = userApi.getPlaylistSong(
+        val result = playlistApi.getPlaylistSong(
             id = playlist.global_collection_id,
             page = 1,
             pagesize = songCount,
