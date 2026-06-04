@@ -6,6 +6,7 @@ import androidx.compose.runtime.setValue
 import com.neo.lingxumusic.http.api.UserApi
 import com.neo.lingxumusic.core.AppGlobalData
 import com.neo.lingxumusic.core.UserFavoriteSongsController
+import com.neo.lingxumusic.core.UserPlaylistController
 import com.neo.lingxumusic.core.viewState.BaseViewStateViewModel
 import com.neo.lingxumusic.model.Playlist
 import com.neo.lingxumusic.model.PlaylistData
@@ -50,6 +51,10 @@ class MineViewModel @Inject constructor(private val api: UserApi) : BaseViewStat
             val playlistData = it.dataAs<PlaylistData>()
 
             playlistData?.info.orEmpty().forEach { playlist ->
+                // 把所有歌单的 global_collection_id 存入 UserPlaylistController
+                playlist.global_collection_id?.takeIf { it.isNotBlank() }?.let {
+                    UserPlaylistController.userPlaylistIds.add(it)
+                }
                 if (playlist.list_create_userid == userId) {  // 是自己创建的
                     if (playlist.name?.contains("喜欢") ?: false) { // 是"喜欢的音乐"歌单
                         favoritePlayList = playlist  // → 单独存储
