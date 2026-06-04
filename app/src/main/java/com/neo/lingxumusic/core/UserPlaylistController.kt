@@ -1,15 +1,19 @@
 package com.neo.lingxumusic.core
 
 import androidx.compose.runtime.mutableStateListOf
+import com.neo.lingxumusic.hilt.entrypoint.EntryPointFinder
+import com.neo.lingxumusic.http.api.PlaylistApi
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 object UserPlaylistController {
 
     var userPlaylistIds = mutableStateListOf<String>() // 用户所有歌单的 global_collection_id
 
+    private val playlistApi: PlaylistApi = EntryPointFinder.getPlaylistApi()
     private val controllerScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
     // 判断某个歌单是否在用户歌单列表中
@@ -17,29 +21,47 @@ object UserPlaylistController {
         return globalCollectionId.isNotBlank() && userPlaylistIds.contains(globalCollectionId)
     }
 
-    // 添加歌单到用户歌单列表
-    fun addPlaylist(globalCollectionId: String) {
-        if (globalCollectionId.isBlank() || hasPlaylist(globalCollectionId)) {
+    // 收藏歌单
+    fun addPlaylist(
+        name: String?,
+        listCreateUserid: Long,
+        listCreateListid: Int,
+        globalCollectionId: String,
+    ) {
+        if (listCreateUserid <= 0 || listCreateListid <= 0 || globalCollectionId.isBlank()) {
             return
         }
         controllerScope.launch {
             try {
-                // TODO: 调用接口添加歌单
-                userPlaylistIds.add(globalCollectionId)
+                val result = withContext(Dispatchers.IO) {
+                    playlistApi.addPlaylist(
+                        name = name,
+                        listCreateUserid = listCreateUserid,
+                        listCreateListid = listCreateListid,
+                        type = 1, // 收藏歌单
+                    )
+                }
+                if (result.status == 1 && !userPlaylistIds.contains(globalCollectionId)) {
+                    userPlaylistIds.add(globalCollectionId)
+                }
             } catch (_: Exception) {
             }
         }
     }
 
-    // 从用户歌单列表中移除歌单
-    fun removePlaylist(globalCollectionId: String) {
-        if (globalCollectionId.isBlank() || !hasPlaylist(globalCollectionId)) {
+    // 取消收藏歌单/删除歌单
+    fun removePlaylist(listid: Int, globalCollectionId: String? = null) {
+        if (listid <= 0) {
             return
         }
         controllerScope.launch {
             try {
-                // TODO: 调用接口移除歌单
-                userPlaylistIds.remove(globalCollectionId)
+                val result = withContext(Dispatchers.IO) {
+                    playlistApi.delPlaylist(listid = listid)
+                }
+                if (result.status == 1) {
+                    globalCollectionId?.let { userPlaylistIds.remove(it) }
+                }
             } catch (_: Exception) {
             }
         }

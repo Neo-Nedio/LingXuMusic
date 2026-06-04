@@ -16,4 +16,20 @@ interface PlaylistApi {
     suspend fun getPlaylistDetail(
         @Query("ids") id: String?,
     ): BaseResult
+
+    /** 收藏歌单/新建歌单 */
+    @GET("/playlist/add")
+    suspend fun addPlaylist(
+        @Query("name") name: String?,
+        @Query("list_create_userid") listCreateUserid: Long,
+        @Query("list_create_listid") listCreateListid: Int,
+        @Query("type") type: Int = 1,
+        @Query("is_pri") isPri: Int? = null,
+    ): BaseResult
+
+    /** 取消收藏歌单/删除歌单 */
+    @GET("/playlist/del")
+    suspend fun delPlaylist(
+        @Query("listid") listid: Int,
+    ): BaseResult
 }
