@@ -2,7 +2,10 @@ package com.neo.lingxumusic.ui.page.playMusic.component
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -27,6 +30,9 @@ fun SongItem(
     song: Song,
     onClick: (index: Int) -> Unit,
     trailingIcon: (@Composable () -> Unit)? = null,
+    isSelected: Boolean = false,
+    isSelectionMode: Boolean = false,
+    onSelectClick: ((index: Int) -> Unit)? = null,
 ) {
     val isFavorite = UserFavoriteSongsController.isFavoriteSong(song)
 
@@ -34,11 +40,28 @@ fun SongItem(
         Modifier
             .fillMaxWidth()
             .clickable {
-                onClick.invoke(index)
+                if (isSelectionMode) {
+                    onSelectClick?.invoke(index)
+                } else {
+                    onClick.invoke(index)
+                }
             },
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(16.cdp)  // 子元素之间间距
     ) {
+
+        //左侧选择框
+        if (isSelectionMode) {
+            Checkbox(
+                checked = isSelected,
+                onCheckedChange = null,
+                colors = CheckboxDefaults.colors(
+                    checkedColor = AppColorsProvider.current.primary,
+                    uncheckedColor = AppColorsProvider.current.firstIcon,
+                ),
+                modifier = Modifier.padding(end = 16.cdp)
+            )
+        }
 
         //左侧封面，富含动脉脉冲效果
         Box(

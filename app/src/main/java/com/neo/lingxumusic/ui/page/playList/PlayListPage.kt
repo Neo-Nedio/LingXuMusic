@@ -24,6 +24,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -80,6 +82,15 @@ fun PlaylistPage(playlist: PlaylistBrief) {
     val viewModel: PlayListViewModel = hiltViewModel()
     viewModel.playlist = playlist
 
+    // 选择模式状态
+    val isSelectionMode = remember { mutableStateOf(false) }
+    // 歌曲选择状态 Map<index, Boolean>，根据歌曲数量初始化
+    val selectedMap = remember {
+        mutableStateMapOf<Int, Boolean>().apply {
+            repeat(playlist.count) { put(it, false) }
+        }
+    }
+
     //工具栏状态
     val state = rememberCollapsingToolbarScaffoldState()
     //标题切换阈值计算
@@ -100,11 +111,12 @@ fun PlaylistPage(playlist: PlaylistBrief) {
             ScrollHeader(
                 playlist,
                 state,
-                if (showPlayListTitleThreshold) playlist.displayName() else "歌单" // 动态标题
+                if (showPlayListTitleThreshold) playlist.displayName() else "歌单", // 动态标题
+                onToggleSelectionMode = { isSelectionMode.value = !isSelectionMode.value }
             )
         }
     ) {
-        Body()          // 歌曲列表
+        Body(isSelectionMode.value, selectedMap)
     }
 }
 
@@ -114,6 +126,7 @@ private fun CollapsingToolbarScope.ScrollHeader(
     playlist: PlaylistBrief,
     toolbarState: CollapsingToolbarScaffoldState,
     title: String,
+    onToggleSelectionMode: () -> Unit,
 ) {
     //底部按钮栏淡出阈值计算
 /*    584f：头部总高度
@@ -168,7 +181,8 @@ private fun CollapsingToolbarScope.ScrollHeader(
         backgroundColor = Color.Transparent,
         title = title, // 动态标题（"歌单" 或 歌单名）
         contentColor = Color.White,
-        rightIconResId = R.drawable.ic_search
+        rightIconResId = R.drawable.ic_drawer_toggle,
+        rightClick = onToggleSelectionMode
     )
 }
 
@@ -322,7 +336,10 @@ private fun RowScope.HeaderCountInfoItem(
 }
 
 @Composable
-private fun Body() {
+private fun Body(
+    isSelectionMode: Boolean,
+    selectedMap: MutableMap<Int, Boolean>,
+) {
     val viewModel: PlayListViewModel = hiltViewModel()
     val scope = rememberCoroutineScope()
 
@@ -356,6 +373,11 @@ private fun Body() {
                         SongItem(
                             index = index,
                             song = item,
+                            isSelectionMode = isSelectionMode,
+                            isSelected = selectedMap[index] ?: false,
+                            onSelectClick = { idx ->
+                                selectedMap[idx] = !(selectedMap[idx] ?: false)
+                            },
                             onClick = {
                                 scope.launch {
                                     var songs = songList.toSongList()
