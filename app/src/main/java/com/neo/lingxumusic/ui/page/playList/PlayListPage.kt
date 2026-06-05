@@ -41,6 +41,8 @@ import com.neo.lingxumusic.core.AppGlobalData
 import com.neo.lingxumusic.core.MusicPlayController
 import com.neo.lingxumusic.core.UserPlaylistController
 import com.neo.lingxumusic.core.navigation.NavController
+import com.neo.lingxumusic.core.navigation.Routes
+import com.neo.lingxumusic.core.navigation.RoutesConstant
 import com.neo.lingxumusic.core.viewState.ViewStateListPagingComponent
 import com.neo.lingxumusic.model.PlaylistBrief
 import com.neo.lingxumusic.model.Song
@@ -583,31 +585,10 @@ private fun SelectionBottomBar() {
                 text = "播放",
                 onClick = {
                     scope.launch {
-                        //过滤出已经选择的歌曲
-                        val selectedIndices = viewModel.selectedMap.filter { it.value }.keys.sorted()
-                        if (selectedIndices.isEmpty()) {
-                            showToast("请先选择歌曲")
-                            return@launch
-                        }
-                        //判断歌曲是否加载完全
-                        val maxIndex = selectedIndices.last()
-                        var songs = songList?.toSongList().orEmpty()
-                        if (maxIndex >= songs.size) {
-                            songs = viewModel.loadAllSongs()
-                        }
-                        if (songs.isEmpty()) {
-                            showToast("网络请求失败，请稍后重试")
-                            viewModel.clearSelection()
-                            return@launch
-                        }
-                        //选出歌曲
-                        val selectedSongs = selectedIndices.mapNotNull { songs.getOrNull(it) }
-                        if (selectedSongs.isEmpty()) {
-                            showToast("没有可播放的歌曲")
-                            viewModel.clearSelection()
-                            return@launch
-                        }
-                        //开始播放
+                        val selectedSongs = extractSelectedSongs(
+                            viewModel, songList, "没有可播放的歌曲"
+                        ) ?: return@launch
+                        // 开始播放
                         MusicPlayController.songList.clear()
                         MusicPlayController.setDataSource(
                             selectedSongs,
@@ -622,14 +603,25 @@ private fun SelectionBottomBar() {
             // 添加到歌单
             BottomBarOptionItem(
                 text = "添加到歌单",
-                onClick = { /* TODO */ }
+                onClick = {
+                    scope.launch {
+                        val selectedSongs = extractSelectedSongs(
+                            viewModel, songList, "没有可添加的歌曲"
+                        ) ?: return@launch
+                        // 跳转到添加到歌单页面
+                        NavController.instance.currentBackStackEntry
+                            ?.savedStateHandle
+                            ?.set(RoutesConstant.KEY_SONGS_TO_ADD, selectedSongs)
+                        NavController.instance.navigate(Routes.ADD_TO_PLAYLIST)
+                        viewModel.clearSelection()
+                    }
+                }
             )
             // 下载
             BottomBarOptionItem(
                 text = "下载",
                 onClick = { /* TODO */ }
             )
-
         }
     }
 }
@@ -663,4 +655,41 @@ private fun PlaylistBrief.descriptionText(): String {
 
 private fun PlaylistBrief.playCountValue(): Number {
     return count
+}
+
+/**
+ * 从已选索引中提取歌曲列表
+ * 如果歌曲未完全加载，会自动调用 loadAllSongs 加载全部
+ * @return 提取成功返回歌曲列表，失败返回 null（已处理提示和清空选择）
+ */
+private suspend fun extractSelectedSongs(
+    viewModel: PlayListViewModel,
+    songList: LazyPagingItems<Song>?,
+    emptyTip: String,
+): List<Song>? {
+    // 过滤出已经选择的歌曲索引
+    val selectedIndices = viewModel.selectedMap.filter { it.value }.keys.sorted()
+    if (selectedIndices.isEmpty()) {
+        showToast("请先选择歌曲")
+        return null
+    }
+    // 判断歌曲是否加载完全
+    val maxIndex = selectedIndices.last()
+    var songs = songList?.toSongList().orEmpty()
+    if (maxIndex >= songs.size) {
+        songs = viewModel.loadAllSongs()
+    }
+    if (songs.isEmpty()) {
+        showToast("网络请求失败，请稍后重试")
+        viewModel.clearSelection()
+        return null
+    }
+    // 选出歌曲
+    val selectedSongs = selectedIndices.mapNotNull { songs.getOrNull(it) }
+    if (selectedSongs.isEmpty()) {
+        showToast(emptyTip)
+        viewModel.clearSelection()
+        return null
+    }
+    return selectedSongs
 }
