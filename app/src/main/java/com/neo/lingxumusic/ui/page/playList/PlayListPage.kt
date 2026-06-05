@@ -1,5 +1,6 @@
 package com.neo.lingxumusic.ui.page.playList
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.LocalOverscrollFactory
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -20,8 +21,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.mutableStateMapOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -70,26 +69,17 @@ fun PlaylistPage(playlist: PlaylistBrief) {
     val viewModel: PlayListViewModel = hiltViewModel()
     viewModel.playlist = playlist
 
-    // 选择模式状态
-    val isSelectionMode = remember { mutableStateOf(false) }
-    // 记录进入选择模式前底部播放弹窗的状态
-    val lastBottomPlayState = remember { mutableStateOf(false) }
-    // 监听选择模式变化，控制底部播放弹窗显示
-    if (isSelectionMode.value) {
-        if (MusicPlayController.showBottomMusicPlay) {
-            lastBottomPlayState.value = true
-            MusicPlayController.showBottomMusicPlay = false
-        }
-    } else {
-        if (lastBottomPlayState.value) {
-            MusicPlayController.showBottomMusicPlay = true
-            lastBottomPlayState.value = false
-        }
-    }
     // 歌曲选择状态 Map<index, Boolean>，根据歌曲数量初始化
-    val selectedMap = remember {
-        mutableStateMapOf<Int, Boolean>().apply {
-            repeat(playlist.count) { put(it, false) }
+    if (viewModel.selectedMap.isEmpty()) {
+        viewModel.initSelectedMap(playlist.count)
+    }
+
+    // 监听返回键，退出选择模式时恢复底部播放栏状态
+    BackHandler(enabled = viewModel.isSelectionMode) {
+        viewModel.clearSelection()
+        if (viewModel.lastBottomPlayState) {
+            MusicPlayController.showBottomMusicPlay = true
+            viewModel.lastBottomPlayState = false
         }
     }
 
@@ -127,27 +117,16 @@ fun PlaylistPage(playlist: PlaylistBrief) {
                     playlist,
                     state,
                     if (showPlayListTitleThreshold) playlist.displayName() else "歌单", // 动态标题
-                    onToggleSelectionMode = {
-                        isSelectionMode.value = !isSelectionMode.value
-                        if (!isSelectionMode.value) {
-                            selectedMap.keys.forEach { selectedMap[it] = false }
-                        }
-                    }
+                    onToggleSelectionMode = { viewModel.toggleSelectionMode() }
                 )
             }
         ) {
-            Body(isSelectionMode.value, selectedMap)
+            Body()
         }
 
         // 选择模式底部栏
-        if (isSelectionMode.value) {
-            SelectionBottomBar(
-                selectedMap = selectedMap,
-                onClearSelection = {
-                    isSelectionMode.value = false
-                    selectedMap.keys.forEach { selectedMap[it] = false }
-                }
-            )
+        if (viewModel.isSelectionMode) {
+            SelectionBottomBar()
         }
     }
 }
@@ -368,10 +347,7 @@ private fun RowScope.HeaderCountInfoItem(
 }*/
 
 @Composable
-private fun Body(
-    isSelectionMode: Boolean,
-    selectedMap: MutableMap<Int, Boolean>,
-) {
+private fun Body() {
     val viewModel: PlayListViewModel = hiltViewModel()
     val scope = rememberCoroutineScope()
 
@@ -405,10 +381,10 @@ private fun Body(
                         SongItem(
                             index = index,
                             song = item,
-                            isSelectionMode = isSelectionMode,
-                            isSelected = selectedMap[index] ?: false,
+                            isSelectionMode = viewModel.isSelectionMode,
+                            isSelected = viewModel.selectedMap[index] ?: false,
                             onSelectClick = { idx ->
-                                selectedMap[idx] = !(selectedMap[idx] ?: false)
+                                viewModel.selectedMap[idx] = !(viewModel.selectedMap[idx] ?: false)
                             },
                             onClick = {
                                 scope.launch {
@@ -543,10 +519,7 @@ private fun PlayListHeader(playlist: PlaylistBrief, songList: LazyPagingItems<So
 
 // 选择模式底部栏
 @Composable
-private fun SelectionBottomBar(
-    selectedMap: MutableMap<Int, Boolean>,
-    onClearSelection: () -> Unit,
-) {
+private fun SelectionBottomBar() {
     val viewModel: PlayListViewModel = hiltViewModel()
     val scope = rememberCoroutineScope()
     val songList = viewModel.songListFlow?.collectAsLazyPagingItems()
@@ -573,7 +546,7 @@ private fun SelectionBottomBar(
                 text = "全选",
                 onClick = {
                     repeat(viewModel.songCount) { index ->
-                        selectedMap[index] = true
+                        viewModel.selectedMap[index] = true
                     }
                 }
             )
@@ -583,7 +556,7 @@ private fun SelectionBottomBar(
                 onClick = {
                     scope.launch {
                         //过滤出已经选择的歌曲
-                        val selectedIndices = selectedMap.filter { it.value }.keys.sorted()
+                        val selectedIndices = viewModel.selectedMap.filter { it.value }.keys.sorted()
                         if (selectedIndices.isEmpty()) {
                             showToast("请先选择歌曲")
                             return@launch
@@ -596,14 +569,14 @@ private fun SelectionBottomBar(
                         }
                         if (songs.isEmpty()) {
                             showToast("网络请求失败，请稍后重试")
-                            onClearSelection()
+                            viewModel.clearSelection()
                             return@launch
                         }
                         //选出歌曲
                         val selectedSongs = selectedIndices.mapNotNull { songs.getOrNull(it) }
                         if (selectedSongs.isEmpty()) {
                             showToast("没有可播放的歌曲")
-                            onClearSelection()
+                            viewModel.clearSelection()
                             return@launch
                         }
                         //开始播放
@@ -614,7 +587,7 @@ private fun SelectionBottomBar(
                         )
                         MusicPlayController.showBottomMusicPlay = false
                         MusicPlayController.showPlayMusicSheet = true
-                        onClearSelection()
+                        viewModel.clearSelection()
                     }
                 }
             )

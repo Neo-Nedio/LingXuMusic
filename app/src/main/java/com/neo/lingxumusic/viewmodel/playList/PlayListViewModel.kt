@@ -1,6 +1,7 @@
 package com.neo.lingxumusic.viewmodel.playList
 
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
@@ -25,6 +26,35 @@ class PlayListViewModel @Inject constructor(private val playlistApi: PlaylistApi
     var songCount by mutableIntStateOf(0)
 
     var songListFlow by mutableStateOf<Flow<PagingData<Song>>?>(null)
+
+    // 选择模式状态
+    var isSelectionMode by mutableStateOf(false)
+
+    // 记录进入选择模式前底部播放弹窗的状态
+    var lastBottomPlayState by mutableStateOf(false)
+
+    // 歌曲选择状态 Map<index, Boolean>，根据歌曲数量初始化
+    val selectedMap = mutableStateMapOf<Int, Boolean>()
+
+    // 初始化选中状态
+    fun initSelectedMap(count: Int) {
+        selectedMap.clear()
+        repeat(count) { selectedMap[it] = false }
+    }
+
+    // 切换选择模式
+    fun toggleSelectionMode() {
+        isSelectionMode = !isSelectionMode
+        if (!isSelectionMode) {
+            selectedMap.keys.forEach { selectedMap[it] = false }
+        }
+    }
+
+    // 退出选择模式并清空选择
+    fun clearSelection() {
+        isSelectionMode = false
+        selectedMap.keys.forEach { selectedMap[it] = false }
+    }
 
     //构建歌单歌曲分页数据流
     fun buildSongListPager(playlist: PlaylistBrief) {
