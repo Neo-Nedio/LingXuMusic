@@ -1,5 +1,6 @@
 package com.neo.lingxumusic.viewmodel.playList
 
+import android.util.Log
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -7,30 +8,36 @@ import androidx.compose.runtime.getValue
 import com.neo.lingxumusic.core.viewState.BaseViewStateViewModel
 import com.neo.lingxumusic.model.Playlist
 import com.neo.lingxumusic.model.Song
-import com.neo.lingxumusic.viewmodel.mine.MineViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
 @HiltViewModel
-class AddToPlaylistViewModel @Inject constructor(
-    private val mineViewModel: MineViewModel
-) : BaseViewStateViewModel() {
+class AddToPlaylistViewModel @Inject constructor() : BaseViewStateViewModel() {
 
     // 路由传入的待添加歌曲列表
     var songsToAdd by mutableStateOf<List<Song>>(emptyList())
 
-    // 我喜欢的歌单(从mineViewModel获取)
-    val favoritePlaylist: Playlist? get() = mineViewModel.favoritePlayList
+    // 我喜欢的歌单
+    var favoritePlaylist by mutableStateOf<Playlist?>(null)
 
-    // 我创建的歌单列表(从mineViewModel获取)
-    val selfCreatePlaylists: List<Playlist> get() = mineViewModel.selfCreatePlayList.orEmpty()
+    // 我创建的歌单列表
+    var selfCreatePlaylists by mutableStateOf<List<Playlist>>(emptyList())
 
     // 歌单选择状态 Map<playlistId, Boolean>
     val selectedMap = mutableStateMapOf<String, Boolean>()
 
     // 初始化数据
-    fun initData(songs: List<Song>) {
+    fun initData(
+        songs: List<Song>,
+        favorite: Playlist?,
+        selfCreate: List<Playlist>,
+    ) {
+        Log.e("neo",songs.toString())
+        Log.e("neo",favorite.toString())
+        Log.e("neo",selfCreate.toString())
         songsToAdd = songs
+        favoritePlaylist = favorite
+        selfCreatePlaylists = selfCreate
         selectedMap.clear()
     }
 

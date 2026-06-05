@@ -18,6 +18,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.neo.lingxumusic.core.UserPlaylistController
 import com.neo.lingxumusic.core.navigation.NavController
 import com.neo.lingxumusic.model.Song
 import com.neo.lingxumusic.ui.page.playList.component.PlaylistSelectItem
@@ -31,10 +32,25 @@ fun AddToPlaylistPage(
     songs: List<Song>,
 ) {
     val viewModel: AddToPlaylistViewModel = hiltViewModel()
+    //mineViewModel在UserPlaylistController初始化过，直接使用，使用依赖注入可以导致实例不是同一个
+    val mineViewModel = UserPlaylistController.mineViewModel
 
     // 初始化数据，只执行一次
     LaunchedEffect(Unit) {
-        viewModel.initData(songs)
+        viewModel.initData(
+            songs = songs,
+            favorite = mineViewModel.favoritePlayList,
+            selfCreate = mineViewModel.selfCreatePlayList.orEmpty()
+        )
+    }
+
+    // 监听 MineViewModel 数据变化，同步到 AddToPlaylistViewModel
+    LaunchedEffect(mineViewModel.favoritePlayList, mineViewModel.selfCreatePlayList) {
+        viewModel.initData(
+            songs = songs,
+            favorite = mineViewModel.favoritePlayList,
+            selfCreate = mineViewModel.selfCreatePlayList.orEmpty()
+        )
     }
 
     // 监听返回键
