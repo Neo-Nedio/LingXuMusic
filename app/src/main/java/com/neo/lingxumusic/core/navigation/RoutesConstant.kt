@@ -6,4 +6,6 @@ object RoutesConstant {
     const val KEY_RANK_INFO = "rankInfo"
 
     const val SONG= "song"
+
+    const val KEY_SONGS_TO_ADD = "songsToAdd"
 }
