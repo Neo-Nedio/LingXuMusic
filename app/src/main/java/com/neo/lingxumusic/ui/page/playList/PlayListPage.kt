@@ -578,12 +578,14 @@ private fun SelectionBottomBar() {
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // 全选
+            // 全选 / 取消全选
             BottomBarOptionItem(
-                text = "全选",
+                text = if (viewModel.isAllSelected) "取消全选" else "全选",
                 onClick = {
-                    repeat(viewModel.songCount) { index ->
-                        viewModel.selectedMap[index] = true
+                    if (viewModel.isAllSelected) {
+                        viewModel.clearSongSelection()
+                    } else {
+                        viewModel.selectAll()
                     }
                 }
             )

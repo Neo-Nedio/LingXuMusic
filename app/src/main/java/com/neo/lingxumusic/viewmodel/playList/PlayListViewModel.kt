@@ -54,6 +54,24 @@ class PlayListViewModel @Inject constructor(private val playlistApi: PlaylistApi
     fun clearSelection() {
         isSelectionMode = false
         selectedMap.keys.forEach { selectedMap[it] = false }
+        isAllSelected = false
+    }
+
+    // 是否全部选中
+    var isAllSelected by mutableStateOf(false)
+
+    // 全选
+    fun selectAll() {
+        repeat(songCount) { index ->
+            selectedMap[index] = true
+        }
+        isAllSelected = true
+    }
+
+    // 取消全选
+    fun clearSongSelection() {
+        selectedMap.keys.forEach { selectedMap[it] = false }
+        isAllSelected = false
     }
 
     // 是否显示添加到歌单弹窗
