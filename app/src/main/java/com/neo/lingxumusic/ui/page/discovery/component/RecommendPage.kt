@@ -32,7 +32,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.neo.lingxumusic.R
 import com.neo.lingxumusic.core.MusicPlayController
-import com.neo.lingxumusic.core.UserFavoriteSongsController
 import com.neo.lingxumusic.core.navigation.NavController
 import com.neo.lingxumusic.core.navigation.Routes
 import com.neo.lingxumusic.core.navigation.RoutesConstant
@@ -268,28 +267,6 @@ private fun RecommendSongs(
                                 index = columnIndex * 3 + rowIndex,
                                 song = song,
                                 onClick = { MusicPlayController.addSong(song) },
-                                //尾部收藏图标
-                                trailingIcon = {
-                                    val isFavorite = UserFavoriteSongsController.isFavoriteSong(song)
-                                    CommonIcon(
-                                        resId = if (isFavorite) R.drawable.ic_like_yes else R.drawable.ic_like_no,
-                                        tint = if (isFavorite) {
-                                            AppColorsProvider.current.primary
-                                        } else {
-                                            AppColorsProvider.current.firstIcon
-                                        },
-                                        modifier = Modifier
-                                            .size(32.cdp)
-                                            .clip(RoundedCornerShape(4.cdp))
-                                            .clickable {
-                                                if (isFavorite) {
-                                                    UserFavoriteSongsController.removeFavoriteSong(song)
-                                                } else {
-                                                    UserFavoriteSongsController.addFavoriteSong(song)
-                                                }
-                                            }
-                                    )
-                                },
                             )
                         }
                     }

@@ -16,6 +16,7 @@ import com.neo.lingxumusic.utils.cdp
 import com.neo.lingxumusic.utils.csp
 import com.neo.lingxumusic.R
 import com.neo.lingxumusic.core.MusicPlayController
+import com.neo.lingxumusic.core.UserFavoriteSongsController
 import com.neo.lingxumusic.ui.common.CommonNetworkImage
 import com.neo.lingxumusic.utils.replaceSize
 import com.neo.lingxumusic.utils.StringUtil
@@ -27,6 +28,8 @@ fun SongItem(
     onClick: (index: Int) -> Unit,
     trailingIcon: (@Composable () -> Unit)? = null,
 ) {
+    val isFavorite = UserFavoriteSongsController.isFavoriteSong(song)
+
     Row(
         Modifier
             .fillMaxWidth()
@@ -84,10 +87,22 @@ fun SongItem(
 
         //右侧图标
         trailingIcon?.invoke() ?: CommonIcon(
-            resId = R.drawable.ic_sheet_menu,
-            modifier = Modifier.size(32.cdp)
+            resId = if (isFavorite) R.drawable.ic_like_yes else R.drawable.ic_like_no,
+            tint = if (isFavorite) {
+                AppColorsProvider.current.primary
+            } else {
+                AppColorsProvider.current.firstIcon
+            },
+            modifier = Modifier
+                .size(32.cdp)
                 .clip(RoundedCornerShape(4.cdp))
+                .clickable {
+                    if (isFavorite) {
+                        UserFavoriteSongsController.removeFavoriteSong(song)
+                    } else {
+                        UserFavoriteSongsController.addFavoriteSong(song)
+                    }
+                }
         )
-
     }
 }

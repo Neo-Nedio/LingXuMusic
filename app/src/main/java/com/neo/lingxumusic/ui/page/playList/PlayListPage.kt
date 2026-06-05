@@ -30,7 +30,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.BiasAlignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
@@ -44,7 +43,6 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import com.neo.lingxumusic.R
 import com.neo.lingxumusic.core.AppGlobalData
 import com.neo.lingxumusic.core.MusicPlayController
-import com.neo.lingxumusic.core.UserFavoriteSongsController
 import com.neo.lingxumusic.core.UserPlaylistController
 import com.neo.lingxumusic.core.viewState.ViewStateListPagingComponent
 import com.neo.lingxumusic.model.PlaylistBrief
@@ -378,27 +376,6 @@ private fun Body() {
                                         MusicPlayController.showPlayMusicSheet = true
                                     }
                                 }
-                            },
-                            trailingIcon = {
-                                val isFavorite = UserFavoriteSongsController.isFavoriteSong(item)
-                                CommonIcon(
-                                    resId = if (isFavorite) R.drawable.ic_like_yes else R.drawable.ic_like_no,
-                                    tint = if (isFavorite) {
-                                        AppColorsProvider.current.primary
-                                    } else {
-                                        AppColorsProvider.current.firstIcon
-                                    },
-                                    modifier = Modifier
-                                        .size(32.cdp)
-                                        .clip(RoundedCornerShape(4.cdp))
-                                        .clickable {
-                                            if (isFavorite) {
-                                                UserFavoriteSongsController.removeFavoriteSong(item)
-                                            } else {
-                                                UserFavoriteSongsController.addFavoriteSong(item)
-                                            }
-                                        }
-                                )
                             },
                         )
                     }

@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -34,7 +33,6 @@ import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.neo.lingxumusic.R
 import com.neo.lingxumusic.core.MusicPlayController
-import com.neo.lingxumusic.core.UserFavoriteSongsController
 import com.neo.lingxumusic.core.viewState.ViewStateListPagingComponent
 import com.neo.lingxumusic.model.RankInfo
 import com.neo.lingxumusic.model.Song
@@ -198,28 +196,6 @@ private fun Body(rankInfo: RankInfo) {
                             index = index,
                             song = item,
                             onClick = { MusicPlayController.addSong(item) },
-                            //尾部收藏图标
-                            trailingIcon = {
-                                val isFavorite = UserFavoriteSongsController.isFavoriteSong(item)
-                                CommonIcon(
-                                    resId = if (isFavorite) R.drawable.ic_like_yes else R.drawable.ic_like_no,
-                                    tint = if (isFavorite) {
-                                        AppColorsProvider.current.primary
-                                    } else {
-                                        AppColorsProvider.current.firstIcon
-                                    },
-                                    modifier = Modifier
-                                        .size(32.cdp)
-                                        .clip(RoundedCornerShape(4.cdp))
-                                        .clickable {
-                                            if (isFavorite) {
-                                                UserFavoriteSongsController.removeFavoriteSong(item)
-                                            } else {
-                                                UserFavoriteSongsController.addFavoriteSong(item)
-                                            }
-                                        }
-                                )
-                            },
                         )
                     }
                 }
