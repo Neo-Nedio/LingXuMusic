@@ -1,6 +1,5 @@
 package com.neo.lingxumusic.viewmodel.playList
 
-import android.util.Log
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -32,9 +31,6 @@ class AddToPlaylistViewModel @Inject constructor() : BaseViewStateViewModel() {
         favorite: Playlist?,
         selfCreate: List<Playlist>,
     ) {
-        Log.e("neo",songs.toString())
-        Log.e("neo",favorite.toString())
-        Log.e("neo",selfCreate.toString())
         songsToAdd = songs
         favoritePlaylist = favorite
         selfCreatePlaylists = selfCreate

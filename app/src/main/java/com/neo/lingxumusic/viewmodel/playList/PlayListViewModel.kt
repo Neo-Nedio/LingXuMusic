@@ -56,6 +56,12 @@ class PlayListViewModel @Inject constructor(private val playlistApi: PlaylistApi
         selectedMap.keys.forEach { selectedMap[it] = false }
     }
 
+    // 是否显示添加到歌单弹窗
+    var showAddToPlaylistSheet by mutableStateOf(false)
+
+    // 待添加的歌曲列表
+    var songsToAdd by mutableStateOf<List<Song>>(emptyList())
+
     //构建歌单歌曲分页数据流
     fun buildSongListPager(playlist: PlaylistBrief) {
         this.playlist = playlist

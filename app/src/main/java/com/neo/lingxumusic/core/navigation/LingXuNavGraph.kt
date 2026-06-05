@@ -14,7 +14,6 @@ import androidx.navigation.compose.composable
 import com.neo.lingxumusic.ui.page.home.HomePage
 import com.neo.lingxumusic.ui.page.login.LoginPage
 import com.neo.lingxumusic.ui.page.playList.PlaylistPage
-import com.neo.lingxumusic.ui.page.playList.AddToPlaylistPage
 import com.neo.lingxumusic.ui.page.profile.ProfilePage
 import com.neo.lingxumusic.ui.page.splash.SplashPage
 import com.neo.lingxumusic.model.PlaylistBrief
@@ -79,11 +78,6 @@ fun LingXuNavGraph(
                 ?.get<Song>(RoutesConstant.SONG)
             SongCommentPage(songBean)
         }
-        composable(Routes.ADD_TO_PLAYLIST) {
-            val songs = navController.previousBackStackEntry
-                ?.savedStateHandle
-                ?.get<List<Song>>(RoutesConstant.KEY_SONGS_TO_ADD).orEmpty()
-            AddToPlaylistPage(songs)
-        }
+
     }
 }

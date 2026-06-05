@@ -147,6 +147,13 @@ fun PlaylistPage(playlist: PlaylistBrief) {
             SelectionBottomBar()
         }
     }
+
+    // 添加到歌单弹窗
+    AddToPlaylistPage(
+        songs = viewModel.songsToAdd,
+        visible = viewModel.showAddToPlaylistSheet,
+        onDismiss = { viewModel.showAddToPlaylistSheet = false }
+    )
 }
 
 @Composable
@@ -608,11 +615,9 @@ private fun SelectionBottomBar() {
                         val selectedSongs = extractSelectedSongs(
                             viewModel, songList, "没有可添加的歌曲"
                         ) ?: return@launch
-                        // 跳转到添加到歌单页面
-                        NavController.instance.currentBackStackEntry
-                            ?.savedStateHandle
-                            ?.set(RoutesConstant.KEY_SONGS_TO_ADD, selectedSongs)
-                        NavController.instance.navigate(Routes.ADD_TO_PLAYLIST)
+                        // 显示添加到歌单弹窗
+                        viewModel.songsToAdd = selectedSongs
+                        viewModel.showAddToPlaylistSheet = true
                         viewModel.clearSelection()
                     }
                 }

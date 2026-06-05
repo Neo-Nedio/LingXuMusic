@@ -1,6 +1,10 @@
 package com.neo.lingxumusic.ui.page.playList
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -19,7 +23,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.neo.lingxumusic.core.UserPlaylistController
-import com.neo.lingxumusic.core.navigation.NavController
 import com.neo.lingxumusic.model.Song
 import com.neo.lingxumusic.ui.page.playList.component.PlaylistSelectItem
 import com.neo.lingxumusic.ui.theme.AppColorsProvider
@@ -30,6 +33,8 @@ import com.neo.lingxumusic.viewmodel.playList.AddToPlaylistViewModel
 @Composable
 fun AddToPlaylistPage(
     songs: List<Song>,
+    visible: Boolean,
+    onDismiss: () -> Unit,
 ) {
     val viewModel: AddToPlaylistViewModel = hiltViewModel()
     //mineViewModel在UserPlaylistController初始化过，直接使用，使用依赖注入可以导致实例不是同一个
@@ -54,20 +59,36 @@ fun AddToPlaylistPage(
     }
 
     // 监听返回键
-    BackHandler {
-        NavController.instance.popBackStack()
+    BackHandler(enabled = visible) {
+        onDismiss()
     }
 
-    Box(
-        modifier = Modifier.fillMaxSize()
+    AnimatedVisibility(
+        visible = visible,
+        enter = slideInVertically(
+            initialOffsetY = { fullHeight -> fullHeight },
+            animationSpec = tween(300),
+        ),
+        exit = slideOutVertically(
+            targetOffsetY = { fullHeight -> fullHeight },
+            animationSpec = tween(300),
+        ),
     ) {
+        AddToPlaylistContent(onDismiss)
+    }
+}
+
+@Composable
+private fun AddToPlaylistContent(onDismiss: () -> Unit) {
+    val viewModel: AddToPlaylistViewModel = hiltViewModel()
+
+    Box(modifier = Modifier.fillMaxSize()) {
         // 上部区域，点击退出页面
         Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight(0.3f)
+                .fillMaxSize()
                 .background(Color.Black.copy(alpha = 0.32f))
-                .clickable { NavController.instance.popBackStack() }
+                .clickable { onDismiss() }
         )
 
         // 歌单列表和底部栏，占屏幕 0.7
