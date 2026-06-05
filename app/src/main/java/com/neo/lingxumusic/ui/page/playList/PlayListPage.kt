@@ -40,6 +40,7 @@ import com.neo.lingxumusic.R
 import com.neo.lingxumusic.core.AppGlobalData
 import com.neo.lingxumusic.core.MusicPlayController
 import com.neo.lingxumusic.core.UserPlaylistController
+import com.neo.lingxumusic.core.navigation.NavController
 import com.neo.lingxumusic.core.viewState.ViewStateListPagingComponent
 import com.neo.lingxumusic.model.PlaylistBrief
 import com.neo.lingxumusic.model.Song
@@ -68,6 +69,21 @@ import me.onebone.toolbar.rememberCollapsingToolbarScaffoldState
 fun PlaylistPage(playlist: PlaylistBrief) {
     val viewModel: PlayListViewModel = hiltViewModel()
     viewModel.playlist = playlist
+
+    // 选择模式状态
+    // 记录进入选择模式前底部播放弹窗的状态
+    // 监听选择模式变化，控制底部播放弹窗显示
+    if (viewModel.isSelectionMode) {
+        if (MusicPlayController.showBottomMusicPlay) {
+            viewModel.lastBottomPlayState = true
+            MusicPlayController.showBottomMusicPlay = false
+        }
+    } else {
+        if (viewModel.lastBottomPlayState) {
+            MusicPlayController.showBottomMusicPlay = true
+            viewModel.lastBottomPlayState = false
+        }
+    }
 
     // 歌曲选择状态 Map<index, Boolean>，根据歌曲数量初始化
     if (viewModel.selectedMap.isEmpty()) {
@@ -139,6 +155,7 @@ private fun CollapsingToolbarScope.ScrollHeader(
     title: String,
     onToggleSelectionMode: () -> Unit,
 ) {
+    val viewModel: PlayListViewModel = hiltViewModel()
     //底部按钮栏淡出阈值计算
 /*    584f：头部总高度
     88：导航栏高度
@@ -193,7 +210,18 @@ private fun CollapsingToolbarScope.ScrollHeader(
         title = title, // 动态标题（"歌单" 或 歌单名）
         contentColor = Color.White,
         rightIconResId = R.drawable.ic_drawer_toggle,
-        rightClick = onToggleSelectionMode
+        rightClick = onToggleSelectionMode,
+        leftClick = {
+            // 选择模式开启时，点击返回按钮退出选择模式并恢复底部播放栏
+            if (viewModel.isSelectionMode) {
+                viewModel.clearSelection()
+                if (viewModel.lastBottomPlayState) {
+                    MusicPlayController.showBottomMusicPlay = true
+                    viewModel.lastBottomPlayState = false
+                }
+            }
+            NavController.instance.popBackStack()
+        }
     )
 }
 
