@@ -40,8 +40,8 @@ fun AddToPlaylistPage(
     //mineViewModel在UserPlaylistController初始化过，直接使用，使用依赖注入可以导致实例不是同一个
     val mineViewModel = UserPlaylistController.mineViewModel
 
-    // 初始化数据，只执行一次
-    LaunchedEffect(Unit) {
+    // 初始化数据
+    LaunchedEffect(visible) {
         viewModel.initData(
             songs = songs,
             favorite = mineViewModel.favoritePlayList,
@@ -74,12 +74,12 @@ fun AddToPlaylistPage(
             animationSpec = tween(300),
         ),
     ) {
-        AddToPlaylistContent(onDismiss)
+        AddToPlaylistContent( onDismiss)
     }
 }
 
 @Composable
-private fun AddToPlaylistContent(onDismiss: () -> Unit) {
+private fun AddToPlaylistContent(onDismiss: () -> Unit, ) {
     val viewModel: AddToPlaylistViewModel = hiltViewModel()
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -100,12 +100,21 @@ private fun AddToPlaylistContent(onDismiss: () -> Unit) {
                 .clip(RoundedCornerShape(topStart = 40.cdp, topEnd = 40.cdp))
                 .background(AppColorsProvider.current.background)
         ) {
+            // 标题
+            Text(
+                text = "将所选${viewModel.songsToAdd.size}首歌添加到",
+                fontSize = 32.csp,
+                fontWeight = FontWeight.Bold,
+                color = AppColorsProvider.current.firstText,
+                modifier = Modifier
+                    .padding(start = 32.cdp, top = 24.cdp, bottom = 8.cdp)
+            )
+
             // 歌单列表
             LazyColumn(
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f)
-                    .padding(top = 32.cdp)
             ) {
                 // 我喜欢的歌单
                 viewModel.favoritePlaylist?.let { playlist ->
@@ -151,23 +160,20 @@ private fun AddToPlaylistBottomBar() {
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 32.cdp, vertical = 16.cdp)
-            .background(
-                AppColorsProvider.current.card,
-                RoundedCornerShape(16.cdp)
-            )
             .padding(vertical = 16.cdp),
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // 全选
+        // 全选 / 取消全选
         BottomBarOptionButton(
-            text = "全选",
-            onClick = { viewModel.selectAll() }
-        )
-        // 取消全选
-        BottomBarOptionButton(
-            text = "取消全选",
-            onClick = { viewModel.clearSelection() }
+            text = if (viewModel.isAllSelected) "取消全选" else "全选",
+            onClick = {
+                if (viewModel.isAllSelected) {
+                    viewModel.clearSelection()
+                } else {
+                    viewModel.selectAll()
+                }
+            }
         )
         // 确定添加
         BottomBarOptionButton(

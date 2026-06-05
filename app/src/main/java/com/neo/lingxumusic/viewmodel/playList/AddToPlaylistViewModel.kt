@@ -25,6 +25,9 @@ class AddToPlaylistViewModel @Inject constructor() : BaseViewStateViewModel() {
     // 歌单选择状态 Map<playlistId, Boolean>
     val selectedMap = mutableStateMapOf<String, Boolean>()
 
+    // 是否全部选中
+    var isAllSelected by mutableStateOf(false)
+
     // 初始化数据
     fun initData(
         songs: List<Song>,
@@ -35,6 +38,7 @@ class AddToPlaylistViewModel @Inject constructor() : BaseViewStateViewModel() {
         favoritePlaylist = favorite
         selfCreatePlaylists = selfCreate
         selectedMap.clear()
+        isAllSelected = false
     }
 
     // 切换歌单选中状态
@@ -52,10 +56,12 @@ class AddToPlaylistViewModel @Inject constructor() : BaseViewStateViewModel() {
                 selectedMap[id] = true
             }
         }
+        isAllSelected = true
     }
 
     // 取消全选
     fun clearSelection() {
         selectedMap.keys.forEach { selectedMap[it] = false }
+        isAllSelected = false
     }
 }
