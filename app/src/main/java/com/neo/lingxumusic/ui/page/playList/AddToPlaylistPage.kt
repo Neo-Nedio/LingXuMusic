@@ -24,6 +24,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.neo.lingxumusic.core.UserPlaylistController
 import com.neo.lingxumusic.model.Song
+import com.neo.lingxumusic.ui.common.CommonIcon
 import com.neo.lingxumusic.ui.page.playList.component.PlaylistSelectItem
 import com.neo.lingxumusic.ui.theme.AppColorsProvider
 import com.neo.lingxumusic.utils.cdp
@@ -116,6 +117,11 @@ private fun AddToPlaylistContent(onDismiss: () -> Unit, ) {
                     .fillMaxWidth()
                     .weight(1f)
             ) {
+                // 创建新歌单项
+                item {
+                    CreatePlaylistItem()
+                }
+
                 // 我喜欢的歌单
                 viewModel.favoritePlaylist?.let { playlist ->
                     item {
@@ -203,6 +209,43 @@ private fun BottomBarOptionButton(
             text = text,
             fontSize = 24.csp,
             fontWeight = FontWeight.Medium
+        )
+    }
+}
+
+// 创建新歌单项
+@Composable
+private fun CreatePlaylistItem() {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(126.cdp)
+            .clickable { /* TODO: 创建歌单 */ }
+            .padding(horizontal = 32.cdp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(16.cdp)
+    ) {
+        // 加号图标
+        Box(
+            modifier = Modifier
+                .size(100.cdp)
+                .clip(RoundedCornerShape(10.cdp))
+                .background(AppColorsProvider.current.card),
+            contentAlignment = Alignment.Center
+        ) {
+            CommonIcon(
+                resId = android.R.drawable.ic_input_add,
+                tint = AppColorsProvider.current.firstIcon,
+                modifier = Modifier.size(50.cdp)
+            )
+        }
+
+        // 文字
+        Text(
+            text = "创建歌单",
+            fontSize = 30.csp,
+            color = AppColorsProvider.current.firstText,
+            modifier = Modifier.weight(1f)
         )
     }
 }
