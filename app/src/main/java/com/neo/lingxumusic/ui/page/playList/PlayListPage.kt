@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -16,12 +15,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
-import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.mutableStateMapOf
@@ -36,7 +32,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -72,23 +67,37 @@ import me.onebone.toolbar.rememberCollapsingToolbarScaffoldState
 
 @Composable
 fun PlaylistPage(playlist: PlaylistBrief) {
-    //底部边距（当播放条出来时上移，可以看到所有音乐）
-    val paddingBottom = if (MusicPlayController.showBottomMusicPlay) {
-        BottomMusicPlayPadding
-    } else {
-        0.dp
-    }
-
     val viewModel: PlayListViewModel = hiltViewModel()
     viewModel.playlist = playlist
 
     // 选择模式状态
     val isSelectionMode = remember { mutableStateOf(false) }
+    // 记录进入选择模式前底部播放弹窗的状态
+    val lastBottomPlayState = remember { mutableStateOf(false) }
+    // 监听选择模式变化，控制底部播放弹窗显示
+    if (isSelectionMode.value) {
+        if (MusicPlayController.showBottomMusicPlay) {
+            lastBottomPlayState.value = true
+            MusicPlayController.showBottomMusicPlay = false
+        }
+    } else {
+        if (lastBottomPlayState.value) {
+            MusicPlayController.showBottomMusicPlay = true
+            lastBottomPlayState.value = false
+        }
+    }
     // 歌曲选择状态 Map<index, Boolean>，根据歌曲数量初始化
     val selectedMap = remember {
         mutableStateMapOf<Int, Boolean>().apply {
             repeat(playlist.count) { put(it, false) }
         }
+    }
+
+    //底部边距（当播放条出来时上移，可以看到所有音乐）
+    val paddingBottom = if (MusicPlayController.showBottomMusicPlay) {
+        BottomMusicPlayPadding
+    } else {
+        0.dp
     }
 
     //工具栏状态
@@ -100,23 +109,46 @@ fun PlaylistPage(playlist: PlaylistBrief) {
         //state.toolbarState.progress：折叠进度（0=完全展开，1=完全折叠）
         (1 - state.toolbarState.progress) >= (statusBarTop + 188.cdp.toPx) / 584.cdp.toPx
 
-    CollapsingToolbarScaffold(
+    Column(
         modifier = Modifier
             .fillMaxSize()
             .background(AppColorsProvider.current.background)
-            .padding(bottom = paddingBottom),
-        state = state,  // 折叠状态
-        scrollStrategy = ScrollStrategy.ExitUntilCollapsed,  // 滚动策略：折叠后退出
-        toolbar = { // 可折叠的头部内容
-            ScrollHeader(
-                playlist,
-                state,
-                if (showPlayListTitleThreshold) playlist.displayName() else "歌单", // 动态标题
-                onToggleSelectionMode = { isSelectionMode.value = !isSelectionMode.value }
+            .padding(bottom = paddingBottom)
+    ) {
+        CollapsingToolbarScaffold(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f)
+                .background(AppColorsProvider.current.background),
+            state = state,  // 折叠状态
+            scrollStrategy = ScrollStrategy.ExitUntilCollapsed,  // 滚动策略：折叠后退出
+            toolbar = { // 可折叠的头部内容
+                ScrollHeader(
+                    playlist,
+                    state,
+                    if (showPlayListTitleThreshold) playlist.displayName() else "歌单", // 动态标题
+                    onToggleSelectionMode = {
+                        isSelectionMode.value = !isSelectionMode.value
+                        if (!isSelectionMode.value) {
+                            selectedMap.keys.forEach { selectedMap[it] = false }
+                        }
+                    }
+                )
+            }
+        ) {
+            Body(isSelectionMode.value, selectedMap)
+        }
+
+        // 选择模式底部栏
+        if (isSelectionMode.value) {
+            SelectionBottomBar(
+                selectedMap = selectedMap,
+                onClearSelection = {
+                    isSelectionMode.value = false
+                    selectedMap.keys.forEach { selectedMap[it] = false }
+                }
             )
         }
-    ) {
-        Body(isSelectionMode.value, selectedMap)
     }
 }
 
@@ -292,7 +324,7 @@ private fun HeadCountInfoLayout(modifier: Modifier, playlist: PlaylistBrief) {
         )
     }
 }*/
-
+/*
 //底部按钮栏
 @Composable
 private fun RowScope.HeaderCountInfoItem(
@@ -333,7 +365,7 @@ private fun RowScope.HeaderCountInfoItem(
             )
         }
     }
-}
+}*/
 
 @Composable
 private fun Body(
@@ -507,6 +539,113 @@ private fun PlayListHeader(playlist: PlaylistBrief, songList: LazyPagingItems<So
             }
         }
     }
+}
+
+// 选择模式底部栏
+@Composable
+private fun SelectionBottomBar(
+    selectedMap: MutableMap<Int, Boolean>,
+    onClearSelection: () -> Unit,
+) {
+    val viewModel: PlayListViewModel = hiltViewModel()
+    val scope = rememberCoroutineScope()
+    val songList = viewModel.songListFlow?.collectAsLazyPagingItems()
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 32.cdp, vertical = 16.cdp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    AppColorsProvider.current.card,
+                    RoundedCornerShape(16.cdp)
+                )
+                .padding(vertical = 16.cdp),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // 全选
+            BottomBarOptionItem(
+                text = "全选",
+                onClick = {
+                    repeat(viewModel.songCount) { index ->
+                        selectedMap[index] = true
+                    }
+                }
+            )
+            // 播放
+            BottomBarOptionItem(
+                text = "播放",
+                onClick = {
+                    scope.launch {
+                        //过滤出已经选择的歌曲
+                        val selectedIndices = selectedMap.filter { it.value }.keys.sorted()
+                        if (selectedIndices.isEmpty()) {
+                            showToast("请先选择歌曲")
+                            return@launch
+                        }
+                        //判断歌曲是否加载完全
+                        val maxIndex = selectedIndices.last()
+                        var songs = songList?.toSongList().orEmpty()
+                        if (maxIndex >= songs.size) {
+                            songs = viewModel.loadAllSongs()
+                        }
+                        if (songs.isEmpty()) {
+                            showToast("网络请求失败，请稍后重试")
+                            onClearSelection()
+                            return@launch
+                        }
+                        //选出歌曲
+                        val selectedSongs = selectedIndices.mapNotNull { songs.getOrNull(it) }
+                        if (selectedSongs.isEmpty()) {
+                            showToast("没有可播放的歌曲")
+                            onClearSelection()
+                            return@launch
+                        }
+                        //开始播放
+                        MusicPlayController.songList.clear()
+                        MusicPlayController.setDataSource(
+                            selectedSongs,
+                            selectedSongs.firstOrNull()?.hash
+                        )
+                        MusicPlayController.showBottomMusicPlay = false
+                        MusicPlayController.showPlayMusicSheet = true
+                        onClearSelection()
+                    }
+                }
+            )
+            // 添加到歌单
+            BottomBarOptionItem(
+                text = "添加到歌单",
+                onClick = { /* TODO */ }
+            )
+            // 下载
+            BottomBarOptionItem(
+                text = "下载",
+                onClick = { /* TODO */ }
+            )
+
+        }
+    }
+}
+
+@Composable
+private fun BottomBarOptionItem(
+    text: String,
+    onClick: () -> Unit,
+) {
+    Text(
+        text = text,
+        fontSize = 22.csp,
+        color = AppColorsProvider.current.firstText,
+        modifier = Modifier
+            .clickable(onClick = onClick)
+            .padding(horizontal = 12.cdp, vertical = 8.cdp)
+    )
 }
 
 private fun LazyPagingItems<Song>.toSongList(): List<Song> {
