@@ -25,6 +25,7 @@ import com.neo.lingxumusic.ui.common.CommonIcon
 import com.neo.lingxumusic.ui.common.CommonNetworkImage
 import com.neo.lingxumusic.ui.common.MarqueeText
 import com.neo.lingxumusic.R
+import com.neo.lingxumusic.ui.common.VipBadge
 import com.neo.lingxumusic.ui.theme.AppColorsProvider
 import com.neo.lingxumusic.utils.StringUtil
 import com.neo.lingxumusic.utils.cdp
@@ -183,6 +184,9 @@ private fun PlayListItem(index : Int, song: Song) {
                     modifier = Modifier.align(Alignment.Center),
                 )
             }
+        }
+        if (song.privilege == 10) {
+            VipBadge()
         }
         // 富文本显示 "歌曲名 - 歌手"
         MarqueeText(

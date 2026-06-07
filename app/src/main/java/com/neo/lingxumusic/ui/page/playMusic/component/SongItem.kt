@@ -14,6 +14,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import com.neo.lingxumusic.model.Song
 import com.neo.lingxumusic.ui.common.CommonIcon
 import com.neo.lingxumusic.ui.common.MarqueeText
+import com.neo.lingxumusic.ui.common.VipBadge
 import com.neo.lingxumusic.ui.theme.AppColorsProvider
 import com.neo.lingxumusic.utils.cdp
 import com.neo.lingxumusic.utils.csp
@@ -99,12 +100,20 @@ fun SongItem(
                 fontSize = 32.csp,
                 color = AppColorsProvider.current.firstText,
             )
-            MarqueeText(
-                text = singer,
-                fontSize = 24.csp,
-                color = AppColorsProvider.current.secondText,
-                modifier = Modifier.padding(top = 10.cdp)
-            )
+            Row(
+                modifier = Modifier.padding(top = 10.cdp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.cdp)
+            ) {
+                MarqueeText(
+                    text = singer,
+                    fontSize = 24.csp,
+                    color = AppColorsProvider.current.secondText,
+                )
+                if (song.privilege == 10) {
+                    VipBadge()
+                }
+            }
         }
 
 

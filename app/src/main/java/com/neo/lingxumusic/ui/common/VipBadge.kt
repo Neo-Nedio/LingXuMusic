@@ -3,6 +3,7 @@ package com.neo.lingxumusic.ui.common
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
@@ -25,6 +26,7 @@ fun VipBadge(
 
     Box(
         modifier = modifier
+            .height(24.cdp)
             .border(
                 width = 1.cdp,
                 color = goldColor,
@@ -34,14 +36,15 @@ fun VipBadge(
                 color = AppColorsProvider.current.background,
                 shape = RoundedCornerShape(4.cdp)
             )
-            .padding(horizontal = 6.cdp, vertical = 2.cdp),
+            .padding(horizontal = 6.cdp),
         contentAlignment = Alignment.Center
     ) {
         Text(
             text = text,
-            fontSize = 18.csp,
+            fontSize = 20.csp,
             fontWeight = FontWeight.Bold,
             color = goldColor,
+            lineHeight = 24.csp,
         )
     }
 }

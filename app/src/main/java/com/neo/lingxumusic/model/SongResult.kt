@@ -19,6 +19,7 @@ data class Song(
     val cover: String? = null,
     val mixsongid: Long = 0,
     val fileid: Int = 0,           // 用于歌单内删除歌曲删除歌曲（非歌单不用管）
+    val privilege: Int = 0,
 ) : Parcelable
 
 //构建添加歌单需要的data
