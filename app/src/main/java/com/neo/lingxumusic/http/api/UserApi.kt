@@ -10,4 +10,9 @@ interface UserApi {
         //使用时间戳，防止okhttp缓存数据
         @Query("_t") timestamp: Long = System.currentTimeMillis()
     ): BaseResult
+
+
+    @GET("/user/detail")
+    suspend fun getUserDetail(
+    ): BaseResult
 }

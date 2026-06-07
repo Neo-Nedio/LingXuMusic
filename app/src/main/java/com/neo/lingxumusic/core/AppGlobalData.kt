@@ -2,6 +2,7 @@ package com.neo.lingxumusic.core
 
 import com.neo.lingxumusic.core.player.PlayMode
 import com.neo.lingxumusic.model.LoginData
+import com.neo.lingxumusic.model.UserDetail
 import com.neo.lingxumusic.utils.kvCache
 import com.neo.lingxumusic.utils.kvCacheParcelable
 
@@ -16,6 +17,8 @@ object AppGlobalData {
     val userId: Long
         get() = sLoginData?.userid ?: 0
 
+    //用户详细信息
+    var userDetail: UserDetail? by kvCacheParcelable(UserDetail::class.java)
 
     //播放模式
     private var playModeName by kvCache(PlayMode.LOOP.name)

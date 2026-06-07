@@ -131,6 +131,9 @@ fun MinePage(onToggleDrawer: () -> Unit) {
         }
     }
 
+    // 应用启动时加载用户详情和歌单
+    viewModel.getUserDetail()
+
     Box(modifier = Modifier.fillMaxSize()) {
         // 1. 数据加载区域（会切换 Loading / 内容 / 错误 页面）
         ViewStateComponent(
@@ -519,7 +522,7 @@ private fun TopBar(alphaValue: Float, onToggleDrawer: () -> Unit) {
             horizontalArrangement = Arrangement.Center
         ) {
             CommonNetworkImage(
-                url = AppGlobalData.sLoginData?.pic,
+                url =  AppGlobalData.userDetail?.pic ?: AppGlobalData.sLoginData?.pic,
                 placeholder = R.drawable.ic_default_avator,
                 error = R.drawable.ic_default_avator,
                 modifier = Modifier
@@ -529,7 +532,7 @@ private fun TopBar(alphaValue: Float, onToggleDrawer: () -> Unit) {
                     )
             )
             Text(
-                text = AppGlobalData.sLoginData?.nickname.orEmpty(),
+                text = AppGlobalData.userDetail?.nickname ?: AppGlobalData.sLoginData?.nickname.orEmpty(),
                 fontSize = 32.csp,
                 fontWeight = FontWeight.Medium,
                 color = AppColorsProvider.current.firstText,
@@ -542,18 +545,32 @@ private fun TopBar(alphaValue: Float, onToggleDrawer: () -> Unit) {
 //个人主页的头部背景图片组件，支持透明度渐变效果，可拖拽
 @Composable
 private fun HeaderBackground(alphaValue: Float) {
-    Image(
-        painter = painterResource(id = R.drawable.ic_bg), // 背景图片资源
-        contentDescription = null,
-        contentScale = ContentScale.FillBounds, // 拉伸填充整个区域
-        modifier = Modifier
-            .fillMaxWidth()          // 宽度占满父容器
-            .height(280.dp)          // 固定高度 280dp
-            .clip(CommonHeadBackgroundShape())   // 底部弧形裁剪
-            .graphicsLayer {
-                alpha = alphaValue  // 透明度
-            }
-    )
+    val bgUrl = AppGlobalData.userDetail?.bg_pic
+    if (bgUrl.isNullOrBlank()) {
+        Image(
+            painter = painterResource(id = R.drawable.ic_bg), // 背景图片资源
+            contentDescription = null,
+            contentScale = ContentScale.FillBounds, // 拉伸填充整个区域
+            modifier = Modifier
+                .fillMaxWidth()          // 宽度占满父容器
+                .height(280.dp)          // 固定高度 280dp
+                .clip(CommonHeadBackgroundShape())   // 底部弧形裁剪
+                .graphicsLayer {
+                    alpha = alphaValue  // 透明度
+                }
+        )
+    } else {
+        CommonNetworkImage(
+            url = bgUrl,
+            modifier = Modifier
+                .fillMaxWidth()          // 宽度占满父容器
+                .height(280.dp)          // 固定高度 280dp
+                .clip(CommonHeadBackgroundShape())   // 底部弧形裁剪
+                .graphicsLayer {
+                    alpha = alphaValue  // 透明度
+                }
+        )
+    }
 }
 
 

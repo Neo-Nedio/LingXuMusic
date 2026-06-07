@@ -28,6 +28,12 @@ import com.neo.lingxumusic.utils.csp
 └─────────────────┘*/
 @Composable
 fun UserInfoComponent(modifier: Modifier = Modifier) {
+    val userDetail = AppGlobalData.userDetail
+
+    val follows = userDetail?.follows ?: 0
+    val fans = userDetail?.fans ?: 0
+    val visitors = userDetail?.visitors ?: 0
+
     Box(
         modifier = modifier,
         contentAlignment = Alignment.TopCenter
@@ -43,14 +49,14 @@ fun UserInfoComponent(modifier: Modifier = Modifier) {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = AppGlobalData.sLoginData?.nickname ?: "无",
+                text = userDetail?.nickname ?: AppGlobalData.sLoginData?.nickname ?: "无",
                 fontSize = 40.csp,
                 color = AppColorsProvider.current.firstText,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(top = 64.cdp)
             )
             Text(
-                text = "2 关注  ｜  2 粉丝  ｜  Lv.8",
+                text = "$follows 关注  ｜  $fans 粉丝  ｜  $visitors 访客",
                 fontSize = 32.csp,
                 color = AppColorsProvider.current.secondText,
                 modifier = Modifier.padding(top = 36.cdp)
@@ -58,7 +64,7 @@ fun UserInfoComponent(modifier: Modifier = Modifier) {
         }
 
         CommonNetworkImage(
-            url = AppGlobalData.sLoginData?.pic,
+            url = userDetail?.pic ?: AppGlobalData.sLoginData?.pic,
             placeholder = R.drawable.ic_default_avator,
             error = R.drawable.ic_default_avator,
             modifier =  Modifier.size(120.cdp)

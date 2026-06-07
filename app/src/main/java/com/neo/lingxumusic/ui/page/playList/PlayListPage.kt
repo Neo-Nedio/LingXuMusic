@@ -312,7 +312,7 @@ private fun HeadPlayListInfo(modifier: Modifier, playlist: PlaylistBrief) {
                 horizontalArrangement = Arrangement.Center
             ) {
                 CommonNetworkImage(
-                    url = playlist.create_user_pic ?: AppGlobalData.sLoginData?.pic,
+                    url = playlist.create_user_pic ?: AppGlobalData.userDetail?.pic ?: AppGlobalData.sLoginData?.pic,
                     placeholder = R.drawable.ic_default_avator,
                     error = R.drawable.ic_default_avator,
                     modifier = Modifier
@@ -320,7 +320,7 @@ private fun HeadPlayListInfo(modifier: Modifier, playlist: PlaylistBrief) {
                         .clip(RoundedCornerShape(50))
                 )
                 Text(
-                    text = playlist.list_create_username ?: AppGlobalData.sLoginData?.nickname.orEmpty(),
+                    text = playlist.list_create_username ?: AppGlobalData.userDetail?.nickname ?: AppGlobalData.sLoginData?.nickname.orEmpty(),
                     fontSize = 28.csp,
                     fontWeight = FontWeight.Medium,
                     color = Color.White,

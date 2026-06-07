@@ -42,6 +42,15 @@ class MineViewModel @Inject constructor(private val api: UserApi) : BaseViewStat
     // 「歌单助手」Tab 滚动目标：收藏区块结束后的歌单助手 item 下标
     var songHelperIndex = 0
 
+    // 获取用户详细信息
+    fun getUserDetail() {
+        launch(handleResult = {
+            AppGlobalData.userDetail = it.dataAs()
+        }) {
+            api.getUserDetail()
+        }
+    }
+
     // 获取歌单
     fun getUserPlayList() {
         launch(userPlaylistResult, handleResult = {
