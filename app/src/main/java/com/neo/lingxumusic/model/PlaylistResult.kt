@@ -16,7 +16,8 @@ data class PlaylistData(
 @Parcelize
 data class Playlist(
     val name: String? = null,                   // 歌单名称
-    val is_def: Int = 0,  // 1=默认收藏, 2=我喜欢, 0=普通
+    val is_def: Int = 1,  // 1=默认收藏, 2=我喜欢, 0=普通歌单
+    val type: Int = 1,    // 0=用户创建, 1=用户收藏
     val intro: String? = null,                  // 歌单简介
     val pic: String? = null,                    // 封面图片URL
     val count: @RawValue Any = 0,              // 歌曲数
@@ -46,6 +47,8 @@ data class Playlist(
 data class PlaylistBrief(
     val global_collection_id: String? = null, // 全局收藏ID（用于请求歌曲列表）
     val name: String? = null,                 // 歌单名称
+    val is_def: Int = 1,  // 1=收藏, 2=我喜欢, 0=创建
+    val type: Int = 0,    // 0=用户创建, 1=用户收藏
     val intro: String? = null,                // 歌单简介
     val pic: String? = null,                  // 封面图片URL
     val count: Int = 0,                       // 歌曲数
@@ -69,7 +72,9 @@ fun Playlist.toBrief(): PlaylistBrief {
         create_user_pic = create_user_pic,
         list_create_userid = list_create_userid,
         list_create_listid = list_create_listid,
-        list_create_gid = list_create_gid
+        list_create_gid = list_create_gid,
+        is_def = is_def,
+        type = type
     )
 }
 

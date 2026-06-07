@@ -653,18 +653,20 @@ private fun SelectionBottomBar() {
                     }
                 }
             )
-            // 删除
-            BottomBarOptionItem(
-                text = "删除",
-                onClick = {
-                    scope.launch {
-                        val selectedSongs = extractSelectedSongs(
-                            viewModel, songList, "没有可删除的歌曲"
-                        ) ?: return@launch
-                        viewModel.deleteSongsFromPlaylist(selectedSongs)
+            if(viewModel.playlist.type == 0 ){
+                // 删除
+                BottomBarOptionItem(
+                    text = "删除",
+                    onClick = {
+                        scope.launch {
+                            val selectedSongs = extractSelectedSongs(
+                                viewModel, songList, "没有可删除的歌曲"
+                            ) ?: return@launch
+                            viewModel.deleteSongsFromPlaylist(selectedSongs)
+                        }
                     }
-                }
-            )
+                )
+            }
         }
     }
 }
