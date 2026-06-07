@@ -16,6 +16,7 @@ data class PlaylistData(
 @Parcelize
 data class Playlist(
     val name: String? = null,                   // 歌单名称
+    val is_def: Int = 0,  // 1=默认收藏, 2=我喜欢, 0=普通
     val intro: String? = null,                  // 歌单简介
     val pic: String? = null,                    // 封面图片URL
     val count: @RawValue Any = 0,              // 歌曲数

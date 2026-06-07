@@ -13,6 +13,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.ui.res.painterResource
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -22,8 +23,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.neo.lingxumusic.R
@@ -50,7 +49,11 @@ import com.neo.lingxumusic.utils.showToast
 │ └──────┘ └────────────────────────┘ └──────┘   │
 └─────────────────────────────────────────────────┘*/
 @Composable
-fun UserPlaylistItem(platListItem: Playlist?, horizontalPadding: Dp = 32.cdp) {
+fun UserPlaylistItem(
+    platListItem: Playlist?,
+    horizontalPadding: Dp = 32.cdp,
+    iconResId: Int? = null,
+) {
     var showDeleteOverlay by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
 
@@ -79,15 +82,28 @@ fun UserPlaylistItem(platListItem: Playlist?, horizontalPadding: Dp = 32.cdp) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             platListItem?.let {
-                // 左侧：歌单封面图
-                CommonNetworkImage(
-                    url = it.pic?.replaceSize(),
-                    modifier = Modifier
-                        .padding(end = 20.cdp)
-                        .size(110.cdp)
-                        .clip(RoundedCornerShape(10.cdp)),
-                    placeholder = R.drawable.ic_default_place_holder
-                )
+                // 左侧：歌单封面图或本地图标
+                if (iconResId != null) {
+                    Icon(
+                        painter = painterResource(id = iconResId),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .padding(end = 20.cdp)
+                            .padding(15.cdp)
+                            .size(80.cdp)
+                            .clip(RoundedCornerShape(10.cdp)),
+                        tint = Color.Unspecified
+                    )
+                } else {
+                    CommonNetworkImage(
+                        url = it.pic?.replaceSize(),
+                        modifier = Modifier
+                            .padding(end = 20.cdp)
+                            .size(110.cdp)
+                            .clip(RoundedCornerShape(10.cdp)),
+                        placeholder = R.drawable.ic_default_place_holder
+                    )
+                }
 
                 // 中间：歌单信息
                 Column(
