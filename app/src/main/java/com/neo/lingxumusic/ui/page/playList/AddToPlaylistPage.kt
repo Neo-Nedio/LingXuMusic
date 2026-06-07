@@ -8,19 +8,30 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.neo.lingxumusic.core.UserPlaylistController
 import com.neo.lingxumusic.model.Song
@@ -61,7 +72,11 @@ fun AddToPlaylistPage(
 
     // 监听返回键
     BackHandler(enabled = visible) {
-        onDismiss()
+        if (viewModel.showCreatePlaylistDialog) {
+            viewModel.showCreatePlaylistDialog = false
+        } else {
+            onDismiss()
+        }
     }
 
     AnimatedVisibility(
@@ -75,12 +90,12 @@ fun AddToPlaylistPage(
             animationSpec = tween(300),
         ),
     ) {
-        AddToPlaylistContent( onDismiss)
+        AddToPlaylistContent(onDismiss)
     }
 }
 
 @Composable
-private fun AddToPlaylistContent(onDismiss: () -> Unit, ) {
+private fun AddToPlaylistContent(onDismiss: () -> Unit) {
     val viewModel: AddToPlaylistViewModel = hiltViewModel()
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -154,6 +169,12 @@ private fun AddToPlaylistContent(onDismiss: () -> Unit, ) {
             // 底部操作栏
             AddToPlaylistBottomBar()
         }
+
+        // 创建歌单弹窗
+        CreatePlaylistDialog(
+            visible = viewModel.showCreatePlaylistDialog,
+            onDismiss = { viewModel.showCreatePlaylistDialog = false }
+        )
     }
 }
 
@@ -216,11 +237,13 @@ private fun BottomBarOptionButton(
 // 创建新歌单项
 @Composable
 private fun CreatePlaylistItem() {
+    val viewModel: AddToPlaylistViewModel = hiltViewModel()
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .height(126.cdp)
-            .clickable { /* TODO: 创建歌单 */ }
+            .clickable { viewModel.showCreatePlaylistDialog = true }
             .padding(horizontal = 32.cdp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(16.cdp)
@@ -247,5 +270,155 @@ private fun CreatePlaylistItem() {
             color = AppColorsProvider.current.firstText,
             modifier = Modifier.weight(1f)
         )
+    }
+}
+
+@Composable
+private fun CreatePlaylistDialog(
+    visible: Boolean,
+    onDismiss: () -> Unit,
+) {
+    val viewModel: AddToPlaylistViewModel = hiltViewModel()
+    //键盘
+    val keyboardController = LocalSoftwareKeyboardController.current
+    //焦点
+    val focusRequester = remember { FocusRequester() }
+
+    // 弹窗显示时自动聚焦并弹出键盘，隐藏时清理
+    LaunchedEffect(visible) {
+        if (visible) {
+            focusRequester.requestFocus()
+            keyboardController?.show()
+        } else {
+            keyboardController?.hide()
+            viewModel.newPlaylistName = ""
+            viewModel.isPrivatePlaylist = false
+        }
+    }
+
+    AnimatedVisibility(
+        visible = visible,
+        enter = slideInVertically(
+            initialOffsetY = { fullHeight -> fullHeight },
+            animationSpec = tween(300),
+        ),
+        exit = slideOutVertically(
+            targetOffsetY = { fullHeight -> fullHeight },
+            animationSpec = tween(300),
+        ),
+    ) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            // 遮罩
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.32f))
+                    .clickable { onDismiss() }
+            )
+
+            // 弹窗内容：使用 imePadding 自动被键盘顶起
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.BottomCenter)
+                    .clip(RoundedCornerShape(topStart = 40.cdp, topEnd = 40.cdp))
+                    .background(AppColorsProvider.current.background)
+                    .padding(horizontal = 32.cdp)
+                    .padding(top = 24.cdp, bottom = 16.cdp)
+                    .imePadding() //使用 imePadding 自动被键盘顶起
+            ) {
+                // 标题栏
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "取消",
+                        fontSize = 28.csp,
+                        color = AppColorsProvider.current.firstText,
+                        modifier = Modifier.clickable { onDismiss() }
+                    )
+                    Text(
+                        text = "创建新歌单",
+                        fontSize = 30.csp,
+                        fontWeight = FontWeight.Bold,
+                        color = AppColorsProvider.current.firstText
+                    )
+                    Text(
+                        text = "创建",
+                        fontSize = 28.csp,
+                        color = AppColorsProvider.current.primary,
+                        modifier = Modifier.clickable { /* TODO: 创建歌单 */ }
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(32.cdp))
+
+                // 输入框
+                BasicTextField(
+                    value = viewModel.newPlaylistName,
+                    onValueChange = { viewModel.newPlaylistName = it },
+                    textStyle = TextStyle(
+                        fontSize = 28.csp,
+                        color = AppColorsProvider.current.firstText
+                    ),
+                    cursorBrush = SolidColor(AppColorsProvider.current.primary),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .focusRequester(focusRequester),
+                    decorationBox = { innerTextField ->
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(
+                                    AppColorsProvider.current.card,
+                                    RoundedCornerShape(12.cdp)
+                                )
+                                .padding(horizontal = 24.cdp, vertical = 20.cdp)
+                        ) {
+                            //占位
+                            if (viewModel.newPlaylistName.isEmpty()) {
+                                Text(
+                                    text = "请输入歌单名称",
+                                    fontSize = 28.csp,
+                                    color = AppColorsProvider.current.secondText
+                                )
+                            }
+                            //有内容时展示输入内容
+                            innerTextField()
+                        }
+                    }
+                )
+
+                Spacer(modifier = Modifier.height(24.cdp))
+
+                // 私密歌单勾选框
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { viewModel.isPrivatePlaylist = !viewModel.isPrivatePlaylist },
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Start
+                ) {
+                    Checkbox(
+                        checked = viewModel.isPrivatePlaylist,
+                        onCheckedChange = { viewModel.isPrivatePlaylist = it },
+                        colors = CheckboxDefaults.colors(
+                            checkedColor = AppColorsProvider.current.primary,
+                            uncheckedColor = AppColorsProvider.current.secondText
+                        )
+                    )
+                    Spacer(modifier = Modifier.width(8.cdp))
+                    Text(
+                        text = "私密歌单",
+                        fontSize = 26.csp,
+                        color = AppColorsProvider.current.firstText
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.cdp))
+            }
+        }
     }
 }

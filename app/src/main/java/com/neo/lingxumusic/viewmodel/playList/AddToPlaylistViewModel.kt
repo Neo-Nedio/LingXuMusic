@@ -28,6 +28,15 @@ class AddToPlaylistViewModel @Inject constructor() : BaseViewStateViewModel() {
     // 是否全部选中
     var isAllSelected by mutableStateOf(false)
 
+    // 是否显示创建歌单弹窗
+    var showCreatePlaylistDialog by mutableStateOf(false)
+
+    // 新歌单名称
+    var newPlaylistName by mutableStateOf("")
+
+    // 是否为私密歌单
+    var isPrivatePlaylist by mutableStateOf(false)
+
     // 初始化数据
     fun initData(
         songs: List<Song>,
