@@ -8,15 +8,18 @@ import com.neo.lingxumusic.core.AppGlobalData
 import com.neo.lingxumusic.core.viewState.BaseViewStateViewModel
 import com.neo.lingxumusic.core.viewState.ViewStateMutableLiveData
 import com.neo.lingxumusic.http.api.PlaylistApi
+import com.neo.lingxumusic.http.api.SongApi
 import com.neo.lingxumusic.model.BaseResult
 import com.neo.lingxumusic.model.Playlist
 import com.neo.lingxumusic.model.Song
+import com.neo.lingxumusic.model.buildData
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
 @HiltViewModel
 class AddToPlaylistViewModel @Inject constructor(
     private val playlistApi: PlaylistApi,
+    private val songApi: SongApi,
 ) : BaseViewStateViewModel() {
 
     // 路由传入的待添加歌曲列表
@@ -45,6 +48,9 @@ class AddToPlaylistViewModel @Inject constructor(
 
     // 创建歌单请求状态
     val createPlaylistResult = ViewStateMutableLiveData<BaseResult>()
+
+    // 添加歌曲到歌单请求状态
+    val addSongsResult = ViewStateMutableLiveData<BaseResult>()
 
     // 初始化数据
     fun initData(
@@ -96,6 +102,29 @@ class AddToPlaylistViewModel @Inject constructor(
                 type = 0,
                 isPri = if (isPrivatePlaylist) 1 else null,
             )
+        }
+    }
+
+    // 添加歌曲到选中的歌单
+    fun addSongsToSelectedPlaylists() {
+        val selectedPlaylists = mutableListOf<Playlist>()
+        favoritePlaylist?.takeIf { selectedMap[it.global_collection_id] == true }?.let { selectedPlaylists.add(it) }
+        selfCreatePlaylists.filter { selectedMap[it.global_collection_id] == true }.let { selectedPlaylists.addAll(it) }
+
+        if (selectedPlaylists.isEmpty()) return
+
+        val data = songsToAdd.mapNotNull { it.buildData() }.joinToString(",")
+        if (data.isBlank()) return
+
+        launch(addSongsResult) {
+            // 依次添加到每个选中的歌单
+            for (playlist in selectedPlaylists) {
+                val listid = playlist.listid.takeIf { it > 0 }
+                    ?: playlist.list_create_listid.takeIf { it > 0 }
+                    ?: continue
+                songApi.addSongToPlaylist(listid, data)
+            }
+            BaseResult(status = 1)
         }
     }
 }

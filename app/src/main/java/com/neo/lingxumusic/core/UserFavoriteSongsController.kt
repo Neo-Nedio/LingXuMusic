@@ -6,6 +6,7 @@ import com.neo.lingxumusic.http.api.PlaylistApi
 import com.neo.lingxumusic.http.api.SongApi
 import com.neo.lingxumusic.model.PlaylistDetailData
 import com.neo.lingxumusic.model.Song
+import com.neo.lingxumusic.model.buildData
 import com.neo.lingxumusic.model.dataAs
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -61,7 +62,7 @@ object UserFavoriteSongsController {
     // 添加歌曲到我喜欢的歌单
     fun addFavoriteSong(song: Song) {
         val listid = AppGlobalData.favoritePlaylistListId
-        val data = buildData(song)
+        val data = song.buildData()
         if (listid <= 0 || data.isNullOrBlank()) {
             return
         }
@@ -100,26 +101,6 @@ object UserFavoriteSongsController {
                 }
             } catch (_: Exception) {
             }
-        }
-    }
-
-    //构建添加歌单需要的data
-    private fun buildData(song: Song): String? {
-        val songname = song.songname?.takeIf { it.isNotBlank() }
-            ?: song.name?.substringAfter(" - ", missingDelimiterValue = song.name.orEmpty())
-                ?.takeIf { it.isNotBlank() }
-            ?: song.name?.takeIf { it.isNotBlank() }
-        val hash = song.hash?.takeIf { it.isNotBlank() } ?: return null
-        if (songname.isNullOrBlank()) {
-            return null
-        }
-        val base = "$songname|$hash"
-        val albumId = song.album_id?.takeIf { it.isNotBlank() }
-        val mixsongid = song.mixsongid.takeIf { it > 0 }
-        return when {
-            albumId != null && mixsongid != null -> "$base|$albumId|$mixsongid"
-            albumId != null -> "$base|$albumId"
-            else -> base
         }
     }
 }

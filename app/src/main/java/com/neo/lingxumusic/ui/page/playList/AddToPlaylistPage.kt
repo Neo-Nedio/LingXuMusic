@@ -172,6 +172,18 @@ private fun AddToPlaylistContent(onDismiss: () -> Unit) {
             AddToPlaylistBottomBar()
         }
 
+        // 添加歌曲到歌单状态弹窗以及反馈回调
+        ViewStateLoadingDialogComponent(
+            viewStateLiveData = viewModel.addSongsResult,
+            successBlock = {
+                showToast("添加成功")
+                onDismiss()
+            },
+            failBlock = { data ->
+                showToast("添加失败: $data")
+            }
+        ) {}
+
         // 创建歌单弹窗
         ViewStateLoadingDialogComponent(
             viewStateLiveData = viewModel.createPlaylistResult,
@@ -221,7 +233,7 @@ private fun AddToPlaylistBottomBar() {
         BottomBarOptionButton(
             text = "确定",
             onClick = {
-                // TODO: 调用接口将歌曲添加到选中的歌单
+                viewModel.addSongsToSelectedPlaylists()
             }
         )
     }
