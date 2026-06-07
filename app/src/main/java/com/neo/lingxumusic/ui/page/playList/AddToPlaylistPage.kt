@@ -34,12 +34,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.neo.lingxumusic.core.UserPlaylistController
+import com.neo.lingxumusic.core.viewState.ViewStateLoadingDialogComponent
 import com.neo.lingxumusic.model.Song
 import com.neo.lingxumusic.ui.common.CommonIcon
 import com.neo.lingxumusic.ui.page.playList.component.PlaylistSelectItem
 import com.neo.lingxumusic.ui.theme.AppColorsProvider
 import com.neo.lingxumusic.utils.cdp
 import com.neo.lingxumusic.utils.csp
+import com.neo.lingxumusic.utils.showToast
 import com.neo.lingxumusic.viewmodel.playList.AddToPlaylistViewModel
 
 @Composable
@@ -171,10 +173,23 @@ private fun AddToPlaylistContent(onDismiss: () -> Unit) {
         }
 
         // 创建歌单弹窗
-        CreatePlaylistDialog(
-            visible = viewModel.showCreatePlaylistDialog,
-            onDismiss = { viewModel.showCreatePlaylistDialog = false }
-        )
+        ViewStateLoadingDialogComponent(
+            viewStateLiveData = viewModel.createPlaylistResult,
+            successBlock = {
+                showToast("创建成功")
+                viewModel.showCreatePlaylistDialog = false
+                // 刷新歌单列表
+                UserPlaylistController.mineViewModel.getUserPlayList()
+            },
+            failBlock = { data ->
+                showToast("创建失败: $data")
+            }
+        ) {
+            CreatePlaylistDialog(
+                visible = viewModel.showCreatePlaylistDialog,
+                onDismiss = { viewModel.showCreatePlaylistDialog = false }
+            )
+        }
     }
 }
 
@@ -349,7 +364,9 @@ private fun CreatePlaylistDialog(
                         text = "创建",
                         fontSize = 28.csp,
                         color = AppColorsProvider.current.primary,
-                        modifier = Modifier.clickable { /* TODO: 创建歌单 */ }
+                        modifier = Modifier.clickable {
+                            viewModel.createPlaylist()
+                        }
                     )
                 }
 

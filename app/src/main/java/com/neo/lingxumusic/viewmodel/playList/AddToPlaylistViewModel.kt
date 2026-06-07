@@ -4,14 +4,20 @@ import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
+import com.neo.lingxumusic.core.AppGlobalData
 import com.neo.lingxumusic.core.viewState.BaseViewStateViewModel
+import com.neo.lingxumusic.core.viewState.ViewStateMutableLiveData
+import com.neo.lingxumusic.http.api.PlaylistApi
+import com.neo.lingxumusic.model.BaseResult
 import com.neo.lingxumusic.model.Playlist
 import com.neo.lingxumusic.model.Song
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
 @HiltViewModel
-class AddToPlaylistViewModel @Inject constructor() : BaseViewStateViewModel() {
+class AddToPlaylistViewModel @Inject constructor(
+    private val playlistApi: PlaylistApi,
+) : BaseViewStateViewModel() {
 
     // 路由传入的待添加歌曲列表
     var songsToAdd by mutableStateOf<List<Song>>(emptyList())
@@ -36,6 +42,9 @@ class AddToPlaylistViewModel @Inject constructor() : BaseViewStateViewModel() {
 
     // 是否为私密歌单
     var isPrivatePlaylist by mutableStateOf(false)
+
+    // 创建歌单请求状态
+    val createPlaylistResult = ViewStateMutableLiveData<BaseResult>()
 
     // 初始化数据
     fun initData(
@@ -72,5 +81,21 @@ class AddToPlaylistViewModel @Inject constructor() : BaseViewStateViewModel() {
     fun clearSelection() {
         selectedMap.keys.forEach { selectedMap[it] = false }
         isAllSelected = false
+    }
+
+    // 创建歌单
+    fun createPlaylist() {
+        val name = newPlaylistName.trim()
+        if (name.isEmpty()) return
+
+        launch(createPlaylistResult) {
+            playlistApi.addPlaylist(
+                name = name,
+                listCreateUserid = AppGlobalData.userId,
+                listCreateListid = 0,
+                type = 0,
+                isPri = if (isPrivatePlaylist) 1 else null,
+            )
+        }
     }
 }
