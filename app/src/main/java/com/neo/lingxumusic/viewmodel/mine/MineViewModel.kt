@@ -56,7 +56,7 @@ class MineViewModel @Inject constructor(private val api: UserApi) : BaseViewStat
                     UserPlaylistController.userPlaylistIds.add(it)
                 }
                 if (playlist.list_create_userid == userId) {  // 是自己创建的
-                    if (playlist.name?.contains("喜欢") ?: false) { // 是"喜欢的音乐"歌单
+                    if (playlist.is_def == 2) { // 是"喜欢的音乐"歌单
                         favoritePlayList = playlist  // → 单独存储
                         //把喜欢歌单的两个id存入全局变量
                         AppGlobalData.favoritePlaylistGlobalCollectionId =

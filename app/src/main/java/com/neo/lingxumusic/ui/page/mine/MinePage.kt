@@ -87,7 +87,7 @@ import me.onebone.toolbar.CollapsingToolbarScaffold
 import me.onebone.toolbar.ScrollStrategy
 import me.onebone.toolbar.rememberCollapsingToolbarScaffoldState
 
-//todo 歌单和歌单内的歌曲默认一次加载30，要监听滚动加入数据
+//todo 歌单和歌单内的歌曲默认一次加载30，要监听滚动加入数据 或者一次加载全部
 
 // 主页面
 @Composable
@@ -276,9 +276,13 @@ private fun CollapsingToolbarScope.ScrollHeader(
             contentAlignment = Alignment.Center
         ) {
             if (viewModel.favoritePlayList != null) {
-                UserPlaylistItem(viewModel.favoritePlayList,0.cdp)
+                UserPlaylistItem(
+                    platListItem = viewModel.favoritePlayList,
+                    horizontalPadding = 0.cdp,
+                    iconResId = R.drawable.ic_like_yes
+                )
             } else {
-                androidx.compose.material.Text(
+                Text(
                     text = "暂时没有喜欢的歌单",
                     color = AppColorsProvider.current.secondText,
                     fontSize = 28.csp
