@@ -94,7 +94,7 @@ object UserFavoriteSongsController {
         controllerScope.launch {
             try {
                 val result = withContext(Dispatchers.IO) {
-                    songApi.delSongToPlaylist(listid, fileid)
+                    songApi.delSongToPlaylist(listid, fileid.toString())
                 }
                 if (result.status == 1) {
                     favoriteSongList.removeAll { it.hash == hash }

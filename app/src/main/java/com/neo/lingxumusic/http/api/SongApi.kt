@@ -63,6 +63,6 @@ interface SongApi {
     @GET("/playlist/tracks/del")
     suspend fun delSongToPlaylist(
         @Query("listid") listid: Int,
-        @Query("fileids") fileids: Int
+        @Query("fileids") fileids: String
     ): BaseResult
 }

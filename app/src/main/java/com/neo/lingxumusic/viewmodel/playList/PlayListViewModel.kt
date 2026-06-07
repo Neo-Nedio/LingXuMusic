@@ -7,8 +7,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import androidx.paging.PagingData
 import com.neo.lingxumusic.core.viewState.BaseViewStateViewModel
+import com.neo.lingxumusic.core.viewState.ViewStateMutableLiveData
 import com.neo.lingxumusic.core.viewState.paging.buildPager
 import com.neo.lingxumusic.http.api.PlaylistApi
+import com.neo.lingxumusic.http.api.SongApi
+import com.neo.lingxumusic.model.BaseResult
 import com.neo.lingxumusic.model.PlaylistBrief
 import com.neo.lingxumusic.model.PlaylistDetailData
 import com.neo.lingxumusic.model.Song
@@ -18,8 +21,10 @@ import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
 @HiltViewModel
-class PlayListViewModel @Inject constructor(private val playlistApi: PlaylistApi)
-    : BaseViewStateViewModel() {
+class PlayListViewModel @Inject constructor(
+    private val playlistApi: PlaylistApi,
+    private val songApi: SongApi,
+) : BaseViewStateViewModel() {
 
     lateinit var playlist: PlaylistBrief
 
@@ -80,6 +85,9 @@ class PlayListViewModel @Inject constructor(private val playlistApi: PlaylistApi
     // 待添加的歌曲列表
     var songsToAdd by mutableStateOf<List<Song>>(emptyList())
 
+    // 删除歌曲请求状态
+    val deleteSongsResult = ViewStateMutableLiveData<BaseResult>()
+
     //构建歌单歌曲分页数据流
     fun buildSongListPager(playlist: PlaylistBrief) {
         this.playlist = playlist
@@ -121,6 +129,23 @@ class PlayListViewModel @Inject constructor(private val playlistApi: PlaylistApi
             result.dataAs<PlaylistDetailData>()?.songs.orEmpty()
         } else {
             emptyList()
+        }
+    }
+
+    // 从歌单中删除歌曲
+    fun deleteSongsFromPlaylist(songs: List<Song>) {
+        val listid = playlist.listid.takeIf { it > 0 }
+            ?: playlist.list_create_listid.takeIf { it > 0 }
+            ?: return
+
+        val fileids = songs.mapNotNull { song ->
+            song.fileid.takeIf { it > 0 }
+        }.joinToString(",")
+        if (fileids.isBlank()) return
+
+        launch(deleteSongsResult) {
+            songApi.delSongToPlaylist(listid, fileids)
+            BaseResult(status = 1)
         }
     }
 }

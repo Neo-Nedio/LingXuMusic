@@ -21,6 +21,8 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -41,9 +43,9 @@ import com.neo.lingxumusic.core.AppGlobalData
 import com.neo.lingxumusic.core.MusicPlayController
 import com.neo.lingxumusic.core.UserPlaylistController
 import com.neo.lingxumusic.core.navigation.NavController
-import com.neo.lingxumusic.core.navigation.Routes
-import com.neo.lingxumusic.core.navigation.RoutesConstant
+import com.neo.lingxumusic.core.viewState.ViewState
 import com.neo.lingxumusic.core.viewState.ViewStateListPagingComponent
+import androidx.compose.runtime.livedata.observeAsState
 import com.neo.lingxumusic.model.PlaylistBrief
 import com.neo.lingxumusic.model.Song
 import com.neo.lingxumusic.ui.common.CommonHeadBackgroundShape
@@ -154,6 +156,31 @@ fun PlaylistPage(playlist: PlaylistBrief) {
         visible = viewModel.showAddToPlaylistSheet,
         onDismiss = { viewModel.showAddToPlaylistSheet = false }
     )
+
+    // 删除歌曲状态弹窗
+    val deleteViewState by viewModel.deleteSongsResult.observeAsState()
+    LaunchedEffect(deleteViewState) {
+        when (deleteViewState) {
+            is ViewState.Success -> {
+                showToast("删除成功")
+                viewModel.clearSelection()
+                viewModel.deleteSongsResult.value = null
+                // 刷新歌单歌曲列表
+                viewModel.songListFlow = null
+                viewModel.buildSongListPager(viewModel.playlist)
+            }
+            is ViewState.Fail -> {
+                val data = (deleteViewState as ViewState.Fail).errorMsg
+                showToast("删除失败: $data")
+                viewModel.deleteSongsResult.value = null
+            }
+            is ViewState.Error -> {
+                showToast("删除失败")
+                viewModel.deleteSongsResult.value = null
+            }
+            else -> {}
+        }
+    }
 }
 
 @Composable
@@ -624,10 +651,17 @@ private fun SelectionBottomBar() {
                     }
                 }
             )
-            // 下载
+            // 删除
             BottomBarOptionItem(
-                text = "下载",
-                onClick = { /* TODO */ }
+                text = "删除",
+                onClick = {
+                    scope.launch {
+                        val selectedSongs = extractSelectedSongs(
+                            viewModel, songList, "没有可删除的歌曲"
+                        ) ?: return@launch
+                        viewModel.deleteSongsFromPlaylist(selectedSongs)
+                    }
+                }
             )
         }
     }
