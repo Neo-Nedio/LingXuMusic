@@ -24,6 +24,23 @@ class UserFollowViewModel @Inject constructor(
     // 请求状态
     val userFollowResult = ViewStateMutableLiveData<BaseResult>()
 
+    // 是否处于搜索模式
+    var isSearchMode by mutableStateOf(false)
+
+    // 搜索关键词
+    var searchKeyword by mutableStateOf("")
+
+    // 过滤后的关注列表
+    val filteredFollowList: List<UserFollow>
+        get() = if (searchKeyword.isBlank()) {
+            if(!isSearchMode) followList
+            else emptyList()
+        } else {
+            followList.filter {
+                it.nickname?.contains(searchKeyword, ignoreCase = true) == true
+            }
+        }
+
     // 获取用户关注列表
     fun getUserFollow() {
         launch(userFollowResult, handleResult = {
