@@ -32,7 +32,8 @@ data class RecommendSong(
     val publish_date: String? = null,           // 发行日期
     val language: String? = null,               // 语言
     val trans_param: RecommendTransParam? = null, // 猜你喜欢封面在 union_cover
-    val info: RecommendSongInfo? = null         // 猜你喜欢封面在 image
+    val info: RecommendSongInfo? = null,         // 猜你喜欢封面在 image
+    val privilege:Int = 0 //判断是否需要vip
 ) : Parcelable
 
 @Parcelize
@@ -79,6 +80,7 @@ fun RecommendSong.toSong(): Song {
         album_id = album_id,
         cover = coverUrl(),
         mixsongid = mixsongid?.toLongOrNull() ?: album_audio_id?.toLongOrNull() ?: 0,
+        privilege = privilege
     )
 }
 

@@ -30,8 +30,8 @@ data class RankAudioSong(
     // ========== 音频信息 ==========
     val audio_info: AudioInfo? = null,  // 各音质信息
 
-    // ========== 付费信息 ==========
-    val deprecated: DeprecatedInfo? = null  // 付费信息
+    // ========== VIP判断 ==========
+    val privilege_download: PrivilegeDownload? = null
 ) : Parcelable
 
 /**
@@ -67,13 +67,11 @@ data class AudioInfo(
 ) : Parcelable
 
 /**
- * 付费信息
+ * 下载权限（用于VIP判断）
  */
 @Parcelize
-data class DeprecatedInfo(
-    val pay_type: Int = 0,              // 付费类型: 0=免费, 1=试听, 3=付费
-    val price: Int = 0,                 // 价格（酷币）
-    val pkg_price: Int = 1              // 套餐价格
+data class PrivilegeDownload(
+    val privilege: Int = 0,
 ) : Parcelable
 
 
@@ -86,6 +84,7 @@ fun RankAudioSong.toSong(): Song {
         name = "$author_name - $songname",
         album_id = album_id.toString(),
         cover = album_info?.sizable_cover,
+        privilege = privilege_download?.privilege ?: 0
     )
 }
 
