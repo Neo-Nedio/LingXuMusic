@@ -177,6 +177,8 @@ private fun AddToPlaylistContent(onDismiss: () -> Unit) {
             viewStateLiveData = viewModel.addSongsResult,
             successBlock = {
                 showToast("添加成功")
+                // 刷新歌单列表
+                UserPlaylistController.mineViewModel.getUserPlayList()
                 onDismiss()
             },
             failBlock = { data ->

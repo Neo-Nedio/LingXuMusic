@@ -168,6 +168,8 @@ fun PlaylistPage(playlist: PlaylistBrief) {
                 // 刷新歌单歌曲列表
                 viewModel.songListFlow = null
                 viewModel.buildSongListPager(viewModel.playlist)
+                // 刷新歌单列表
+                UserPlaylistController.mineViewModel.getUserPlayList()
             }
             is ViewState.Fail -> {
                 val data = (deleteViewState as ViewState.Fail).errorMsg

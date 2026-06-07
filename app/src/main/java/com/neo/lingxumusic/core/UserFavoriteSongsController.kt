@@ -73,6 +73,8 @@ object UserFavoriteSongsController {
                 }
                 if (result.status == 1 && !isFavoriteSong(song)) {
                     favoriteSongList.add(0, song)
+                    // 刷新歌单列表
+                    UserPlaylistController.mineViewModel.getUserPlayList()
                 }
             } catch (_: Exception) {
             }
@@ -98,6 +100,8 @@ object UserFavoriteSongsController {
                 }
                 if (result.status == 1) {
                     favoriteSongList.removeAll { it.hash == hash }
+                    // 刷新歌单列表
+                    UserPlaylistController.mineViewModel.getUserPlayList()
                 }
             } catch (_: Exception) {
             }
