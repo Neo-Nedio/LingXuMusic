@@ -13,6 +13,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.neo.lingxumusic.ui.page.home.HomePage
 import com.neo.lingxumusic.ui.page.login.LoginPage
+import com.neo.lingxumusic.ui.page.mine.UserFollowPage
 import com.neo.lingxumusic.ui.page.playList.PlaylistPage
 import com.neo.lingxumusic.ui.page.profile.ProfilePage
 import com.neo.lingxumusic.ui.page.splash.SplashPage
@@ -77,6 +78,9 @@ fun LingXuNavGraph(
                 ?.savedStateHandle
                 ?.get<Song>(RoutesConstant.SONG)
             SongCommentPage(songBean)
+        }
+        composable(Routes.USER_FOLLOW) {
+            UserFollowPage()
         }
 
     }

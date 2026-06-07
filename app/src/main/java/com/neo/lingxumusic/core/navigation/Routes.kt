@@ -12,4 +12,6 @@ object Routes {
     const val RANK_AUDIO = "rankAudio"
 
     const val SONG_COMMENT = "songComment"
+
+    const val USER_FOLLOW = "userFollow"
 }

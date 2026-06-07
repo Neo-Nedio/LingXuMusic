@@ -15,4 +15,8 @@ interface UserApi {
     @GET("/user/detail")
     suspend fun getUserDetail(
     ): BaseResult
+
+    @GET("/user/follow")
+    suspend fun getUserFollow(
+    ): BaseResult
 }

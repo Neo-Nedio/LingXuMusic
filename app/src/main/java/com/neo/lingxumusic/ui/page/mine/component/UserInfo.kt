@@ -1,6 +1,7 @@
 package com.neo.lingxumusic.ui.page.mine.component
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
@@ -10,6 +11,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import com.neo.lingxumusic.core.AppGlobalData
+import com.neo.lingxumusic.core.navigation.NavController
+import com.neo.lingxumusic.core.navigation.Routes
 import com.neo.lingxumusic.ui.common.CommonNetworkImage
 import com.neo.lingxumusic.R
 import com.neo.lingxumusic.ui.theme.AppColorsProvider
@@ -55,12 +58,39 @@ fun UserInfoComponent(modifier: Modifier = Modifier) {
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(top = 64.cdp)
             )
-            Text(
-                text = "$follows 关注  ｜  $fans 粉丝  ｜  $visitors 访客",
-                fontSize = 32.csp,
-                color = AppColorsProvider.current.secondText,
-                modifier = Modifier.padding(top = 36.cdp)
-            )
+            Row(
+                modifier = Modifier.padding(top = 36.cdp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "$follows 关注",
+                    fontSize = 32.csp,
+                    color = AppColorsProvider.current.secondText,
+                    modifier = Modifier.clickable {
+                        NavController.instance.navigate(Routes.USER_FOLLOW)
+                    }
+                )
+                Text(
+                    text = "  ｜  ",
+                    fontSize = 32.csp,
+                    color = AppColorsProvider.current.secondText,
+                )
+                Text(
+                    text = "$fans 粉丝",
+                    fontSize = 32.csp,
+                    color = AppColorsProvider.current.secondText,
+                )
+                Text(
+                    text = "  ｜  ",
+                    fontSize = 32.csp,
+                    color = AppColorsProvider.current.secondText,
+                )
+                Text(
+                    text = "$visitors 访客",
+                    fontSize = 32.csp,
+                    color = AppColorsProvider.current.secondText,
+                )
+            }
         }
 
         CommonNetworkImage(
