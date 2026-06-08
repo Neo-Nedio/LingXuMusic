@@ -23,7 +23,6 @@ import com.neo.lingxumusic.ui.page.discovery.DiscoveryPage
 import com.neo.lingxumusic.ui.page.mine.MinePage
 import com.neo.lingxumusic.ui.page.permission.Permission
 import com.neo.lingxumusic.ui.page.podcast.PodcastPage
-import com.neo.lingxumusic.ui.page.sing.SingPage
 import com.neo.lingxumusic.ui.theme.AppColorsProvider
 import com.neo.lingxumusic.utils.TwoBackFinish
 import kotlinx.coroutines.launch
@@ -31,12 +30,11 @@ import kotlinx.coroutines.launch
 private val bottomNavigationItems = listOf(
     BottomNavigationItem("发现", R.drawable.ic_discovery),
     BottomNavigationItem("播客", R.drawable.ic_podcast),
-    BottomNavigationItem("我的", R.drawable.ic_mine),
-    BottomNavigationItem("k歌", R.drawable.ic_sing),
     BottomNavigationItem("刷刷", R.drawable.ic_cloud_country),
+    BottomNavigationItem("我的", R.drawable.ic_mine),
 )
 
-var selectedHomeTabIndex by mutableIntStateOf(2)
+var selectedHomeTabIndex by mutableIntStateOf(3)
 
 @Composable
 fun HomePage(drawerState: DrawerState, onFinish: () -> Unit = { }) {
@@ -92,9 +90,8 @@ private fun Body(onToggleDrawer: () -> Unit) {
             when (pagePosition) {
                 0 -> DiscoveryPage(onToggleDrawer)    // 发现页
                 1 -> PodcastPage(onToggleDrawer)      // 播客页
-                2 -> MinePage(onToggleDrawer)         // 我的页
-                3 -> SingPage(onToggleDrawer)         // K歌页
-                4 -> BrushPage(onToggleDrawer) // 刷刷页
+                2 -> BrushPage(onToggleDrawer)        // 刷刷页
+                3 -> MinePage(onToggleDrawer)         // 我的页
             }
         }
 
