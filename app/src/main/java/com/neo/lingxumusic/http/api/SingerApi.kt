@@ -10,4 +10,12 @@ interface SingerApi {
     suspend fun getArtistDetail(
         @Query("id") id: Int,
     ): BaseResult
+
+    @GET("/artist/audios")
+    suspend fun getArtistAudios(
+        @Query("id") id: Int,
+        @Query("page") page: String = "1",
+        @Query("pagesize") pagesize: String = "30",
+        @Query("sort") sort: String,
+    ): BaseResult
 }

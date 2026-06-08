@@ -59,6 +59,7 @@ dependencies {
     implementation(libs.androidx.paging.common)
     implementation(libs.androidx.paging.compose)
     implementation(libs.androidx.compose.foundation)
+    implementation(libs.androidx.compose.foundation.layout)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
