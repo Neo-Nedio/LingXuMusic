@@ -14,6 +14,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.neo.lingxumusic.R
+import com.neo.lingxumusic.core.MusicPlayController
 import com.neo.lingxumusic.core.VideoPlayController
 import com.neo.lingxumusic.core.navigation.NavController
 import com.neo.lingxumusic.core.viewState.ViewStateComponent
@@ -27,11 +28,13 @@ fun MvPlayPage(albumAudioId: Long, songName: String?, singerName: String?) {
     val viewModel: MvPlayViewModel = hiltViewModel()
     val context = LocalContext.current
 
-    // 页面进入时初始化视频播放器，退出时释放资源
+    // 页面进入时初始化视频播放器，退出时释放资源并恢复歌曲播放
     DisposableEffect(Unit) {
         VideoPlayController.initIfNeeded(context)
         onDispose {
             VideoPlayController.release()
+            MusicPlayController.showPlayMusicSheet = true
+            MusicPlayController.resume()
         }
     }
 
