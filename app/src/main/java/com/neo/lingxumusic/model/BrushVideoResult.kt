@@ -73,6 +73,9 @@ data class VideoUrl(
 data class MvSimpleInfo(
     val cover: String? = null,             // 封面图
     val video_list: List<MvVideo>? = null, // 视频片段列表
+    //刷刷接口没有宽高，其他类使用
+    val video_width: Int = 0,              // 视频原始宽度
+    val video_height: Int = 0,             // 视频原始高度
 ) : Parcelable
 
 @Parcelize

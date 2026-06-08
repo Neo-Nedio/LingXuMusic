@@ -66,6 +66,10 @@ class MvPlayViewModel @Inject constructor(
                 }
 
                 // 组装成 BrushVideo
+                val videoWidth = songMv?.mkv?.qhd_width?.takeIf { it > 0 }
+                    ?: songMv?.mkv?.sd_width?.takeIf { it > 0 } ?: 0
+                val videoHeight = songMv?.mkv?.qhd_height?.takeIf { it > 0 }
+                    ?: songMv?.mkv?.sd_height?.takeIf { it > 0 } ?: 0
                 mvVideo = BrushVideo(
                     song = BrushSong(
                         songname = songMv?.mv_name ?: songName,
@@ -81,7 +85,9 @@ class MvPlayViewModel @Inject constructor(
                         ),
                         mv_info = MvSimpleInfo(
                             cover = songMv?.getCoverUrl(),
-                            video_list = listOf(MvVideo(video_bss_img = songMv?.getCoverUrl()))
+                            video_list = listOf(MvVideo(video_bss_img = songMv?.getCoverUrl())),
+                            video_width = videoWidth,
+                            video_height = videoHeight
                         )
                     )
                 )

@@ -50,5 +50,9 @@ data class MvAuthor(
 @Parcelize
 data class MkvInfo(
     val sd_hash: String? = null,            // 标清视频hash
-    val qhd_hash: String? = null            // 高清视频hash
+    val qhd_hash: String? = null,           // 高清视频hash
+    val qhd_width: Int = 0,                 // 高清视频宽度
+    val qhd_height: Int = 0,                // 高清视频高度
+    val sd_width: Int = 0,                  // 标清视频宽度
+    val sd_height: Int = 0                  // 标清视频高度
 ) : Parcelable

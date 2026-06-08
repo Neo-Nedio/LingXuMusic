@@ -87,14 +87,15 @@ fun MvPlayPage(albumAudioId: Long, songName: String?, singerName: String?) {
                     }
                 }
 
-                viewModel.mvVideo?.let {
+                viewModel.mvVideo?.let { video ->
                     BrushVideoPlay(
                         index = 0,
                         lazyListState = rememberLazyListState(),
-                        video = it,
+                        video = video,
                         itemCount = 1,
                         onSwitchVideo = {},
-                        modifier = Modifier.fillMaxSize()
+                        modifier = Modifier.fillMaxSize(),
+                        keepAspectRatio = true  // MV 保持原始宽高比，横屏视频居中不拉伸
                     )
                 }
             }

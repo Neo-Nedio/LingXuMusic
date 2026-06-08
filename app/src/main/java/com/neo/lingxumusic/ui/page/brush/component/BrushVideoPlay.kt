@@ -8,6 +8,7 @@ import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -47,13 +48,24 @@ fun BrushVideoPlay(
     itemCount: Int,                      // 视频总数
     onSwitchVideo: (Int) -> Unit,        // 切换视频回调
     modifier: Modifier = Modifier,
+    keepAspectRatio: Boolean = false,    // 是否保持视频原始宽高比（横屏视频居中显示，不拉伸）
 ) {
-    Box(modifier = modifier) {
+    val videoWidth = video.hp_mv_info?.mv_info?.video_width ?: 0
+    val videoHeight = video.hp_mv_info?.mv_info?.video_height ?: 0
+    val hasAspect = keepAspectRatio && videoWidth > 0 && videoHeight > 0
+
+    Box(modifier = modifier, contentAlignment = Alignment.Center) {
         Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxSize()
-                .videoDragDetect(index, lazyListState, itemCount, onSwitchVideo) // 添加上下滑动手势
+                .then(
+                    if (hasAspect) {
+                        // 根据视频宽高比设置 Box 尺寸：横屏视频宽度撑满、高度按比例
+                        Modifier.fillMaxWidth().aspectRatio(videoWidth.toFloat() / videoHeight.toFloat())
+                    } else {
+                        Modifier.fillMaxSize()
+                    }
+                )
+                .videoDragDetect(index, lazyListState, itemCount, onSwitchVideo), // 添加上下滑动手势
         ) {
             VideoSurface(index, video) // 视频 Surface 渲染组件
         }
