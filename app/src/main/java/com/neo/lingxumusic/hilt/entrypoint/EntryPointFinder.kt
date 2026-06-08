@@ -8,6 +8,7 @@ import com.neo.lingxumusic.http.api.UserApi
 import com.neo.lingxumusic.core.LingxuApplication
 import com.neo.lingxumusic.http.api.RankApi
 import com.neo.lingxumusic.http.api.RecommendApi
+import com.neo.lingxumusic.http.api.SingerApi
 import com.neo.lingxumusic.http.api.VideoApi
 import dagger.hilt.EntryPoints
 
@@ -40,5 +41,8 @@ object EntryPointFinder {
         return entryPoint.getPlaylistApi()
     }
 
+    fun getSingerApi(): SingerApi {
+        return entryPoint.getSingerApi()
+    }
 }
 

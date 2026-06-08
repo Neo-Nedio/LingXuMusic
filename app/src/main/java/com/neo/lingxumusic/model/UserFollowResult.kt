@@ -14,6 +14,7 @@ data class UserFollowData(
 @Parcelize
 data class UserFollow(
     val userid: Long = 0,                  // 用户/歌手 ID
+    val singerid: Long = 0,                // 歌手ID（仅当 identity=15 时有值）
     val nickname: String? = null,          // 昵称
     val pic: String? = null,               // 头像 URL
     val gender: Int = 0,                   // 性别: 0=未知,1=男,2=女

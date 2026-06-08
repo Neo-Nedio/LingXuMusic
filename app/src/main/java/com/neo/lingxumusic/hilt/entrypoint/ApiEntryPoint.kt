@@ -4,6 +4,7 @@ import com.neo.lingxumusic.http.api.LoginApi
 import com.neo.lingxumusic.http.api.PlaylistApi
 import com.neo.lingxumusic.http.api.RankApi
 import com.neo.lingxumusic.http.api.RecommendApi
+import com.neo.lingxumusic.http.api.SingerApi
 import com.neo.lingxumusic.http.api.SongApi
 import com.neo.lingxumusic.http.api.UserApi
 import com.neo.lingxumusic.http.api.VideoApi
@@ -25,4 +26,6 @@ interface ApiEntryPoint {
     fun getRankApi(): RankApi
 
     fun getPlaylistApi(): PlaylistApi
+
+    fun getSingerApi(): SingerApi
 }

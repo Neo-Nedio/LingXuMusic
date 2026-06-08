@@ -9,6 +9,7 @@ import com.neo.lingxumusic.hilt.RetrofitClient
 import com.neo.lingxumusic.http.api.PlaylistApi
 import com.neo.lingxumusic.http.api.RankApi
 import com.neo.lingxumusic.http.api.RecommendApi
+import com.neo.lingxumusic.http.api.SingerApi
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -73,5 +74,13 @@ object ApiServiceModule {
         @RetrofitClientModule.KuGouRetrofitClient retrofit: RetrofitClient
     ): PlaylistApi {
         return retrofit.setBaseUrl(AppConfig.BASE_URL).create(PlaylistApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideSingerApi(
+        @RetrofitClientModule.KuGouRetrofitClient retrofit: RetrofitClient
+    ): SingerApi {
+        return retrofit.setBaseUrl(AppConfig.BASE_URL).create(SingerApi::class.java)
     }
 }
