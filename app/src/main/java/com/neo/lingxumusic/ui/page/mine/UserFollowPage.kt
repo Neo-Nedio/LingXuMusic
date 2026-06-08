@@ -32,6 +32,7 @@ import com.neo.lingxumusic.utils.cdp
 import com.neo.lingxumusic.utils.csp
 import com.neo.lingxumusic.viewmodel.mine.UserFollowViewModel
 import androidx.compose.foundation.layout.statusBarsPadding
+import com.neo.lingxumusic.core.navigation.NavController
 
 @Composable
 fun UserFollowPage() {
@@ -176,7 +177,10 @@ private fun UserFollowItem(follow: UserFollow) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 32.cdp, vertical = 16.cdp)
-            .height(100.cdp),
+            .height(100.cdp)
+            .clickable{
+                NavController.instance.navigate("singerDetail/${follow.singerid}")
+            },
         verticalAlignment = Alignment.CenterVertically
     ) {
         // 左侧头像

@@ -25,6 +25,7 @@ import com.neo.lingxumusic.model.RankInfo
 import com.neo.lingxumusic.model.Song
 import com.neo.lingxumusic.ui.page.commemt.SongCommentPage
 import com.neo.lingxumusic.ui.page.discovery.component.RankAudioPage
+import com.neo.lingxumusic.ui.page.singerDetail.SingerDetailPage
 import com.neo.lingxumusic.ui.theme.AppColorsProvider
 
 object NavController {
@@ -97,6 +98,15 @@ fun LingXuNavGraph(
             val songName = backStackEntry.arguments?.getString("songName")
             val singerName = backStackEntry.arguments?.getString("singerName")
             MvPlayPage(albumAudioId, songName, singerName)
+        }
+        composable(
+            Routes.SINGER_DETAIL,
+            arguments = listOf(
+                navArgument("singerId") { type = NavType.LongType }
+            )
+        ) { backStackEntry ->
+            val singerId = backStackEntry.arguments?.getLong("singerId") ?: 0
+            SingerDetailPage(singerId)
         }
 
     }

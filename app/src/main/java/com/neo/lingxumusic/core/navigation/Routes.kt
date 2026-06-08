@@ -16,4 +16,6 @@ object Routes {
     const val USER_FOLLOW = "userFollow"
 
     const val MV_PLAY = "mvPlay/{albumAudioId}/{songName}/{singerName}"
+
+    const val SINGER_DETAIL = "singerDetail/{singerId}"
 }
