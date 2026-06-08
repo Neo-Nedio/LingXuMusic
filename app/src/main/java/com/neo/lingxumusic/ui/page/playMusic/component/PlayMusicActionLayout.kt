@@ -83,7 +83,16 @@ private fun MiddleActionLayout() {
             }
         }
         MiddleActionIcon(R.drawable.ic_download, modifier = Modifier.padding(end = 60.cdp))     // 下载
-        MiddleActionIcon(R.drawable.ic_action_sing, modifier = Modifier.padding(end = 60.cdp))  // K歌/唱歌
+        MiddleActionIcon(R.drawable.ic_default_placeholder_video, modifier = Modifier.padding(end = 60.cdp)) {  // MV
+            val song = MusicPlayController.songList.getOrNull(MusicPlayController.curIndex)
+            val albumAudioId = song?.mixsongid ?: 0
+            val songName = song?.songname ?: song?.name
+            val singerName = song?.name?.substringBefore(" - ", missingDelimiterValue = "")
+            if (albumAudioId > 0) {
+                MusicPlayController.showPlayMusicSheet = false
+                NavController.instance.navigate("mvPlay/$albumAudioId/$songName/$singerName")
+            }
+        }
         Box(modifier = Modifier.width(138.cdp)) { //评论
             MiddleActionIcon(
                 R.drawable.ic_comment_count,

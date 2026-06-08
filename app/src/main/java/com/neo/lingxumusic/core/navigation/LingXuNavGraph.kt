@@ -15,8 +15,11 @@ import com.neo.lingxumusic.ui.page.home.HomePage
 import com.neo.lingxumusic.ui.page.login.LoginPage
 import com.neo.lingxumusic.ui.page.mine.UserFollowPage
 import com.neo.lingxumusic.ui.page.playList.PlaylistPage
+import com.neo.lingxumusic.ui.page.playMusic.MvPlayPage
 import com.neo.lingxumusic.ui.page.profile.ProfilePage
 import com.neo.lingxumusic.ui.page.splash.SplashPage
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
 import com.neo.lingxumusic.model.PlaylistBrief
 import com.neo.lingxumusic.model.RankInfo
 import com.neo.lingxumusic.model.Song
@@ -81,6 +84,19 @@ fun LingXuNavGraph(
         }
         composable(Routes.USER_FOLLOW) {
             UserFollowPage()
+        }
+        composable(
+            Routes.MV_PLAY,
+            arguments = listOf(
+                navArgument("albumAudioId") { type = NavType.LongType },
+                navArgument("songName") { type = NavType.StringType; nullable = true },
+                navArgument("singerName") { type = NavType.StringType; nullable = true },
+            )
+        ) { backStackEntry ->
+            val albumAudioId = backStackEntry.arguments?.getLong("albumAudioId") ?: 0
+            val songName = backStackEntry.arguments?.getString("songName")
+            val singerName = backStackEntry.arguments?.getString("singerName")
+            MvPlayPage(albumAudioId, songName, singerName)
         }
 
     }
