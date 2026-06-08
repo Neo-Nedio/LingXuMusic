@@ -18,6 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.neo.lingxumusic.R
@@ -83,7 +84,7 @@ private fun MiddleActionLayout() {
             }
         }
         MiddleActionIcon(R.drawable.ic_download, modifier = Modifier.padding(end = 60.cdp))     // 下载
-        MiddleActionIcon(R.drawable.ic_default_placeholder_video, modifier = Modifier.padding(end = 60.cdp)) {  // MV
+        MiddleActionIcon(R.drawable.ic_default_placeholder_video, modifier = Modifier.padding(end = 60.cdp), scale = 2f) {  // MV
             val song = MusicPlayController.songList.getOrNull(MusicPlayController.curIndex)
             val albumAudioId = song?.mixsongid ?: 0
             val songName = song?.songname ?: song?.name
@@ -126,7 +127,7 @@ private fun MiddleActionLayout() {
 }
 
 @Composable
-private fun MiddleActionIcon(resId: Int, modifier: Modifier = Modifier, tint: Color = Color.White, clickable: () -> Unit = {}) {
+private fun MiddleActionIcon(resId: Int, modifier: Modifier = Modifier, tint: Color = Color.White, scale: Float = 1f, clickable: () -> Unit = {}) {
     CommonIcon(
         resId,
         tint = tint,
@@ -137,6 +138,7 @@ private fun MiddleActionIcon(resId: Int, modifier: Modifier = Modifier, tint: Co
                 clickable.invoke()
             }
             .padding(16.cdp)  // 内边距 16dp
+            .graphicsLayer(scaleX = scale, scaleY = scale)
     )
 }
 
