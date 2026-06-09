@@ -38,13 +38,16 @@ fun MvPlayPage(albumAudioId: Long, songName: String?, singerName: String?) {
     val viewModel: MvPlayViewModel = hiltViewModel()
     val context = LocalContext.current
 
-    // 页面进入时初始化视频播放器，退出时释放资源并恢复歌曲播放
+    // 页面进入时初始化视频播放器，退出时释放资源；有歌曲才恢复播放并显示播放页
     DisposableEffect(Unit) {
         VideoPlayController.initIfNeeded(context)
         onDispose {
             VideoPlayController.release()
-            MusicPlayController.showPlayMusicSheet = true
-            MusicPlayController.resume()
+            // 有歌曲才重新播放（恢复进入 MV 之前的音乐）
+            if (MusicPlayController.songList.isNotEmpty()) {
+                MusicPlayController.showPlayMusicSheet = true
+                MusicPlayController.resume()
+            }
         }
     }
 

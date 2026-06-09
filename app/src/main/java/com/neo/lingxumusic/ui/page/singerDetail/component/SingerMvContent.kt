@@ -26,8 +26,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.paging.compose.LazyPagingItems
-import androidx.paging.compose.itemKey
 import com.neo.lingxumusic.R
+import com.neo.lingxumusic.core.MusicPlayController
+import com.neo.lingxumusic.core.navigation.NavController
 import com.neo.lingxumusic.model.MvInfo
 import com.neo.lingxumusic.ui.common.CommonIcon
 import com.neo.lingxumusic.ui.common.CommonNetworkImage
@@ -68,7 +69,7 @@ fun LazyListScope.singerMvContent(
             if (leftMv != null) {
                 MvItem(
                     mv = leftMv,
-                    onClick = { /* TODO 跳转到 MV 详情页 */ },
+                    onClick = { openMvPlay(leftMv) },
                     modifier = Modifier
                         .weight(1f)
                         .padding(end = 6.cdp)
@@ -82,7 +83,7 @@ fun LazyListScope.singerMvContent(
             if (rightMv != null) {
                 MvItem(
                     mv = rightMv,
-                    onClick = { /* TODO 跳转到 MV 详情页 */ },
+                    onClick = { openMvPlay(rightMv) },
                     modifier = Modifier
                         .weight(1f)
                         .padding(start = 6.cdp)
@@ -92,6 +93,18 @@ fun LazyListScope.singerMvContent(
             }
         }
     }
+}
+
+// 跳转到 MV 播放页
+private fun openMvPlay(mv: MvInfo) {
+    val albumAudioId = mv.album_audio_id
+    if (albumAudioId <= 0) return
+    val songName = mv.video_name.orEmpty()
+    val singerName = mv.author_name.orEmpty()
+    // 暂停音乐播放并关闭播放页
+    MusicPlayController.pause()
+    MusicPlayController.showPlayMusicSheet = false
+    NavController.instance.navigate("mvPlay/$albumAudioId/$songName/$singerName")
 }
 
 
