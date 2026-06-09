@@ -109,10 +109,12 @@ private fun SingerDetailContent(viewModel: SingerDetailViewModel) {
 
     val singerIdLong = artistDetail.author_id?.toLongOrNull() ?: 0L
 
-    // 启动分页加载
-    LaunchedEffect(singerIdLong) {
-        viewModel.buildSongListPager(singerIdLong)
-        viewModel.buildMvListPager(singerIdLong)
+    // 根据 tab 切换对应加载（首次切到该 tab 才加载）
+    LaunchedEffect(selectedTabIndex) {
+        when (selectedTabIndex) {
+            1 -> viewModel.buildSongListPager(singerIdLong)
+            3 -> viewModel.buildMvListPager(singerIdLong)
+        }
     }
 
     // 返回键：选择模式退出
