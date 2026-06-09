@@ -37,8 +37,8 @@ import com.neo.lingxumusic.utils.replaceSize
 import com.neo.lingxumusic.viewmodel.singerDetail.SingerDetailViewModel
 
 // MV 分类标签
-private val MV_TAG_TEXTS = listOf("官方", "现场", "饭制", "歌手发布", "全部")
-private val MV_TAG_VALUES = listOf("official", "live", "fan", "artist", "all")
+private val MV_TAG_TEXTS = listOf("全部", "官方", "现场", "饭制", "歌手发布")
+private val MV_TAG_VALUES = listOf("all", "official", "live", "fan", "artist")
 
 
 fun LazyListScope.singerMvContent(
@@ -84,36 +84,35 @@ private fun MvTagTabBar() {
             selectedTextColor = colors.firstText,
             unselectedTextColor = colors.secondText,
             style = CommonTabLayoutStyle(
-                isScrollable = true,
-                selectedTextSize = 30.csp,
-                unselectedTextSize = 30.csp,
+                isScrollable = false,
+                selectedTextSize = 22.csp,
+                unselectedTextSize = 22.csp,
                 selectedTextBold = true,
                 unselectedTextBold = false,
                 indicatorHeight = 0.cdp,
-                tabHorizontalPadding = 16.cdp,
+                tabHorizontalPadding = 0.cdp,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(80.cdp),
-                // 在文字下方绘制一个半椭圆形背景（颜色比整个 tab 颜色略深一点）
+                    .height(56.cdp),
+                // 在文字下方绘制一个半椭圆形背景
                 tabItemDrawBehindBlock = { position: Int ->
-                    if (position == selectedIndex) {
-                        val w = size.width
-                        val h = size.height
-                        val ellipseW = w * 0.8f
-                        val ellipseH = h * 0.6f
-                        val left = (w - ellipseW) / 2f
-                        val top = (h - ellipseH) / 2f
-                        // 略深于 background 的半透明色
-                        drawRoundRect(
-                            color = colors.firstText.copy(alpha = 0.08f),
-                            topLeft = Offset(left, top),
-                            size = Size(ellipseW, ellipseH),
-                            cornerRadius = androidx.compose.ui.geometry.CornerRadius(
-                                ellipseW / 2f,
-                                ellipseH / 2f
-                            )
+                    val w = size.width
+                    val h = size.height
+                    val ellipseW = w * 0.6f
+                    val ellipseH = h * 0.7f
+                    val left = (w - ellipseW) / 2f
+                    val top = (h - ellipseH) / 2f
+                    val alpha = if (position == selectedIndex) 0.20f else 0.08f
+                    drawRoundRect(
+                        color = colors.firstText.copy(alpha = alpha),
+                        topLeft = Offset(left, top),
+                        size = Size(ellipseW, ellipseH),
+                        // 用 height/2 当圆角半径 → 左右两端完全圆弧（半椭圆）
+                        cornerRadius = androidx.compose.ui.geometry.CornerRadius(
+                            ellipseH / 2f,
+                            ellipseH / 2f
                         )
-                    }
+                    )
                 }
             ),
             onTabSelected = { index ->
