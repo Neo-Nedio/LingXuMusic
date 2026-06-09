@@ -42,6 +42,7 @@ import com.neo.lingxumusic.ui.page.singerDetail.component.SingerSongsHeader
 import com.neo.lingxumusic.ui.page.singerDetail.component.singerHomeItems
 import com.neo.lingxumusic.ui.page.singerDetail.component.singerSongListItems
 import com.neo.lingxumusic.ui.page.playList.AddToPlaylistPage
+import com.neo.lingxumusic.ui.page.singerDetail.component.SingerMvContent
 import com.neo.lingxumusic.ui.theme.AppColorsProvider
 import com.neo.lingxumusic.utils.StringUtil
 import com.neo.lingxumusic.utils.cdp
@@ -268,7 +269,7 @@ private fun Body(
                 AlbumsContent()
             }
             3 -> item(key = "mv") {
-                MvContent()
+                SingerMvContent()
             }
         }
     }
@@ -284,19 +285,6 @@ private fun AlbumsContent() {
         contentAlignment = Alignment.Center
     ) {
         Text(text = "专辑列表", color = colors.thirdText, fontSize = 28.csp)
-    }
-}
-
-@Composable
-private fun MvContent() {
-    val colors = AppColorsProvider.current
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(400.cdp),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(text = "MV列表", color = colors.thirdText, fontSize = 28.csp)
     }
 }
 
