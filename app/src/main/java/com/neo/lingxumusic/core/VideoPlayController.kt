@@ -1,15 +1,17 @@
 package com.neo.lingxumusic.core
 
 import android.content.Context
-import android.media.AudioAttributes
-import android.media.MediaPlayer
-import android.os.Handler
-import android.os.Looper
 import android.view.Surface
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.media3.common.AudioAttributes
+import androidx.media3.common.C
+import androidx.media3.common.MediaItem
+import androidx.media3.common.PlaybackException
+import androidx.media3.common.Player
+import androidx.media3.exoplayer.ExoPlayer
 import java.util.Timer
 import java.util.TimerTask
 
@@ -32,8 +34,8 @@ object VideoPlayController {
     // 播放进度（0-100）
     var videoProgress by mutableIntStateOf(0)
 
-    // 底层 MediaPlayer 实例
-    private var mediaPlayer: MediaPlayer? = null
+    // 底层 ExoPlayer 实例
+    private var exoPlayer: ExoPlayer? = null
     // 是否正在拖动进度条
     private var isSeeking = false
     // 待加载的视频 URL（Surface 未就绪时暂存）
@@ -49,52 +51,83 @@ object VideoPlayController {
     private var timer = Timer()
     // 进度更新任务
     private var updateDuringTask: TimerTask? = null
-    // 主线程 Handler，用于更新 UI
-    private val mainHandler = Handler(Looper.getMainLooper())
 
-    // 初始化 MediaPlayer
+    // 初始化 ExoPlayer
     fun initIfNeeded(context: Context) {
-        if (mediaPlayer != null) {
+        if (exoPlayer != null) {
             return
         }
         timer = Timer()
-        mediaPlayer = MediaPlayer().apply {
-            // 设置音频属性（视频播放）
+        exoPlayer = ExoPlayer.Builder(context).build().apply {
+            // 设置音频属性：媒体用途、电影内容类型
             setAudioAttributes(
                 AudioAttributes.Builder()
-                    .setContentType(AudioAttributes.CONTENT_TYPE_MOVIE)  // 内容类型：视频
-                    .setUsage(AudioAttributes.USAGE_MEDIA)              // 用途：媒体播放
-                    .build()
+                    .setUsage(C.USAGE_MEDIA)
+                    .setContentType(C.AUDIO_CONTENT_TYPE_MOVIE)
+                    .build(),
+                /* handleAudioFocus = */ false  // 不抢占音频焦点（由应用层管理）
             )
-            // 视频准备完成监听
-            setOnPreparedListener { player ->
-                playStatus = VideoPlayerState.READY      // 状态变为就绪
-                loadingVideoUrl = null                   // 清除加载标记
-                player.isLooping = true                  // 设置循环播放
-                // 如果音乐正在播放，先暂停音乐（避免冲突）
-                if (MusicPlayController.isPlaying()) {
-                    MusicPlayController.pause()
+            // 循环播放
+            repeatMode = Player.REPEAT_MODE_ONE
+            // 监听播放事件
+            addListener(playerListener)
+        }
+    }
+
+    // 播放事件监听器
+    private val playerListener = object : Player.Listener {
+        override fun onPlaybackStateChanged(playbackState: Int) {
+            val player = exoPlayer ?: return
+            when (playbackState) {
+                Player.STATE_BUFFERING -> {
+                    playStatus = VideoPlayerState.BUFFERING
                 }
-                player.start()                           // 开始播放
-                videoPlaying = true                      // 标记播放中
-                startUpdateDuringTask()                  // 启动进度更新定时器
+                Player.STATE_READY -> {
+                    playStatus = VideoPlayerState.READY
+                    loadingVideoUrl = null
+                    // 视频就绪时如果音乐在播放则暂停音乐（避免冲突）
+                    if (MusicPlayController.isPlaying()) {
+                        MusicPlayController.pause()
+                    }
+                    // 自动开始播放
+                    if (!player.isPlaying) {
+                        player.play()
+                    }
+                    videoPlaying = player.isPlaying
+                    startUpdateDuringTask()
+                }
+                Player.STATE_ENDED -> {
+                    videoPlaying = false
+                    updateDuringTask?.cancel()
+                }
+                Player.STATE_IDLE -> {
+                    playStatus = VideoPlayerState.IDLE
+                }
             }
-            // 错误监听
-            setOnErrorListener { _, _, _ ->
-                playStatus = VideoPlayerState.IDLE       // 状态变为空闲
-                loadingVideoUrl = null                   // 清除加载标记
-                videoPlaying = false                     // 标记未播放
-                updateDuringTask?.cancel()               // 停止进度更新
-                true                                      // 表示错误已处理
+        }
+
+        override fun onIsPlayingChanged(isPlaying: Boolean) {
+            videoPlaying = isPlaying
+            if (isPlaying) {
+                startUpdateDuringTask()
+            } else {
+                updateDuringTask?.cancel()
             }
+        }
+
+        override fun onPlayerError(error: PlaybackException) {
+            playStatus = VideoPlayerState.IDLE
+            loadingVideoUrl = null
+            videoPlaying = false
+            updateDuringTask?.cancel()
         }
     }
 
     // 绑定视频渲染 Surface（当显示视频的组件准备好时调用）
     fun attachSurface(surface: Surface) {
         surfaceReady = true                     // 标记 Surface 已就绪
-        currentSurface = surface               // 保存当前 Surface
-        mediaPlayer?.setSurface(surface)       // 将 Surface 设置给 MediaPlayer
+        currentSurface = surface                // 保存当前 Surface
+        exoPlayer?.setVideoSurface(surface)     // 将 Surface 设置给 ExoPlayer
 
         // 如果有待加载的视频 URL，或者已有当前视频 URL，则开始加载
         val url = pendingVideoUrl ?: curVideoUrl ?: return
@@ -108,23 +141,24 @@ object VideoPlayController {
             return
         }
         surfaceReady = false                    // 标记 Surface 已失效
-        currentSurface = null                  // 清空当前 Surface
-        mediaPlayer?.setSurface(null)          // 从 MediaPlayer 中移除 Surface
+        currentSurface = null                   // 清空当前 Surface
+        exoPlayer?.setVideoSurface(null)        // 从 ExoPlayer 中移除 Surface
     }
 
-    //滑动进度条
+    // 滑动进度条
     fun onSeeking(progress: Int) {
         isSeeking = true
         videoProgress = progress
     }
 
-    //滑动进度条松手回调
+    // 滑动进度条松手回调
     fun seekTo(progress: Int) {
         isSeeking = false
-        val player = mediaPlayer ?: return
+        val player = exoPlayer ?: return
         if (playStatus != VideoPlayerState.READY || player.duration <= 0) {
             return
         }
+        // 跳转到指定百分比位置
         player.seekTo(player.duration * progress / 100)
     }
 
@@ -134,8 +168,7 @@ object VideoPlayController {
         if (playStatus != VideoPlayerState.READY || curVideoUrl == null) {
             return
         }
-        // 如果正在播放，则暂停
-        mediaPlayer?.takeIf { it.isPlaying }?.pause()
+        exoPlayer?.takeIf { it.isPlaying }?.pause()
         videoPlaying = false           // 标记为非播放状态
         updateDuringTask?.cancel()     // 停止进度更新任务
     }
@@ -146,15 +179,15 @@ object VideoPlayController {
         if (playStatus != VideoPlayerState.READY || curVideoUrl == null) {
             return
         }
-        mediaPlayer?.start()           // 开始播放
+        exoPlayer?.play()              // 开始播放
         videoPlaying = true            // 标记为播放状态
         startUpdateDuringTask()        // 重新启动进度更新任务
     }
 
     // 加载指定 URL 的视频
     fun loadVideo(url: String) {
-        // MediaPlayer 未初始化 → 直接返回
-        val player = mediaPlayer ?: return
+        // ExoPlayer 未初始化 → 直接返回
+        val player = exoPlayer ?: return
 
         // 正在加载同一个视频且处于缓冲状态 → 直接返回（避免重复加载）
         if (loadingVideoUrl == url && playStatus == VideoPlayerState.BUFFERING) {
@@ -173,10 +206,11 @@ object VideoPlayController {
         playStatus = VideoPlayerState.BUFFERING  // 状态设为缓冲中
 
         try {
-            player.reset()              // 重置播放器（清除之前的资源）
-            currentSurface?.let { player.setSurface(it) }  // 重新绑定 Surface
-            player.setDataSource(url)   // 设置视频数据源
-            player.prepareAsync()       // 异步准备（不会阻塞主线程）
+            // 设置 MediaItem（ExoPlayer 内部使用 DataSource 自动识别 MKV/MP4 等容器）
+            val mediaItem = MediaItem.fromUri(url)
+            player.setMediaItem(mediaItem)
+            player.prepare()
+            player.playWhenReady = true
         } catch (_: Exception) {
             // 加载失败，清除状态
             loadingVideoUrl = null
@@ -205,12 +239,13 @@ object VideoPlayController {
         }
     }
 
-    //释放资源
+    // 释放资源
     fun release() {
         updateDuringTask?.cancel()
         timer.cancel()
-        mediaPlayer?.release()
-        mediaPlayer = null
+        exoPlayer?.removeListener(playerListener)
+        exoPlayer?.release()
+        exoPlayer = null
         surfaceReady = false
         currentSurface = null
         pendingVideoUrl = null
@@ -229,10 +264,11 @@ object VideoPlayController {
         loadingVideoUrl = null          // 清除正在加载的 URL
         updateDuringTask?.cancel()      // 停止进度更新任务
 
-        // 重置 MediaPlayer（清除当前数据源，回到空闲状态）
-        mediaPlayer?.run {
+        // 停止并清空 ExoPlayer
+        exoPlayer?.run {
             try {
-                reset()                 // 重置播放器
+                stop()                  // 停止播放
+                clearMediaItems()       // 清空数据源
             } catch (_: IllegalStateException) {
                 // 处于无效状态时忽略异常
             }
@@ -254,8 +290,8 @@ object VideoPlayController {
                 // 条件2：播放器状态不是就绪 → 不更新
                 if (playStatus != VideoPlayerState.READY) return
 
-                // 获取 MediaPlayer 实例
-                val player = mediaPlayer ?: return
+                // 获取 ExoPlayer 实例
+                val player = exoPlayer ?: return
 
                 // 获取视频总时长（可能抛异常）
                 val duration = try {
@@ -267,11 +303,13 @@ object VideoPlayController {
                 // 总时长无效 → 不更新
                 if (duration <= 0) return
 
-                // 切换到主线程更新 UI 进度
-                mainHandler.post {
-                    // 计算当前进度百分比 = (当前位置 × 100) / 总时长
-                    videoProgress = (player.currentPosition.toFloat() * 100 / duration).toInt()
+                // 计算当前进度百分比 = (当前位置 × 100) / 总时长
+                val currentPos = try {
+                    player.currentPosition
+                } catch (_: IllegalStateException) {
+                    return
                 }
+                videoProgress = (currentPos.toFloat() * 100 / duration).toInt()
             }
         }.apply {
             // 立即启动，每 1000ms（1秒）执行一次

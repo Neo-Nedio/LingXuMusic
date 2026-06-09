@@ -106,6 +106,11 @@ dependencies {
     implementation("androidx.constraintlayout:constraintlayout-compose:1.0.1")
 
     implementation("com.github.omkar-tenkale:ExplodingComposable:1.0.1")
+
+    // Media3 ExoPlayer (支持 MKV / Opus / Vorbis / FLAC 等更多音视频编码)
+    implementation(libs.androidx.media3.exoplayer)
+    implementation(libs.androidx.media3.ui)
+    implementation(libs.androidx.media3.common)
 }
 
 kapt {
