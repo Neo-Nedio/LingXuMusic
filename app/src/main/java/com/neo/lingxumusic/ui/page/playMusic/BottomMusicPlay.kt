@@ -45,6 +45,7 @@ fun BoxScope.BottomMusicPlay() {
             || curRouteName == Routes.PROFILE
             || curRouteName == Routes.PLAY_LIST
             || curRouteName == Routes.RANK_AUDIO
+            || curRouteName == Routes.SINGER_DETAIL
         ) {
             //动态计算底部内边距（首页需要避开底部导航栏）
             val paddingBottom = animateDpAsState(
