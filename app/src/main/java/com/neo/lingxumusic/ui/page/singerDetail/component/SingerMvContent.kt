@@ -119,7 +119,8 @@ private fun MvTagTabBar() {
                 val tag = MV_TAG_VALUES[index]
                 if (viewModel.currentMvTag != tag) {
                     viewModel.currentMvTag = tag
-                    viewModel.buildMvListPager()
+                    viewModel.mvListFlow = null      // 清空旧分页，否则 buildMvListPager 早退
+                    viewModel.buildMvListPager()     // 重新构建（使用新 tag）
                 }
             }
         )
