@@ -4,6 +4,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -21,6 +24,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.itemKey
 import com.neo.lingxumusic.R
@@ -44,23 +48,48 @@ private val MV_TAG_VALUES = listOf("all", "official", "live", "fan", "artist")
 fun LazyListScope.singerMvContent(
     mvList: LazyPagingItems<MvInfo>
 ) {
-    // MV 分类 tab（吸附顶部）：stickyHeader 块自带 Composable 上下文
+    // MV 分类 tab（吸附顶部）
     stickyHeader {
         MvTagTabBar()
     }
 
-    // MV 列表
-    items(
-        count = mvList.itemCount,
-        key = mvList.itemKey { it.video_id }
-    ) { index ->
-        val mv = mvList[index]
-        if (mv != null) {
-            MvItem(
-                mv = mv,
-                onClick = { /* TODO 跳转到 MV 详情页 */ },
-                modifier = Modifier.padding(horizontal = 24.cdp, vertical = 12.cdp)
-            )
+    // MV 列表：每两个 item 占一行（两列）
+    val total = mvList.itemCount
+    val rowCount = (total + 1) / 2
+    items(count = rowCount, key = { it }) { rowIndex ->
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.cdp, vertical = 4.cdp)
+        ) {
+            // 左
+            val leftIndex = rowIndex * 2
+            val leftMv = mvList[leftIndex]
+            if (leftMv != null) {
+                MvItem(
+                    mv = leftMv,
+                    onClick = { /* TODO 跳转到 MV 详情页 */ },
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(end = 6.cdp)
+                )
+            } else {
+                Spacer(Modifier.weight(1f).padding(end = 6.cdp))
+            }
+            // 右
+            val rightIndex = leftIndex + 1
+            val rightMv = if (rightIndex < total) mvList[rightIndex] else null
+            if (rightMv != null) {
+                MvItem(
+                    mv = rightMv,
+                    onClick = { /* TODO 跳转到 MV 详情页 */ },
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(start = 6.cdp)
+                )
+            } else {
+                Spacer(Modifier.weight(1f).padding(start = 6.cdp))
+            }
         }
     }
 }
@@ -137,23 +166,22 @@ fun MvItem(
     val colors = AppColorsProvider.current
     Column(
         modifier = modifier
-            .fillMaxWidth()
             .clickable { onClick() }
     ) {
-        // 视频区域：背景 + 播放量 + 播放图标
+        // 视频区域：宽度由外部 weight 决定，高度 = 宽度 * 9 / 16
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(240.cdp)
-                .clip(RoundedCornerShape(16.cdp))
+                .aspectRatio(16f / 9f)
+                .clip(RoundedCornerShape(12.cdp))
         ) {
-            // 视频背景（用视频封面图作为静态背景）
+            // 视频背景
             CommonNetworkImage(
                 url = (mv.hdpic ?: mv.cover)?.replaceSize(),
                 modifier = Modifier.fillMaxSize()
             )
 
-            // 顶部到底部的渐变遮罩（让左下/右下文字和图标更清晰）
+            // 顶部到底部的渐变遮罩
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -172,11 +200,11 @@ fun MvItem(
             Text(
                 text = StringUtil.friendlyNumber(mv.heat),
                 color = Color.White,
-                fontSize = 22.csp,
+                fontSize = 18.csp,
                 fontWeight = FontWeight.Normal,
                 modifier = Modifier
                     .align(Alignment.BottomStart)
-                    .padding(start = 16.cdp, bottom = 16.cdp)
+                    .padding(start = 12.cdp, bottom = 10.cdp)
             )
 
             // 右下角：播放图标
@@ -185,21 +213,22 @@ fun MvItem(
                 tint = Color.White,
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
-                    .padding(end = 16.cdp, bottom = 16.cdp)
-                    .size(36.cdp)
+                    .padding(end = 12.cdp, bottom = 10.cdp)
+                    .size(28.cdp)
             )
         }
 
-        // 图片下方：视频名
+        // 视频名（最多 2 行，超出省略）
         Text(
             text = mv.video_name.orEmpty(),
             color = colors.firstText,
-            fontSize = 26.csp,
+            fontSize = 22.csp,
             fontWeight = FontWeight.Bold,
-            maxLines = 1,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start = 4.cdp, end = 4.cdp, top = 12.cdp, bottom = 4.cdp)
+                .padding(start = 4.cdp, end = 4.cdp, top = 8.cdp, bottom = 4.cdp)
         )
     }
 }
