@@ -9,8 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -20,6 +19,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.paging.compose.LazyPagingItems
+import androidx.paging.compose.itemKey
 import com.neo.lingxumusic.R
 import com.neo.lingxumusic.model.MvInfo
 import com.neo.lingxumusic.ui.common.CommonIcon
@@ -30,9 +31,25 @@ import com.neo.lingxumusic.utils.cdp
 import com.neo.lingxumusic.utils.csp
 import com.neo.lingxumusic.utils.replaceSize
 
-/**
- * MV 列表项（视频作为背景 + 视频名在图片下方）
- */
+fun LazyListScope.singerMvContent(
+    mvList: LazyPagingItems<MvInfo>
+) {
+    items(
+        count = mvList.itemCount,
+        key = mvList.itemKey { it.video_id }
+    ) { index ->
+        val mv = mvList[index]
+        if (mv != null) {
+            MvItem(
+                mv = mv,
+                onClick = { /* TODO 跳转到 MV 详情页 */ },
+                modifier = Modifier.padding(horizontal = 24.cdp, vertical = 12.cdp)
+            )
+        }
+    }
+}
+
+
 @Composable
 fun MvItem(
     mv: MvInfo,
@@ -106,43 +123,5 @@ fun MvItem(
                 .fillMaxWidth()
                 .padding(start = 4.cdp, end = 4.cdp, top = 12.cdp, bottom = 4.cdp)
         )
-    }
-}
-
-/**
- * MV 列表内容页
- */
-@Composable
-fun SingerMvContent(
-    mvList: List<MvInfo> = emptyList(),
-    onMvClick: (MvInfo) -> Unit = {},
-    modifier: Modifier = Modifier
-) {
-    val colors = AppColorsProvider.current
-
-    if (mvList.isEmpty()) {
-        Box(
-            modifier = modifier
-                .fillMaxWidth()
-                .height(400.cdp),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(text = "MV列表", color = colors.thirdText, fontSize = 28.csp)
-        }
-        return
-    }
-
-    LazyColumn(
-        modifier = modifier
-            .fillMaxWidth()
-            .background(colors.background)
-    ) {
-        items(items = mvList, key = { it.video_id }) { mv ->
-            MvItem(
-                mv = mv,
-                onClick = { onMvClick(mv) },
-                modifier = Modifier.padding(horizontal = 24.cdp, vertical = 12.cdp)
-            )
-        }
     }
 }

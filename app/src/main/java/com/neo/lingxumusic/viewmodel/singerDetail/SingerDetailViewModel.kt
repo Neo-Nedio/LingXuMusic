@@ -13,6 +13,7 @@ import com.neo.lingxumusic.core.viewState.paging.buildPager
 import com.neo.lingxumusic.http.api.SingerApi
 import com.neo.lingxumusic.model.ArtistDetail
 import com.neo.lingxumusic.model.BaseResult
+import com.neo.lingxumusic.model.MvInfo
 import com.neo.lingxumusic.model.SingerSongItem
 import com.neo.lingxumusic.model.Song
 import com.neo.lingxumusic.model.toSong
@@ -150,5 +151,29 @@ class SingerDetailViewModel @Inject constructor(
     fun clearSongSelection() {
         selectedMap.keys.forEach { selectedMap[it] = false }
         isAllSelected = false
+    }
+
+    // ==================== 歌手 MV ====================
+    var mvListFlow by mutableStateOf<Flow<PagingData<MvInfo>>?>(null)
+    private var currentMvSingerId by mutableStateOf(0L)
+
+    fun buildMvListPager(singerId: Long) {
+        if (currentMvSingerId == singerId && mvListFlow != null) return
+        currentMvSingerId = singerId
+        mvListFlow = buildPager(
+            transformListBlock = { result ->
+                result?.data?.let {
+                    Gson().fromJson(it, Array<MvInfo>::class.java)?.toList()
+                }
+            },
+            callBlock = { page, pageSize ->
+                singerApi.getArtistVideos(
+                    id = singerId.toInt(),
+                    page = page.toString(),
+                    pagesize = pageSize.toString(),
+                    tag = "all"
+                )
+            }
+        )
     }
 }

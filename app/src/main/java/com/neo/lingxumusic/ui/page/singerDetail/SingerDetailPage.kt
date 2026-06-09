@@ -42,7 +42,7 @@ import com.neo.lingxumusic.ui.page.singerDetail.component.SingerSongsHeader
 import com.neo.lingxumusic.ui.page.singerDetail.component.singerHomeItems
 import com.neo.lingxumusic.ui.page.singerDetail.component.singerSongListItems
 import com.neo.lingxumusic.ui.page.playList.AddToPlaylistPage
-import com.neo.lingxumusic.ui.page.singerDetail.component.SingerMvContent
+import com.neo.lingxumusic.ui.page.singerDetail.component.singerMvContent
 import com.neo.lingxumusic.ui.theme.AppColorsProvider
 import com.neo.lingxumusic.utils.StringUtil
 import com.neo.lingxumusic.utils.cdp
@@ -112,6 +112,7 @@ private fun SingerDetailContent(viewModel: SingerDetailViewModel) {
     // 启动分页加载
     LaunchedEffect(singerIdLong) {
         viewModel.buildSongListPager(singerIdLong)
+        viewModel.buildMvListPager(singerIdLong)
     }
 
     // 返回键：选择模式退出
@@ -217,6 +218,7 @@ private fun Body(
 ) {
     val colors = AppColorsProvider.current
     val songList = viewModel.songListFlow?.collectAsLazyPagingItems()
+    val mvList = viewModel.mvListFlow?.collectAsLazyPagingItems()
 
     LazyColumn(
         modifier = Modifier
@@ -268,8 +270,8 @@ private fun Body(
             2 -> item(key = "albums") {
                 AlbumsContent()
             }
-            3 -> item(key = "mv") {
-                SingerMvContent()
+            3 -> if (mvList != null) {
+                singerMvContent(mvList = mvList)
             }
         }
     }
