@@ -1,11 +1,10 @@
 package com.neo.lingxumusic.ui.page.singerDetail.component
 
-import androidx.activity.compose.BackHandler
+
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.LocalOverscrollFactory
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -16,12 +15,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -31,9 +29,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.compose.itemKey
 import com.neo.lingxumusic.R
 import com.neo.lingxumusic.core.MusicPlayController
-import com.neo.lingxumusic.core.viewState.ViewStateListPagingComponent
 import com.neo.lingxumusic.model.SingerSongItem
 import com.neo.lingxumusic.model.Song
 import com.neo.lingxumusic.model.toSong
@@ -46,116 +44,111 @@ import com.neo.lingxumusic.utils.showToast
 import com.neo.lingxumusic.viewmodel.singerDetail.SingerDetailViewModel
 import kotlinx.coroutines.launch
 
-@Composable
-fun SingerSongsContent(
-    singerId: Long,
-    modifier: Modifier = Modifier
+
+//歌曲
+fun LazyListScope.singerSongListItems(
+    viewModel: SingerDetailViewModel,
+    songList: LazyPagingItems<SingerSongItem>
 ) {
-    val viewModel: SingerDetailViewModel = hiltViewModel()
+    // 歌曲列表
+    items(
+        count = songList.itemCount,
+        key = songList.itemKey { it.hash ?: it.audio_name ?: it.toString() }
+    ) { index ->
+        val item = songList[index]
+        if (item != null) {
+            val song = item.toSong()
+            SongItem(
+                index = index,
+                song = song,
+                isSelectionMode = viewModel.isSelectionMode,
+                isSelected = viewModel.selectedMap[index] ?: false,
+                onSelectClick = { idx ->
+                    viewModel.toggleSongSelection(idx)
+                },
+                onClick = {
+                    if (viewModel.isSelectionMode) {
+                        viewModel.toggleSongSelection(index)
+                    } else {
+                        MusicPlayController.addSong(song)
+                    }
+                }
+            )
+        }
+    }
+}
+
+//头部可选择框
+@Composable
+fun SingerSongsHeader(
+    viewModel: SingerDetailViewModel
+) {
     val colors = AppColorsProvider.current
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(colors.background)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(88.cdp)
+                .padding(horizontal = 24.cdp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.End
+        ) {
+            if (!viewModel.isSelectionMode) {
+                SortSelector(
+                    currentSort = viewModel.sortType,
+                    showDropdown = viewModel.showSortDropdown,
+                    onToggleDropdown = { viewModel.showSortDropdown = !viewModel.showSortDropdown }
+                )
+                Spacer(modifier = Modifier.padding(horizontal = 16.cdp))
+            }
+            CommonIcon(
+                resId = R.drawable.ic_drawer_toggle,
+                tint = colors.firstIcon,
+                modifier = Modifier
+                    .size(32.cdp)
+                    .clickable { viewModel.toggleSelectionMode() }
+            )
+        }
 
-    LaunchedEffect(singerId, viewModel.sortType) {
-        viewModel.buildSongListPager(singerId)
-    }
+        HorizontalDivider(
+            modifier = Modifier.fillMaxWidth(),
+            thickness = 1.cdp,
+            color = colors.divider
+        )
 
-    BackHandler(enabled = viewModel.isSelectionMode) {
-        viewModel.clearSelection()
-    }
-
-    viewModel.songListFlow?.let { flow ->
-        val songList = flow.collectAsLazyPagingItems()
-
-        CompositionLocalProvider(LocalOverscrollFactory provides null) {
-            ViewStateListPagingComponent(
-                modifier = modifier,
-                collectAsLazyPagingItems = songList,
-                enableRefresh = false,
-                viewStateKey = viewModel.sortType
+        // 排序下拉选项
+        AnimatedVisibility(
+            visible = viewModel.showSortDropdown,
+            enter = expandVertically(),
+            exit = shrinkVertically()
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.cdp)
+                    .background(colors.card, RoundedCornerShape(12.cdp))
             ) {
-                // 头部：排序 + 选择图标
-                item {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(88.cdp)
-                            .padding(horizontal = 24.cdp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.End
-                    ) {
-                        if (!viewModel.isSelectionMode) {
-                            SortSelector(
-                                currentSort = viewModel.sortType,
-                                showDropdown = viewModel.showSortDropdown,
-                                onToggleDropdown = { viewModel.showSortDropdown = !viewModel.showSortDropdown }
-                            )
-                            Spacer(modifier = Modifier.padding(horizontal = 16.cdp))
-                        }
-                        CommonIcon(
-                            resId = R.drawable.ic_drawer_toggle,
-                            tint = colors.firstIcon,
-                            modifier = Modifier
-                                .size(32.cdp)
-                                .clickable { viewModel.toggleSelectionMode() }
-                        )
-                    }
-
-                    HorizontalDivider(
-                        modifier = Modifier.fillMaxWidth(),
-                        thickness = 1.cdp,
-                        color = colors.divider
-                    )
-
-                    // 排序下拉选项
-                    AnimatedVisibility(
-                        visible = viewModel.showSortDropdown,
-                        enter = expandVertically(),
-                        exit = shrinkVertically()
-                    ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 24.cdp)
-                                .background(colors.card, RoundedCornerShape(12.cdp))
-                        ) {
-                            SortOptionItem("最热", viewModel.sortType == 1) { viewModel.changeSortType(1) }
-                            SortOptionItem("最新", viewModel.sortType == 2) { viewModel.changeSortType(2) }
-                        }
-                    }
-                }
-
-                // 歌曲列表
-                items(count = songList.itemCount) { index ->
-                    songList[index]?.let { item ->
-                        val song = item.toSong()
-                        SongItem(
-                            index = index,
-                            song = song,
-                            isSelectionMode = viewModel.isSelectionMode,
-                            isSelected = viewModel.selectedMap[index] ?: false,
-                            onSelectClick = { idx ->
-                                viewModel.toggleSongSelection(idx)
-                            },
-                            onClick = {
-                                if (viewModel.isSelectionMode) {
-                                    viewModel.toggleSongSelection(index)
-                                } else {
-                                    MusicPlayController.addSong(song)
-                                }
-                            }
-                        )
-                    }
-                }
+                SortOptionItem("最热", viewModel.sortType == 1) { viewModel.changeSortType(1) }
+                SortOptionItem("最新", viewModel.sortType == 2) { viewModel.changeSortType(2) }
             }
         }
     }
 }
 
 
+//底部弹窗
 @Composable
-fun SingerSelectionBottomBar() {
+fun SingerSelectionBottomBar(
+    songList: LazyPagingItems<SingerSongItem>? = null
+) {
     val viewModel: SingerDetailViewModel = hiltViewModel()
     val scope = rememberCoroutineScope()
-    val songList = viewModel.songListFlow?.collectAsLazyPagingItems()
+    // 优先使用外部传入的 songList，否则从 viewModel 获取
+    val effectiveSongList = songList ?: viewModel.songListFlow?.collectAsLazyPagingItems()
 
     Column(
         modifier = Modifier
@@ -185,7 +178,7 @@ fun SingerSelectionBottomBar() {
                 onClick = {
                     scope.launch {
                         val selectedSongs = extractSelectedSongs(
-                            viewModel, songList, "没有可播放的歌曲"
+                            viewModel, effectiveSongList, "没有可播放的歌曲"
                         ) ?: return@launch
                         MusicPlayController.songList.clear()
                         MusicPlayController.setDataSource(
@@ -204,7 +197,7 @@ fun SingerSelectionBottomBar() {
                 onClick = {
                     scope.launch {
                         val selectedSongs = extractSelectedSongs(
-                            viewModel, songList, "没有可添加的歌曲"
+                            viewModel, effectiveSongList, "没有可添加的歌曲"
                         ) ?: return@launch
                         viewModel.songsToAdd = selectedSongs
                         viewModel.showAddToPlaylistSheet = true

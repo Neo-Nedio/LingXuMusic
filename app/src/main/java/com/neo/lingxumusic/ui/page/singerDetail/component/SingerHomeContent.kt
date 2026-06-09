@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -22,35 +23,36 @@ import com.neo.lingxumusic.utils.cdp
 import com.neo.lingxumusic.utils.csp
 
 
-/**
- * 歌手主页内容组件
- * - 显示统计数据卡片
- * - 显示简介卡片
- * - 显示 long_intro 列表
- */
-@Composable
-fun SingerHomeContent(
-    artistDetail: ArtistDetail,
-    modifier: Modifier = Modifier
+fun LazyListScope.singerHomeItems(
+    artistDetail: ArtistDetail
 ) {
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 24.cdp, vertical = 16.cdp)
-    ) {
-        // 统计数据卡片
+    // 顶部间距
+    item {
+        Spacer(modifier = Modifier.height(16.cdp))
+    }
+
+    // 统计数据卡片
+    item {
         StatsCard(
             songCount = artistDetail.song_count,
             albumCount = artistDetail.album_count,
             mvCount = artistDetail.mv_count,
             fansCount = artistDetail.fansnums
         )
+    }
 
+    item {
         Spacer(modifier = Modifier.height(24.cdp))
+    }
 
-        // 简介卡片
-        artistDetail.intro?.let { intro ->
+    // 简介卡片
+    artistDetail.intro?.let { intro ->
+        item {
             IntroCard(intro = intro)
+        }
+
+        item {
+            Spacer(modifier = Modifier.height(24.cdp))
         }
     }
 }
@@ -147,4 +149,3 @@ private fun IntroCard(intro: String, modifier: Modifier = Modifier) {
         )
     }
 }
-

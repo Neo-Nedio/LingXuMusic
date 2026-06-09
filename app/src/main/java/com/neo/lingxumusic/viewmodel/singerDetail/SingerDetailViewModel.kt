@@ -95,8 +95,16 @@ class SingerDetailViewModel @Inject constructor(
     }
 
     fun changeSortType(type: Int) {
+        if (sortType == type) {
+            showSortDropdown = false
+            return
+        }
         sortType = type
         showSortDropdown = false
+        // 重新构建分页，让列表按新的排序刷新
+        if (currentSingerId > 0) {
+            buildSongListPager(currentSingerId)
+        }
     }
 
     // 一次获取全部歌曲

@@ -1,11 +1,20 @@
 package com.neo.lingxumusic.ui.page.singerDetail
 
+import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -13,27 +22,41 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import com.neo.lingxumusic.R
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.paging.compose.collectAsLazyPagingItems
+import com.neo.lingxumusic.R
 import com.neo.lingxumusic.core.navigation.NavController
 import com.neo.lingxumusic.core.viewState.ViewStateComponent
+import com.neo.lingxumusic.model.ArtistDetail
 import com.neo.lingxumusic.ui.common.CommonTabLayout
 import com.neo.lingxumusic.ui.common.CommonTabLayoutStyle
 import com.neo.lingxumusic.ui.common.CommonTopAppBar
 import com.neo.lingxumusic.ui.page.singerDetail.component.SingerHeader
-import com.neo.lingxumusic.ui.page.singerDetail.component.SingerHomeContent
 import com.neo.lingxumusic.ui.page.singerDetail.component.SingerSelectionBottomBar
-import com.neo.lingxumusic.ui.page.singerDetail.component.SingerSongsContent
+import com.neo.lingxumusic.ui.page.singerDetail.component.SingerSongsHeader
+import com.neo.lingxumusic.ui.page.singerDetail.component.singerHomeItems
+import com.neo.lingxumusic.ui.page.singerDetail.component.singerSongListItems
 import com.neo.lingxumusic.ui.page.playList.AddToPlaylistPage
 import com.neo.lingxumusic.ui.theme.AppColorsProvider
 import com.neo.lingxumusic.utils.StringUtil
 import com.neo.lingxumusic.utils.cdp
 import com.neo.lingxumusic.utils.csp
 import com.neo.lingxumusic.utils.replaceSize
+import com.neo.lingxumusic.utils.transformDp
 import com.neo.lingxumusic.viewmodel.singerDetail.SingerDetailViewModel
+import me.onebone.toolbar.CollapsingToolbarScaffold
+import me.onebone.toolbar.CollapsingToolbarScope
+import me.onebone.toolbar.ScrollStrategy
+import me.onebone.toolbar.rememberCollapsingToolbarScaffoldState
+
+private val HEADER_HEIGHT = 400.cdp
+private val NAV_BAR_HEIGHT = 88.cdp
+private val TAB_LAYOUT_HEIGHT = 100.cdp
 
 @Composable
 fun SingerDetailPage(singerId: Long) {
@@ -56,11 +79,25 @@ fun SingerDetailPage(singerId: Long) {
 private fun SingerDetailContent(viewModel: SingerDetailViewModel) {
     val artistDetail = viewModel.artistDetail ?: return
     val colors = AppColorsProvider.current
+    val density = LocalDensity.current
 
     // 当前选中的 Tab 索引
     var selectedTabIndex by remember { mutableIntStateOf(0) }
+    val lazyListState = rememberLazyListState()
+    val statusBarsTopDp = WindowInsets.statusBars.getTop(density).transformDp
 
-    // Tab 标题（主标题 + 小字数量）
+    val toolbarScaffoldState = rememberCollapsingToolbarScaffoldState()
+    // 顶栏 alpha 计算：progress 完全展开（>= 0.99）时严格为 0，
+    // 折叠超过 1% 后开始线性增长，超过 20% 后完全显示。
+    val topBarAlpha = run {
+        val p = toolbarScaffoldState.toolbarState.progress
+        when {
+            p >= 0.99f -> 0f
+            p <= 0.80f -> 1f
+            else -> (1f - p - 0.01f) / 0.19f
+        }
+    }
+
     val tabTexts = listOf(
         "主页",
         buildTabText("单曲", artistDetail.song_count),
@@ -68,65 +105,62 @@ private fun SingerDetailContent(viewModel: SingerDetailViewModel) {
         buildTabText("MV", artistDetail.mv_count)
     )
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        // 导航栏（固定在最顶部，不重叠）
+    val singerIdLong = artistDetail.author_id?.toLongOrNull() ?: 0L
+
+    // 启动分页加载
+    LaunchedEffect(singerIdLong) {
+        viewModel.buildSongListPager(singerIdLong)
+    }
+
+    // 返回键：选择模式退出
+    BackHandler(enabled = viewModel.isSelectionMode) {
+        viewModel.clearSelection()
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        CollapsingToolbarScaffold(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(colors.background),
+            state = toolbarScaffoldState,
+            scrollStrategy = ScrollStrategy.ExitUntilCollapsed,
+            toolbar = {
+                ScrollHeader(artistDetail, statusBarsTopDp)
+            }
+        ) {
+            // body: LazyColumn（含 stickyHeader Tab + 切换内容）
+            Body(
+                viewModel = viewModel,
+                artistDetail = artistDetail,
+                lazyListState = lazyListState,
+                selectedTabIndex = selectedTabIndex,
+                tabTexts = tabTexts,
+                onTabSelected = { selectedTabIndex = it }
+            )
+        }
+
+        // 顶部固定导航栏：透明度随 progress 变化（0=透明，1=不透明）
         CommonTopAppBar(
-            modifier = Modifier.statusBarsPadding(),
+            modifier = Modifier
+                .background(colors.background.copy(alpha = topBarAlpha))
+                .statusBarsPadding(),
             title = artistDetail.author_name ?: "",
-            backgroundColor = colors.background,
-            contentColor = colors.firstText,
+            backgroundColor = Color.Transparent,
+            contentColor = if (topBarAlpha > 0.5f) colors.firstText else Color.White,
             leftIconResId = R.drawable.ic_back,
             leftClick = { NavController.instance.popBackStack() }
         )
 
-        // 歌手头部（固定，不滚动）
-        SingerHeader(
-            avatarUrl = artistDetail.sizable_avatar?.replaceSize(),
-            singerName = artistDetail.author_name,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(400.cdp)
-        )
-
-        // Tab 导航栏
-        CommonTabLayout(
-            selectedIndex = selectedTabIndex,
-            tabTexts = tabTexts,
-            style = CommonTabLayoutStyle(
-                isScrollable = false,
-                selectedTextSize = 32.csp,
-                unselectedTextSize = 32.csp,
-                selectedTextBold = true,
-                unselectedTextBold = false,
-                indicatorHeight = 0.cdp
-            ),
-            backgroundColor = colors.background,
-            selectedTextColor = colors.primary,
-            unselectedTextColor = colors.secondText,
-            onTabSelected = { selectedTabIndex = it }
-        )
-
-        Spacer(modifier = Modifier.height(16.cdp))
-
-        // 内容区域：weight(1f) 提供有限高度，
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
-        ) {
-            when (selectedTabIndex) {
-                0 -> SingerHomeContent(artistDetail)
-                1 -> SingerSongsContent(singerId = viewModel.artistDetail?.author_id?.toLongOrNull() ?: 0L,
-                    modifier = Modifier.fillMaxSize()
-                )
-                2 -> SingerAlbumsContent()
-                3 -> SingerMvContent()
-            }
-        }
-
-        // 选择模式底部栏
+        // 选择模式底部栏（使用 Box.align(Alignment.BottomCenter) 固定在屏幕底部）
+        val songList = viewModel.songListFlow?.collectAsLazyPagingItems()
         if (viewModel.isSelectionMode) {
-            SingerSelectionBottomBar()
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.BottomCenter)
+            ) {
+                SingerSelectionBottomBar(songList = songList)
+            }
         }
     }
 
@@ -139,7 +173,108 @@ private fun SingerDetailContent(viewModel: SingerDetailViewModel) {
 }
 
 @Composable
-private fun SingerAlbumsContent() {
+private fun CollapsingToolbarScope.ScrollHeader(
+    artistDetail: ArtistDetail,
+    statusBarsTopDp: Dp
+) {
+    val headerTotalHeight = statusBarsTopDp + NAV_BAR_HEIGHT + HEADER_HEIGHT
+    // 滚动部分：SingerHeader 从 toolbar 顶部 0 开始铺满整个 toolbar 高度
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .height(headerTotalHeight)
+            .parallax(1f)
+            .verticalScroll(rememberScrollState())
+    ) {
+        SingerHeader(
+            avatarUrl = artistDetail.sizable_avatar?.replaceSize(),
+            singerName = artistDetail.author_name,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(headerTotalHeight)
+        )
+    }
+
+    // 钉住：状态栏 + 顶栏占位（CommonTopAppBar 叠加在头部上方时位置正确）
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(statusBarsTopDp + NAV_BAR_HEIGHT)
+    )
+}
+
+
+@Composable
+private fun Body(
+    viewModel: SingerDetailViewModel,
+    artistDetail: ArtistDetail,
+    lazyListState: LazyListState,
+    selectedTabIndex: Int,
+    tabTexts: List<String>,
+    onTabSelected: (Int) -> Unit
+) {
+    val colors = AppColorsProvider.current
+    val songList = viewModel.songListFlow?.collectAsLazyPagingItems()
+
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(colors.background),
+        state = lazyListState
+    ) {
+        // Tab 吸顶
+        stickyHeader {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(colors.background)
+            ) {
+                CommonTabLayout(
+                    selectedIndex = selectedTabIndex,
+                    tabTexts = tabTexts,
+                    style = CommonTabLayoutStyle(
+                        isScrollable = false,
+                        selectedTextSize = 32.csp,
+                        unselectedTextSize = 32.csp,
+                        selectedTextBold = true,
+                        unselectedTextBold = false,
+                        indicatorHeight = 0.cdp,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(TAB_LAYOUT_HEIGHT)
+                    ),
+                    backgroundColor = colors.background,
+                    selectedTextColor = colors.primary,
+                    unselectedTextColor = colors.secondText,
+                    onTabSelected = onTabSelected
+                )
+            }
+        }
+
+        // 内容（根据 tab 切换不同 items）
+        when (selectedTabIndex) {
+            0 -> singerHomeItems(artistDetail = artistDetail)
+            1 -> {
+                // 吸顶头部：排序 + 选择图标
+                stickyHeader {
+                    SingerSongsHeader(viewModel = viewModel)
+                }
+                if (songList != null) {
+                    singerSongListItems(viewModel = viewModel, songList = songList)
+                }
+            }
+            2 -> item(key = "albums") {
+                AlbumsContent()
+            }
+            3 -> item(key = "mv") {
+                MvContent()
+            }
+        }
+    }
+}
+
+@Composable
+private fun AlbumsContent() {
     val colors = AppColorsProvider.current
     Box(
         modifier = Modifier
@@ -152,7 +287,7 @@ private fun SingerAlbumsContent() {
 }
 
 @Composable
-private fun SingerMvContent() {
+private fun MvContent() {
     val colors = AppColorsProvider.current
     Box(
         modifier = Modifier
