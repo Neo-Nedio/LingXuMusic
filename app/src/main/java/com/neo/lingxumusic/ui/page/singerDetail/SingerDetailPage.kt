@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
@@ -20,7 +19,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -82,9 +81,12 @@ private fun SingerDetailContent(viewModel: SingerDetailViewModel) {
     val colors = AppColorsProvider.current
     val density = LocalDensity.current
 
-    // 当前选中的 Tab 索引
-    var selectedTabIndex by remember { mutableIntStateOf(0) }
-    val lazyListState = rememberLazyListState()
+    // 当前选中的 Tab 索引（用 rememberSaveable 跨 NavHost 返回时保留）
+    var selectedTabIndex by rememberSaveable { mutableIntStateOf(0) }
+    // LazyListState 用 saver 跨 NavHost 返回时保留滚动位置
+    val lazyListState = rememberSaveable(saver = LazyListState.Saver) {
+        LazyListState()
+    }
     val statusBarsTopDp = WindowInsets.statusBars.getTop(density).transformDp
 
     val toolbarScaffoldState = rememberCollapsingToolbarScaffoldState()
@@ -106,12 +108,6 @@ private fun SingerDetailContent(viewModel: SingerDetailViewModel) {
         buildTabText("专辑", artistDetail.album_count),
         buildTabText("MV", artistDetail.mv_count)
     )
-
-    // 页面进入时：把 singerId 存到 ViewModel，之后构建分页都从 ViewModel 拿
-    LaunchedEffect(artistDetail.author_id) {
-        val id = artistDetail.author_id?.toLongOrNull() ?: 0L
-        viewModel.currentSingerId = id
-    }
 
     // 根据 tab 切换对应加载（首次切到该 tab 才加载）
     LaunchedEffect(selectedTabIndex) {

@@ -35,8 +35,13 @@ class SingerDetailViewModel @Inject constructor(
     /**
      * 加载歌手详情
      */
-    fun loadSingerDetail(singerId: Long) {
+    fun loadSingerDetail(singerId: Long, forceReload: Boolean = false) {
+        // 同一 singerId 已加载过数据 → 跳过，避免无谓的重新请求和界面闪烁
+        if (!forceReload && artistDetail != null && currentSingerId == singerId) {
+            return
+        }
         artistDetail = null
+        currentSingerId = singerId
 
         launch(
             liveData = singerResult,
