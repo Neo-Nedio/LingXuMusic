@@ -87,14 +87,15 @@ private fun SingerDetailContent(viewModel: SingerDetailViewModel) {
     val statusBarsTopDp = WindowInsets.statusBars.getTop(density).transformDp
 
     val toolbarScaffoldState = rememberCollapsingToolbarScaffoldState()
-    // 顶栏 alpha 计算：progress 完全展开（>= 0.99）时严格为 0，
-    // 折叠超过 1% 后开始线性增长，超过 20% 后完全显示。
+    // 顶栏 alpha 计算：progress 完全展开（>= 0.97）时严格为 0，
+    // 折叠超过 3% 后开始线性增长，超过一半（<= 0.5）后才完全显示。
+    // 渐变范围拉到 47%（0.97→0.5），让颜色"回来"得更慢。
     val topBarAlpha = run {
         val p = toolbarScaffoldState.toolbarState.progress
         when {
-            p >= 0.99f -> 0f
-            p <= 0.80f -> 1f
-            else -> (1f - p - 0.01f) / 0.19f
+            p >= 0.97f -> 0f
+            p <= 0.50f -> 1f
+            else -> (0.97f - p) / 0.47f
         }
     }
 
@@ -139,14 +140,14 @@ private fun SingerDetailContent(viewModel: SingerDetailViewModel) {
             )
         }
 
-        // 顶部固定导航栏：透明度随 progress 变化（0=透明，1=不透明）
+        // 顶部固定导航栏：背景与文字都按 topBarAlpha 透明度渐变（颜色恒为 firstText）
         CommonTopAppBar(
             modifier = Modifier
                 .background(colors.background.copy(alpha = topBarAlpha))
                 .statusBarsPadding(),
             title = artistDetail.author_name ?: "",
             backgroundColor = Color.Transparent,
-            contentColor = if (topBarAlpha > 0.5f) colors.firstText else Color.White,
+            contentColor = colors.firstText.copy(alpha = topBarAlpha),
             leftIconResId = R.drawable.ic_back,
             leftClick = { NavController.instance.popBackStack() }
         )
