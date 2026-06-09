@@ -66,14 +66,15 @@ class SingerDetailViewModel @Inject constructor(
 
     var songCount by mutableIntStateOf(0)
     var songListFlow by mutableStateOf<Flow<PagingData<SingerSongItem>>?>(null)
-    private var currentSingerId by mutableStateOf(0L)
+    var currentSingerId by mutableStateOf(0L)
 
     // 添加到歌单
     var showAddToPlaylistSheet by mutableStateOf(false)
     var songsToAdd by mutableStateOf<List<Song>>(emptyList())
 
-    fun buildSongListPager(singerId: Long) {
-        currentSingerId = singerId
+    fun buildSongListPager() {
+        val singerId = currentSingerId
+        if (singerId <= 0) return
         selectedMap.clear()
         isAllSelected = false
 
@@ -103,9 +104,7 @@ class SingerDetailViewModel @Inject constructor(
         sortType = type
         showSortDropdown = false
         // 重新构建分页，让列表按新的排序刷新
-        if (currentSingerId > 0) {
-            buildSongListPager(currentSingerId)
-        }
+        buildSongListPager()
     }
 
     // 一次获取全部歌曲
@@ -155,11 +154,11 @@ class SingerDetailViewModel @Inject constructor(
 
     // ==================== 歌手 MV ====================
     var mvListFlow by mutableStateOf<Flow<PagingData<MvInfo>>?>(null)
-    private var currentMvSingerId by mutableStateOf(0L)
+    var currentMvTag by mutableStateOf("all")
 
-    fun buildMvListPager(singerId: Long) {
-        if (currentMvSingerId == singerId && mvListFlow != null) return
-        currentMvSingerId = singerId
+    fun buildMvListPager() {
+        val singerId = currentSingerId
+        if (singerId <= 0 || mvListFlow != null) return
         mvListFlow = buildPager(
             transformListBlock = { result ->
                 result?.data?.let {
@@ -171,7 +170,7 @@ class SingerDetailViewModel @Inject constructor(
                     id = singerId.toInt(),
                     page = page.toString(),
                     pagesize = pageSize.toString(),
-                    tag = "all"
+                    tag = currentMvTag
                 )
             }
         )

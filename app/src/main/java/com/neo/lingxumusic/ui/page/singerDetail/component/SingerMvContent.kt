@@ -16,6 +16,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -25,15 +27,29 @@ import com.neo.lingxumusic.R
 import com.neo.lingxumusic.model.MvInfo
 import com.neo.lingxumusic.ui.common.CommonIcon
 import com.neo.lingxumusic.ui.common.CommonNetworkImage
+import com.neo.lingxumusic.ui.common.CommonTabLayout
+import com.neo.lingxumusic.ui.common.CommonTabLayoutStyle
 import com.neo.lingxumusic.ui.theme.AppColorsProvider
 import com.neo.lingxumusic.utils.StringUtil
 import com.neo.lingxumusic.utils.cdp
 import com.neo.lingxumusic.utils.csp
 import com.neo.lingxumusic.utils.replaceSize
+import com.neo.lingxumusic.viewmodel.singerDetail.SingerDetailViewModel
+
+// MV 分类标签
+private val MV_TAG_TEXTS = listOf("官方", "现场", "饭制", "歌手发布", "全部")
+private val MV_TAG_VALUES = listOf("official", "live", "fan", "artist", "all")
+
 
 fun LazyListScope.singerMvContent(
     mvList: LazyPagingItems<MvInfo>
 ) {
+    // MV 分类 tab（吸附顶部）：stickyHeader 块自带 Composable 上下文
+    stickyHeader {
+        MvTagTabBar()
+    }
+
+    // MV 列表
     items(
         count = mvList.itemCount,
         key = mvList.itemKey { it.video_id }
@@ -46,6 +62,68 @@ fun LazyListScope.singerMvContent(
                 modifier = Modifier.padding(horizontal = 24.cdp, vertical = 12.cdp)
             )
         }
+    }
+}
+
+
+@Composable
+private fun MvTagTabBar() {
+    val viewModel: SingerDetailViewModel = androidx.hilt.navigation.compose.hiltViewModel()
+    val colors = AppColorsProvider.current
+    val selectedIndex = MV_TAG_VALUES.indexOf(viewModel.currentMvTag).coerceAtLeast(0)
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(colors.background)
+    ) {
+        CommonTabLayout(
+            selectedIndex = selectedIndex,
+            tabTexts = MV_TAG_TEXTS,
+            backgroundColor = colors.background,
+            selectedTextColor = colors.firstText,
+            unselectedTextColor = colors.secondText,
+            style = CommonTabLayoutStyle(
+                isScrollable = true,
+                selectedTextSize = 30.csp,
+                unselectedTextSize = 30.csp,
+                selectedTextBold = true,
+                unselectedTextBold = false,
+                indicatorHeight = 0.cdp,
+                tabHorizontalPadding = 16.cdp,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(80.cdp),
+                // 在文字下方绘制一个半椭圆形背景（颜色比整个 tab 颜色略深一点）
+                tabItemDrawBehindBlock = { position: Int ->
+                    if (position == selectedIndex) {
+                        val w = size.width
+                        val h = size.height
+                        val ellipseW = w * 0.8f
+                        val ellipseH = h * 0.6f
+                        val left = (w - ellipseW) / 2f
+                        val top = (h - ellipseH) / 2f
+                        // 略深于 background 的半透明色
+                        drawRoundRect(
+                            color = colors.firstText.copy(alpha = 0.08f),
+                            topLeft = Offset(left, top),
+                            size = Size(ellipseW, ellipseH),
+                            cornerRadius = androidx.compose.ui.geometry.CornerRadius(
+                                ellipseW / 2f,
+                                ellipseH / 2f
+                            )
+                        )
+                    }
+                }
+            ),
+            onTabSelected = { index ->
+                val tag = MV_TAG_VALUES[index]
+                if (viewModel.currentMvTag != tag) {
+                    viewModel.currentMvTag = tag
+                    viewModel.buildMvListPager()
+                }
+            }
+        )
     }
 }
 

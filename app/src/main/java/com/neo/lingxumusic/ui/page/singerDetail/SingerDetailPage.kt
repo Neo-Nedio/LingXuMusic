@@ -107,13 +107,17 @@ private fun SingerDetailContent(viewModel: SingerDetailViewModel) {
         buildTabText("MV", artistDetail.mv_count)
     )
 
-    val singerIdLong = artistDetail.author_id?.toLongOrNull() ?: 0L
+    // 页面进入时：把 singerId 存到 ViewModel，之后构建分页都从 ViewModel 拿
+    LaunchedEffect(artistDetail.author_id) {
+        val id = artistDetail.author_id?.toLongOrNull() ?: 0L
+        viewModel.currentSingerId = id
+    }
 
     // 根据 tab 切换对应加载（首次切到该 tab 才加载）
     LaunchedEffect(selectedTabIndex) {
         when (selectedTabIndex) {
-            1 -> viewModel.buildSongListPager(singerIdLong)
-            3 -> viewModel.buildMvListPager(singerIdLong)
+            1 -> viewModel.buildSongListPager()
+            3 -> viewModel.buildMvListPager()
         }
     }
 
@@ -273,7 +277,7 @@ private fun Body(
                 AlbumsContent()
             }
             3 -> if (mvList != null) {
-                singerMvContent(mvList = mvList)
+                singerMvContent(mvList)
             }
         }
     }
