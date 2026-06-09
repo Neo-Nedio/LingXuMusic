@@ -20,6 +20,14 @@ interface SingerApi {
         @Query("sort") sort: String,
     ): BaseResult
 
+    @GET("/artist/videos")
+    suspend fun getArtistVideos(
+        @Query("id") id: Int,
+        @Query("page") page: String = "1",
+        @Query("pagesize") pagesize: String = "30",
+        @Query("tag") tag: String,//official: 官方版本，live：现场版本，fan：饭制版本，artist: 歌手发布, all: 获取全部，默认为获取全部
+    ): BaseResult
+
     @GET("/artist/albums")
     suspend fun getArtistAlbums(
         @Query("id") id: Int,
