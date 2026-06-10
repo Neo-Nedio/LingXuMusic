@@ -53,12 +53,7 @@ data class ArtistAlbum(
     val special_tag: String? = null,
     val goods_info: AlbumGoodsInfo? = null,
     val privilege_download: AlbumPrivilegeDownload? = null
-) : Parcelable {
-
-    fun getCoverUrl(size: Int = 480): String? {
-        return sizable_cover?.replace("{size}", size.toString())
-    }
-}
+) : Parcelable
 
 /**
  * 专辑作者
