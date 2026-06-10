@@ -11,6 +11,7 @@ import com.neo.lingxumusic.core.viewState.BaseViewStateViewModel
 import com.neo.lingxumusic.core.viewState.ViewStateMutableLiveData
 import com.neo.lingxumusic.core.viewState.paging.buildPager
 import com.neo.lingxumusic.http.api.SingerApi
+import com.neo.lingxumusic.model.ArtistAlbum
 import com.neo.lingxumusic.model.ArtistDetail
 import com.neo.lingxumusic.model.BaseResult
 import com.neo.lingxumusic.model.MvInfo
@@ -19,6 +20,7 @@ import com.neo.lingxumusic.model.Song
 import com.neo.lingxumusic.model.toSong
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
@@ -176,6 +178,28 @@ class SingerDetailViewModel @Inject constructor(
                     page = page.toString(),
                     pagesize = pageSize.toString(),
                     tag = currentMvTag
+                )
+            }
+        )
+    }
+
+    // ==================== 歌手专辑 ====================
+    var albumListFlow by mutableStateOf<Flow<PagingData<ArtistAlbum>>?>(null)
+
+    fun buildAlbumListPager() {
+        val singerId = currentSingerId
+        if (singerId <= 0 || albumListFlow != null) return
+        albumListFlow = buildPager(
+            transformListBlock = { result ->
+                result?.data?.let {
+                    Gson().fromJson(it, Array<ArtistAlbum>::class.java)?.toList()
+                }
+            },
+            callBlock = { page, pageSize ->
+                singerApi.getArtistAlbums(
+                    id = singerId.toInt(),
+                    page = page.toString(),
+                    pagesize = pageSize.toString()
                 )
             }
         )

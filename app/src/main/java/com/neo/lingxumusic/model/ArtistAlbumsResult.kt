@@ -4,28 +4,6 @@ import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
 
 /**
- * 歌手专辑列表响应
- * 对应接口: /artist/albums
- */
-@Parcelize
-data class ArtistAlbumsResult(
-    val status: Int = 0,
-    val error_code: Int = 0,
-    val errmsg: String? = null,
-    val total: Int = 0,
-    val data: List<ArtistAlbum>? = null,
-    val extra: ArtistAlbumsExtra? = null
-) : Parcelable
-
-/**
- * 分页信息
- */
-@Parcelize
-data class ArtistAlbumsExtra(
-    val page_total: Int = 0
-) : Parcelable
-
-/**
  * 专辑信息
  */
 @Parcelize

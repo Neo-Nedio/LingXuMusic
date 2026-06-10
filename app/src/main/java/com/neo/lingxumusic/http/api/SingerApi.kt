@@ -1,6 +1,5 @@
 package com.neo.lingxumusic.http.api
 
-import com.neo.lingxumusic.model.ArtistAlbumsResult
 import com.neo.lingxumusic.model.BaseResult
 import retrofit2.http.GET
 import retrofit2.http.Query
@@ -33,8 +32,8 @@ interface SingerApi {
         @Query("id") id: Int,
         @Query("page") page: String = "1",
         @Query("pagesize") pagesize: String = "30",
-        @Query("sort") sort: String,
-    ): ArtistAlbumsResult
+        @Query("sort") sort: String = "new",
+    ): BaseResult
 
     @GET("/album/songs")
     suspend fun getAudiosSongs(

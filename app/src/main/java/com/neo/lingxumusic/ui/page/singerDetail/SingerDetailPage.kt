@@ -41,6 +41,7 @@ import com.neo.lingxumusic.ui.page.singerDetail.component.SingerSongsHeader
 import com.neo.lingxumusic.ui.page.singerDetail.component.singerHomeItems
 import com.neo.lingxumusic.ui.page.singerDetail.component.singerSongListItems
 import com.neo.lingxumusic.ui.page.playList.AddToPlaylistPage
+import com.neo.lingxumusic.ui.page.singerDetail.component.singerAlbumItems
 import com.neo.lingxumusic.ui.page.singerDetail.component.singerMvContent
 import com.neo.lingxumusic.ui.theme.AppColorsProvider
 import com.neo.lingxumusic.utils.StringUtil
@@ -113,6 +114,7 @@ private fun SingerDetailContent(viewModel: SingerDetailViewModel) {
     LaunchedEffect(selectedTabIndex) {
         when (selectedTabIndex) {
             1 -> viewModel.buildSongListPager()
+            2 -> viewModel.buildAlbumListPager()
             3 -> viewModel.buildMvListPager()
         }
     }
@@ -220,6 +222,7 @@ private fun Body(
 ) {
     val colors = AppColorsProvider.current
     val songList = viewModel.songListFlow?.collectAsLazyPagingItems()
+    val albumList = viewModel.albumListFlow?.collectAsLazyPagingItems()
     val mvList = viewModel.mvListFlow?.collectAsLazyPagingItems()
 
     LazyColumn(
@@ -269,26 +272,16 @@ private fun Body(
                     singerSongListItems(viewModel = viewModel, songList = songList)
                 }
             }
-            2 -> item(key = "albums") {
-                AlbumsContent()
+            2 -> if (albumList != null) {
+                singerAlbumItems(
+                    albumList = albumList,
+                    onAlbumClick = { /* TODO 跳转专辑详情 */ }
+                )
             }
             3 -> if (mvList != null) {
                 singerMvContent(mvList)
             }
         }
-    }
-}
-
-@Composable
-private fun AlbumsContent() {
-    val colors = AppColorsProvider.current
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(400.cdp),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(text = "专辑列表", color = colors.thirdText, fontSize = 28.csp)
     }
 }
 

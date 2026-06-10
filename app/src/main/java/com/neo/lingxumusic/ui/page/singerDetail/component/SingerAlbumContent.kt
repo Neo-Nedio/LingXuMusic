@@ -18,6 +18,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.paging.compose.LazyPagingItems
+import com.neo.lingxumusic.R
 import com.neo.lingxumusic.model.ArtistAlbum
 import com.neo.lingxumusic.ui.common.CommonNetworkImage
 import com.neo.lingxumusic.ui.theme.AppColorsProvider
@@ -26,13 +28,14 @@ import com.neo.lingxumusic.utils.csp
 import com.neo.lingxumusic.utils.replaceSize
 
 fun LazyListScope.singerAlbumItems(
-    albums: List<ArtistAlbum>,
+    albumList: LazyPagingItems<ArtistAlbum>,
     onAlbumClick: (ArtistAlbum) -> Unit = {}
 ) {
-    items(count = albums.size, key = { albums[it].album_id }) { index ->
+    items(count = albumList.itemCount, key = { albumList[it]?.album_id ?: it }) { index ->
+        val album = albumList[index] ?: return@items
         AlbumItem(
-            album = albums[index],
-            onClick = { onAlbumClick(albums[index]) }
+            album = album,
+            onClick = { onAlbumClick(album) }
         )
     }
 }
@@ -57,8 +60,8 @@ private fun AlbumItem(
             modifier = Modifier
                 .size(120.cdp)
                 .clip(RoundedCornerShape(12.cdp)),
-            placeholder = com.neo.lingxumusic.R.drawable.ic_default_placeholder_video,
-            error = com.neo.lingxumusic.R.drawable.ic_default_placeholder_video
+            placeholder = R.drawable.ic_default_place_holder,
+            error = R.drawable.ic_default_place_holder
         )
 
         // 封面与文字之间的间隔
@@ -78,19 +81,10 @@ private fun AlbumItem(
 
             Spacer(modifier = Modifier.height(8.cdp))
 
-            // 发布时间 · 曲目数
-            val info = buildString {
-                if (!album.publish_date.isNullOrBlank()) {
-                    append(album.publish_date)
-                }
-                if (album.sum_ownercount > 0) {
-                    if (isNotEmpty()) append(" · ")
-                    append("${album.sum_ownercount}首")
-                }
-            }
-            if (info.isNotEmpty()) {
+            // 发布时间
+            if (!album.publish_date.isNullOrBlank()) {
                 Text(
-                    text = info,
+                    text = album.publish_date,
                     color = colors.thirdText,
                     fontSize = 22.csp,
                     maxLines = 1,
