@@ -3,6 +3,7 @@ package com.neo.lingxumusic.ui.page.home
 import android.Manifest
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.pager.HorizontalPager
@@ -90,7 +91,14 @@ private fun Body(onToggleDrawer: () -> Unit) {
             when (pagePosition) {
                 0 -> DiscoveryPage(onToggleDrawer)    // 发现页
                 1 -> PodcastPage(onToggleDrawer)      // 播客页
-                2 -> BrushPage(onToggleDrawer)        // 刷刷页
+                2 -> {
+                    // Brush 页：只有当前页面时才渲染
+                    if (pagePosition == pagerState.currentPage) {
+                        BrushPage(onToggleDrawer)
+                    } else {
+                        Box(modifier = Modifier.fillMaxSize())
+                    }
+                }
                 3 -> MinePage(onToggleDrawer)         // 我的页
             }
         }
