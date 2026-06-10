@@ -1,6 +1,7 @@
 package com.neo.lingxumusic.ui.page.home
 
 import android.Manifest
+import android.os.Build
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -112,6 +113,9 @@ private fun Body(onToggleDrawer: () -> Unit) {
         }
 
         //申请权限
-        Permission(Manifest.permission.POST_NOTIFICATIONS,"通知")
+        // 只在 Android 13+ 才申请通知权限
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            Permission(Manifest.permission.POST_NOTIFICATIONS, "通知")
+        }
     }
 }

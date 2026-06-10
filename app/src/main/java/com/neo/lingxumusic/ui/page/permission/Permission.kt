@@ -66,7 +66,7 @@ fun Permission(
     }
 
     // 显示权限被拒绝的提示弹窗
-    showPermissionDenyDialog(
+    ShowPermissionDenyDialog(
         showDialog = showDialog,
         permissionName = permissionName,
         onRequestAgain = { launcher.launch(permission) },
@@ -75,7 +75,7 @@ fun Permission(
 
 // 权限被拒绝提示弹窗
 @Composable
-private fun showPermissionDenyDialog(
+private fun ShowPermissionDenyDialog(
     showDialog: MutableState<Boolean>,
     permissionName: String,
     onRequestAgain: () -> Unit,
