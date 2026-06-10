@@ -14,7 +14,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -36,7 +35,7 @@ import com.neo.lingxumusic.ui.common.CommonTabLayout
 import com.neo.lingxumusic.ui.common.CommonTabLayoutStyle
 import com.neo.lingxumusic.ui.common.CommonTopAppBar
 import com.neo.lingxumusic.ui.page.singerDetail.component.SingerHeader
-import com.neo.lingxumusic.ui.page.singerDetail.component.SingerSelectionBottomBar
+import com.neo.lingxumusic.ui.common.SelectionBottomBar
 import com.neo.lingxumusic.ui.page.singerDetail.component.SingerSongsHeader
 import com.neo.lingxumusic.ui.page.singerDetail.component.singerHomeItems
 import com.neo.lingxumusic.ui.page.singerDetail.component.singerSongListItems
@@ -120,8 +119,8 @@ private fun SingerDetailContent(viewModel: SingerDetailViewModel) {
     }
 
     // 返回键：选择模式退出
-    BackHandler(enabled = viewModel.isSelectionMode) {
-        viewModel.clearSelection()
+    BackHandler(enabled = viewModel.selectionState.isSelectionMode) {
+        viewModel.selectionState.clearSelection()
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -159,23 +158,29 @@ private fun SingerDetailContent(viewModel: SingerDetailViewModel) {
         )
 
         // 选择模式底部栏（使用 Box.align(Alignment.BottomCenter) 固定在屏幕底部）
-        val songList = viewModel.songListFlow?.collectAsLazyPagingItems()
-        if (viewModel.isSelectionMode) {
+        if (viewModel.selectionState.isSelectionMode) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .align(Alignment.BottomCenter)
             ) {
-                SingerSelectionBottomBar(songList = songList)
+                SelectionBottomBar(
+                    selectionState = viewModel.selectionState,
+                    getSelectedSongs = { indices ->
+                        val songs = viewModel.loadAllSongs()
+                        if (songs.isEmpty()) return@SelectionBottomBar null
+                        indices.mapNotNull { songs.getOrNull(it) }.takeIf { it.isNotEmpty() }
+                    }
+                )
             }
         }
     }
 
     // 添加到歌单弹窗
     AddToPlaylistPage(
-        songs = viewModel.songsToAdd,
-        visible = viewModel.showAddToPlaylistSheet,
-        onDismiss = { viewModel.showAddToPlaylistSheet = false }
+        songs = viewModel.selectionState.songsToAdd,
+        visible = viewModel.selectionState.showAddToPlaylistSheet,
+        onDismiss = { viewModel.selectionState.showAddToPlaylistSheet = false }
     )
 }
 

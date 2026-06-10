@@ -2,11 +2,11 @@ package com.neo.lingxumusic.viewmodel.singerDetail
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.paging.PagingData
 import com.google.gson.Gson
+import com.neo.lingxumusic.core.viewState.selection.SelectionState
 import com.neo.lingxumusic.core.viewState.BaseViewStateViewModel
 import com.neo.lingxumusic.core.viewState.ViewStateMutableLiveData
 import com.neo.lingxumusic.core.viewState.paging.buildPager
@@ -20,7 +20,6 @@ import com.neo.lingxumusic.model.Song
 import com.neo.lingxumusic.model.toSong
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
@@ -67,23 +66,19 @@ class SingerDetailViewModel @Inject constructor(
     // ==================== 歌手歌曲 ====================
     var sortType by mutableStateOf(1)
     var showSortDropdown by mutableStateOf(false)
-    var isSelectionMode by mutableStateOf(false)
-    val selectedMap = mutableStateMapOf<Int, Boolean>()
-    var isAllSelected by mutableStateOf(false)
+
+    // 选择模式状态
+    val selectionState = SelectionState()
 
     var songCount by mutableIntStateOf(0)
     var songListFlow by mutableStateOf<Flow<PagingData<SingerSongItem>>?>(null)
     var currentSingerId by mutableStateOf(0L)
 
-    // 添加到歌单
-    var showAddToPlaylistSheet by mutableStateOf(false)
-    var songsToAdd by mutableStateOf<List<Song>>(emptyList())
-
     fun buildSongListPager() {
         val singerId = currentSingerId
         if (singerId <= 0) return
-        selectedMap.clear()
-        isAllSelected = false
+        selectionState.selectedMap.clear()
+        selectionState.isAllSelected = false
 
         songListFlow = buildPager(
             transformListBlock = { result ->
@@ -128,35 +123,6 @@ class SingerDetailViewModel @Inject constructor(
                 Gson().fromJson(it, Array<SingerSongItem>::class.java)?.map { it.toSong() }
             }.orEmpty()
         } else emptyList()
-    }
-
-    fun toggleSelectionMode() {
-        isSelectionMode = !isSelectionMode
-        if (!isSelectionMode) {
-            clearSelection()
-        }
-    }
-
-    fun clearSelection() {
-        isSelectionMode = false
-        selectedMap.keys.forEach { selectedMap[it] = false }
-        isAllSelected = false
-    }
-
-    fun toggleSongSelection(index: Int) {
-        selectedMap[index] = !(selectedMap[index] ?: false)
-    }
-
-    fun selectAll() {
-        repeat(songCount) { index ->
-            selectedMap[index] = true
-        }
-        isAllSelected = true
-    }
-
-    fun clearSongSelection() {
-        selectedMap.keys.forEach { selectedMap[it] = false }
-        isAllSelected = false
     }
 
     // ==================== 歌手 MV ====================

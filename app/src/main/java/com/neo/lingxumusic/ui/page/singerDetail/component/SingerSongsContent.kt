@@ -21,28 +21,22 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.text.font.FontWeight
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.paging.compose.LazyPagingItems
-import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
 import com.neo.lingxumusic.R
 import com.neo.lingxumusic.core.MusicPlayController
 import com.neo.lingxumusic.model.SingerSongItem
-import com.neo.lingxumusic.model.Song
 import com.neo.lingxumusic.model.toSong
 import com.neo.lingxumusic.ui.common.CommonIcon
 import com.neo.lingxumusic.ui.page.playMusic.component.SongItem
 import com.neo.lingxumusic.ui.theme.AppColorsProvider
 import com.neo.lingxumusic.utils.cdp
 import com.neo.lingxumusic.utils.csp
-import com.neo.lingxumusic.utils.showToast
 import com.neo.lingxumusic.viewmodel.singerDetail.SingerDetailViewModel
-import kotlinx.coroutines.launch
 
 
 //歌曲
@@ -61,14 +55,14 @@ fun LazyListScope.singerSongListItems(
             SongItem(
                 index = index,
                 song = song,
-                isSelectionMode = viewModel.isSelectionMode,
-                isSelected = viewModel.selectedMap[index] ?: false,
+                isSelectionMode = viewModel.selectionState.isSelectionMode,
+                isSelected = viewModel.selectionState.selectedMap[index] ?: false,
                 onSelectClick = { idx ->
-                    viewModel.toggleSongSelection(idx)
+                    viewModel.selectionState.toggleSelect(idx)
                 },
                 onClick = {
-                    if (viewModel.isSelectionMode) {
-                        viewModel.toggleSongSelection(index)
+                    if (viewModel.selectionState.isSelectionMode) {
+                        viewModel.selectionState.toggleSelect(index)
                     } else {
                         MusicPlayController.addSong(song)
                     }
@@ -97,7 +91,7 @@ fun SingerSongsHeader(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.End
         ) {
-            if (!viewModel.isSelectionMode) {
+            if (!viewModel.selectionState.isSelectionMode) {
                 SortSelector(
                     currentSort = viewModel.sortType,
                     showDropdown = viewModel.showSortDropdown,
@@ -110,7 +104,7 @@ fun SingerSongsHeader(
                 tint = colors.firstIcon,
                 modifier = Modifier
                     .size(32.cdp)
-                    .clickable { viewModel.toggleSelectionMode() }
+                    .clickable { viewModel.selectionState.toggleSelectionMode() }
             )
         }
 
@@ -139,124 +133,6 @@ fun SingerSongsHeader(
     }
 }
 
-
-//底部弹窗
-@Composable
-fun SingerSelectionBottomBar(
-    songList: LazyPagingItems<SingerSongItem>? = null
-) {
-    val viewModel: SingerDetailViewModel = hiltViewModel()
-    val scope = rememberCoroutineScope()
-    // 优先使用外部传入的 songList，否则从 viewModel 获取
-    val effectiveSongList = songList ?: viewModel.songListFlow?.collectAsLazyPagingItems()
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 32.cdp, vertical = 16.cdp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(AppColorsProvider.current.card, RoundedCornerShape(16.cdp))
-                .padding(vertical = 16.cdp),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // 全选 / 取消全选
-            BottomBarOptionItem(
-                text = if (viewModel.isAllSelected) "取消全选" else "全选",
-                onClick = {
-                    if (viewModel.isAllSelected) viewModel.clearSongSelection()
-                    else viewModel.selectAll()
-                }
-            )
-            // 播放
-            BottomBarOptionItem(
-                text = "播放",
-                onClick = {
-                    scope.launch {
-                        val selectedSongs = extractSelectedSongs(
-                            viewModel, effectiveSongList, "没有可播放的歌曲"
-                        ) ?: return@launch
-                        MusicPlayController.songList.clear()
-                        MusicPlayController.setDataSource(
-                            selectedSongs,
-                            selectedSongs.firstOrNull()?.hash
-                        )
-                        MusicPlayController.showBottomMusicPlay = false
-                        MusicPlayController.showPlayMusicSheet = true
-                        viewModel.clearSelection()
-                    }
-                }
-            )
-            // 添加到歌单
-            BottomBarOptionItem(
-                text = "添加到歌单",
-                onClick = {
-                    scope.launch {
-                        val selectedSongs = extractSelectedSongs(
-                            viewModel, effectiveSongList, "没有可添加的歌曲"
-                        ) ?: return@launch
-                        viewModel.songsToAdd = selectedSongs
-                        viewModel.showAddToPlaylistSheet = true
-                    }
-                }
-            )
-        }
-    }
-}
-
-
-@Composable
-private fun BottomBarOptionItem(text: String, onClick: () -> Unit) {
-    Text(
-        text = text,
-        fontSize = 22.csp,
-        color = AppColorsProvider.current.firstText,
-        modifier = Modifier
-            .clickable(onClick = onClick)
-            .padding(horizontal = 12.cdp, vertical = 8.cdp)
-    )
-}
-
-private suspend fun extractSelectedSongs(
-    viewModel: SingerDetailViewModel,
-    songList: LazyPagingItems<SingerSongItem>?,
-    emptyTip: String,
-): List<Song>? {
-    // 过滤出已经选择的歌曲索引
-    val selectedIndices = viewModel.selectedMap.filter { it.value }.keys.sorted()
-    if (selectedIndices.isEmpty()) {
-        showToast("请先选择歌曲")
-        return null
-    }
-    // 判断歌曲是否加载完全
-    val maxIndex = selectedIndices.last()
-    var songs = songList?.toSongList().orEmpty()
-    if (maxIndex >= songs.size) {
-        songs = viewModel.loadAllSongs()
-    }
-    if (songs.isEmpty()) {
-        showToast("网络请求失败，请稍后重试")
-        viewModel.clearSelection()
-        return null
-    }
-    // 选出歌曲
-    val selectedSongs = selectedIndices.mapNotNull { songs.getOrNull(it) }
-    if (selectedSongs.isEmpty()) {
-        showToast(emptyTip)
-        viewModel.clearSelection()
-        return null
-    }
-    return selectedSongs
-}
-
-
-private fun LazyPagingItems<SingerSongItem>.toSongList(): List<Song> {
-    return (0 until itemCount).mapNotNull { get(it)?.toSong() }
-}
 
 
 @Composable

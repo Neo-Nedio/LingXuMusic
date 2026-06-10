@@ -53,6 +53,7 @@ import com.neo.lingxumusic.ui.common.CommonIcon
 import com.neo.lingxumusic.ui.common.CommonNetworkImage
 import com.neo.lingxumusic.ui.common.CommonTopAppBar
 import com.neo.lingxumusic.ui.common.MarqueeText
+import com.neo.lingxumusic.ui.common.SelectionBottomBar
 import com.neo.lingxumusic.ui.page.playMusic.BottomMusicPlayPadding
 import com.neo.lingxumusic.ui.page.playMusic.component.SongItem
 import com.neo.lingxumusic.ui.theme.AppColorsProvider
@@ -77,29 +78,29 @@ fun PlaylistPage(playlist: PlaylistBrief) {
     // 选择模式状态
     // 记录进入选择模式前底部播放弹窗的状态
     // 监听选择模式变化，控制底部播放弹窗显示
-    if (viewModel.isSelectionMode) {
+    if (viewModel.selectionState.isSelectionMode) {
         if (MusicPlayController.showBottomMusicPlay) {
-            viewModel.lastBottomPlayState = true
+            viewModel.selectionState.lastBottomPlayState = true
             MusicPlayController.showBottomMusicPlay = false
         }
     } else {
-        if (viewModel.lastBottomPlayState) {
+        if (viewModel.selectionState.lastBottomPlayState) {
             MusicPlayController.showBottomMusicPlay = true
-            viewModel.lastBottomPlayState = false
+            viewModel.selectionState.lastBottomPlayState = false
         }
     }
 
     // 歌曲选择状态 Map<index, Boolean>，根据歌曲数量初始化
-    if (viewModel.selectedMap.isEmpty()) {
-        viewModel.initSelectedMap(playlist.count)
+    if (viewModel.selectionState.selectedMap.isEmpty()) {
+        viewModel.selectionState.initSelectedMap(playlist.count)
     }
 
     // 监听返回键，退出选择模式时恢复底部播放栏状态
-    BackHandler(enabled = viewModel.isSelectionMode) {
-        viewModel.clearSelection()
-        if (viewModel.lastBottomPlayState) {
+    BackHandler(enabled = viewModel.selectionState.isSelectionMode) {
+        viewModel.selectionState.clearSelection()
+        if (viewModel.selectionState.lastBottomPlayState) {
             MusicPlayController.showBottomMusicPlay = true
-            viewModel.lastBottomPlayState = false
+            viewModel.selectionState.lastBottomPlayState = false
         }
     }
 
@@ -137,7 +138,7 @@ fun PlaylistPage(playlist: PlaylistBrief) {
                     playlist,
                     state,
                     if (showPlayListTitleThreshold) playlist.displayName() else "歌单", // 动态标题
-                    onToggleSelectionMode = { viewModel.toggleSelectionMode() }
+                    onToggleSelectionMode = { viewModel.selectionState.toggleSelectionMode() }
                 )
             }
         ) {
@@ -145,16 +146,29 @@ fun PlaylistPage(playlist: PlaylistBrief) {
         }
 
         // 选择模式底部栏
-        if (viewModel.isSelectionMode) {
-            SelectionBottomBar()
+        val songListForSelection = viewModel.songListFlow?.collectAsLazyPagingItems()
+        if (viewModel.selectionState.isSelectionMode) {
+            SelectionBottomBar(
+                selectionState = viewModel.selectionState,
+                getSelectedSongs = { indices ->
+                    var songs = (0 until (songListForSelection?.itemCount ?: 0)).mapNotNull { songListForSelection?.get(it) }
+                    if ((indices.lastOrNull() ?: 0) >= songs.size) {
+                        songs = viewModel.loadAllSongs()
+                    }
+                    if (songs.isEmpty()) return@SelectionBottomBar null
+                    indices.mapNotNull { songs.getOrNull(it) }.takeIf { it.isNotEmpty() }
+                },
+                showDelete = viewModel.playlist.type == 0,
+                onDelete = { songs -> viewModel.deleteSongsFromPlaylist(songs) }
+            )
         }
     }
 
     // 添加到歌单弹窗
     AddToPlaylistPage(
-        songs = viewModel.songsToAdd,
-        visible = viewModel.showAddToPlaylistSheet,
-        onDismiss = { viewModel.showAddToPlaylistSheet = false }
+        songs = viewModel.selectionState.songsToAdd,
+        visible = viewModel.selectionState.showAddToPlaylistSheet,
+        onDismiss = { viewModel.selectionState.showAddToPlaylistSheet = false }
     )
 
     // 删除歌曲状态弹窗
@@ -163,7 +177,7 @@ fun PlaylistPage(playlist: PlaylistBrief) {
         when (deleteViewState) {
             is ViewState.Success -> {
                 showToast("删除成功")
-                viewModel.clearSelection()
+                viewModel.selectionState.clearSelection()
                 viewModel.deleteSongsResult.value = null
                 // 刷新歌单歌曲列表
                 viewModel.songListFlow = null
@@ -251,11 +265,11 @@ private fun CollapsingToolbarScope.ScrollHeader(
         rightClick = onToggleSelectionMode,
         leftClick = {
             // 选择模式开启时，点击返回按钮退出选择模式并恢复底部播放栏
-            if (viewModel.isSelectionMode) {
-                viewModel.clearSelection()
-                if (viewModel.lastBottomPlayState) {
+            if (viewModel.selectionState.isSelectionMode) {
+                viewModel.selectionState.clearSelection()
+                if (viewModel.selectionState.lastBottomPlayState) {
                     MusicPlayController.showBottomMusicPlay = true
-                    viewModel.lastBottomPlayState = false
+                    viewModel.selectionState.lastBottomPlayState = false
                 }
             }
             NavController.instance.popBackStack()
@@ -447,10 +461,10 @@ private fun Body() {
                         SongItem(
                             index = index,
                             song = item,
-                            isSelectionMode = viewModel.isSelectionMode,
-                            isSelected = viewModel.selectedMap[index] ?: false,
+                            isSelectionMode = viewModel.selectionState.isSelectionMode,
+                            isSelected = viewModel.selectionState.selectedMap[index] ?: false,
                             onSelectClick = { idx ->
-                                viewModel.selectedMap[idx] = !(viewModel.selectedMap[idx] ?: false)
+                                viewModel.selectionState.toggleSelect(idx)
                             },
                             onClick = {
                                 scope.launch {
@@ -583,109 +597,6 @@ private fun PlayListHeader(playlist: PlaylistBrief, songList: LazyPagingItems<So
     }
 }
 
-// 选择模式底部栏
-@Composable
-private fun SelectionBottomBar() {
-    val viewModel: PlayListViewModel = hiltViewModel()
-    val scope = rememberCoroutineScope()
-    val songList = viewModel.songListFlow?.collectAsLazyPagingItems()
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 32.cdp, vertical = 16.cdp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(
-                    AppColorsProvider.current.card,
-                    RoundedCornerShape(16.cdp)
-                )
-                .padding(vertical = 16.cdp),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // 全选 / 取消全选
-            BottomBarOptionItem(
-                text = if (viewModel.isAllSelected) "取消全选" else "全选",
-                onClick = {
-                    if (viewModel.isAllSelected) {
-                        viewModel.clearSongSelection()
-                    } else {
-                        viewModel.selectAll()
-                    }
-                }
-            )
-            // 播放
-            BottomBarOptionItem(
-                text = "播放",
-                onClick = {
-                    scope.launch {
-                        val selectedSongs = extractSelectedSongs(
-                            viewModel, songList, "没有可播放的歌曲"
-                        ) ?: return@launch
-                        // 开始播放
-                        MusicPlayController.songList.clear()
-                        MusicPlayController.setDataSource(
-                            selectedSongs,
-                            selectedSongs.firstOrNull()?.hash
-                        )
-                        MusicPlayController.showBottomMusicPlay = false
-                        MusicPlayController.showPlayMusicSheet = true
-                        viewModel.clearSelection()
-                    }
-                }
-            )
-            // 添加到歌单
-            BottomBarOptionItem(
-                text = "添加到歌单",
-                onClick = {
-                    scope.launch {
-                        val selectedSongs = extractSelectedSongs(
-                            viewModel, songList, "没有可添加的歌曲"
-                        ) ?: return@launch
-                        // 显示添加到歌单弹窗
-                        viewModel.songsToAdd = selectedSongs
-                        viewModel.showAddToPlaylistSheet = true
-                        viewModel.clearSelection()
-                    }
-                }
-            )
-            if(viewModel.playlist.type == 0 ){
-                // 删除
-                BottomBarOptionItem(
-                    text = "删除",
-                    onClick = {
-                        scope.launch {
-                            val selectedSongs = extractSelectedSongs(
-                                viewModel, songList, "没有可删除的歌曲"
-                            ) ?: return@launch
-                            viewModel.deleteSongsFromPlaylist(selectedSongs)
-                        }
-                    }
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun BottomBarOptionItem(
-    text: String,
-    onClick: () -> Unit,
-) {
-    Text(
-        text = text,
-        fontSize = 22.csp,
-        color = AppColorsProvider.current.firstText,
-        modifier = Modifier
-            .clickable(onClick = onClick)
-            .padding(horizontal = 12.cdp, vertical = 8.cdp)
-    )
-}
-
 private fun LazyPagingItems<Song>.toSongList(): List<Song> {
     return (0 until itemCount).mapNotNull { get(it) }
 }
@@ -696,45 +607,4 @@ private fun PlaylistBrief.displayName(): String {
 
 private fun PlaylistBrief.descriptionText(): String {
     return intro?.takeIf { it.isNotBlank() } ?: "暂无描述"
-}
-
-private fun PlaylistBrief.playCountValue(): Number {
-    return count
-}
-
-/**
- * 从已选索引中提取歌曲列表
- * 如果歌曲未完全加载，会自动调用 loadAllSongs 加载全部
- * @return 提取成功返回歌曲列表，失败返回 null（已处理提示和清空选择）
- */
-private suspend fun extractSelectedSongs(
-    viewModel: PlayListViewModel,
-    songList: LazyPagingItems<Song>?,
-    emptyTip: String,
-): List<Song>? {
-    // 过滤出已经选择的歌曲索引
-    val selectedIndices = viewModel.selectedMap.filter { it.value }.keys.sorted()
-    if (selectedIndices.isEmpty()) {
-        showToast("请先选择歌曲")
-        return null
-    }
-    // 判断歌曲是否加载完全
-    val maxIndex = selectedIndices.last()
-    var songs = songList?.toSongList().orEmpty()
-    if (maxIndex >= songs.size) {
-        songs = viewModel.loadAllSongs()
-    }
-    if (songs.isEmpty()) {
-        showToast("网络请求失败，请稍后重试")
-        viewModel.clearSelection()
-        return null
-    }
-    // 选出歌曲
-    val selectedSongs = selectedIndices.mapNotNull { songs.getOrNull(it) }
-    if (selectedSongs.isEmpty()) {
-        showToast(emptyTip)
-        viewModel.clearSelection()
-        return null
-    }
-    return selectedSongs
 }
