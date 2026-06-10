@@ -18,4 +18,6 @@ object Routes {
     const val MV_PLAY = "mvPlay/{albumAudioId}/{songName}/{singerName}"
 
     const val SINGER_DETAIL = "singerDetail/{singerId}"
+
+    const val ALBUM_DETAIL = "albumDetail/{albumId}"
 }

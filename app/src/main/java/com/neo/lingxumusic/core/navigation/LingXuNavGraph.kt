@@ -14,6 +14,7 @@ import androidx.navigation.compose.composable
 import com.neo.lingxumusic.ui.page.home.HomePage
 import com.neo.lingxumusic.ui.page.login.LoginPage
 import com.neo.lingxumusic.ui.page.mine.UserFollowPage
+import com.neo.lingxumusic.ui.page.singerDetail.albumDetail.AlbumDetailPage
 import com.neo.lingxumusic.ui.page.playList.PlaylistPage
 import com.neo.lingxumusic.ui.page.playMusic.MvPlayPage
 import com.neo.lingxumusic.ui.page.profile.ProfilePage
@@ -23,6 +24,7 @@ import androidx.navigation.navArgument
 import com.neo.lingxumusic.model.PlaylistBrief
 import com.neo.lingxumusic.model.RankInfo
 import com.neo.lingxumusic.model.Song
+import com.neo.lingxumusic.model.ArtistAlbum
 import com.neo.lingxumusic.ui.page.commemt.SongCommentPage
 import com.neo.lingxumusic.ui.page.discovery.component.RankAudioPage
 import com.neo.lingxumusic.ui.page.singerDetail.SingerDetailPage
@@ -107,6 +109,13 @@ fun LingXuNavGraph(
         ) { backStackEntry ->
             val singerId = backStackEntry.arguments?.getLong("singerId") ?: 0
             SingerDetailPage(singerId)
+        }
+
+        composable(Routes.ALBUM_DETAIL) {
+            navController.previousBackStackEntry
+                ?.savedStateHandle
+                ?.get<ArtistAlbum>(RoutesConstant.KEY_ALBUM)
+                ?.let { AlbumDetailPage(it) }
         }
 
     }

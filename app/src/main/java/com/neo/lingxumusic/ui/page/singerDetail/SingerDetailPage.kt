@@ -273,10 +273,7 @@ private fun Body(
                 }
             }
             2 -> if (albumList != null) {
-                singerAlbumItems(
-                    albumList = albumList,
-                    onAlbumClick = { /* TODO 跳转专辑详情 */ }
-                )
+                singerAlbumItems(albumList = albumList)
             }
             3 -> if (mvList != null) {
                 singerMvContent(mvList)
